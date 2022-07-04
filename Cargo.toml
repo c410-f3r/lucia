@@ -1,0 +1,106 @@
+[dependencies]
+arrayvec = { default-features = false, features = ["serde"], version = "0.7" }
+async-trait = { default-features = false, version = "0.1" }
+bytes = { default-features = false, version = "1.0" }
+cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "1.0" }
+serde = { default-features = false, features = ["derive"], version = "1.0" }
+serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
+
+###### API ######
+
+# Ethereum
+
+ethabi = { default-features = false, features = ["full-serde"], optional = true, version = "17.0" }
+ethereum-types = { default-features = false, features = ["serialize"], optional = true, version = "0.13" }
+
+# Solana
+
+base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
+bincode = { default-features = false, optional = true, version = "1.0" }
+bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
+ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
+solana-program = { default-features = false, optional = true, version = "1.0" }
+
+###### Backend ######
+
+# Reqwest
+
+reqwest = { default-features = false, features = ["json"], optional = true, version = "0.11" }
+
+# Surf
+
+surf = { default-features = false, optional = true, version = "2.0" }
+
+# Tokio Tungstenite
+
+futures = { default-features = false, optional = true, version = "0.3" }
+tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], optional = true, version = "0.17" }
+tungstenite = { default-features = false, optional = true, version = "0.17" }
+
+###### Etc ######
+
+async-std = { default-features = false, features = ["default"], optional = true, version = "1.0" }
+hex = { default-features = false, optional = true, version = "0.4" }
+tokio = { default-features = false, optional = true, version = "1.0" }
+tracing = { default-features = false, features = ["attributes"], optional = true, version = "0.1" }
+
+[dev-dependencies]
+async-std = { default-features = false, features = ["attributes", "default"], version = "1.0" }
+surf = { default-features = false, features = ["h1-client-rustls"], version = "2.0" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
+
+[features]
+
+# API
+
+age-of-empires-ii = []
+covid-19 = []
+ethereum = [
+  "dep:ethabi",
+  "dep:ethereum-types",
+  "hex",
+]
+json-placeholder = []
+ku-coin = []
+solana = [
+  "dep:base64",
+  "dep:bincode",
+  "dep:bs58",
+  "dep:ed25519-dalek",
+  "tokio"
+]
+
+# Backend
+
+reqwest = ["dep:reqwest", "std"]
+surf = ["dep:surf"]
+tokio-tungstenite = [
+  "dep:futures",
+  "dep:tokio-tungstenite",
+  "dep:tokio",
+  "dep:tungstenite",
+  "std"
+]
+
+# Etc
+
+async-std = ["dep:async-std"]
+default = []
+std = ["arrayvec/std", "cl-aux/std", "serde/std"]
+tokio = ["std", "dep:tokio", "tokio/time"]
+tracing = ["dep:tracing"]
+
+_integration-tests = ["reqwest?/rustls-tls"]
+_surf-hack = ["surf?/h1-client-no-tls"]
+
+[package]
+categories = ["asynchronous", "data-structures", "network-programming"]
+description = "A flexible client API framework as well as a set of API collections"
+edition = "2021"
+keywords = ["api", "client", "io", "network"]
+license = "MIT"
+name = "lucia"
+readme = "README.md"
+repository = "https://github.com/c410-f3r/lucia"
+version = "0.1.0"
