@@ -3,17 +3,17 @@
 A flexible client API framework as well as a set of API collections written in Rust.
 
 ```rust
-// lucia = { default-features = false, features = ["reqwest, solana, "tokio-tungstenite"], version = "0.1" }
+// lucia = { default-features = false, features = ["reqwest", "solana", "tokio-tungstenite"], version = "0.1" }
 
 use lucia::{
   api::blockchain::solana::Solana,
-  network::{HttpTransport, Transport, WsTransport},
+  network::{Transport, TransportWrapper},
   Api, Client,
 };
 
 async fn http() -> lucia::Result<()> {
   let (mut rb, mut trans) = Client::new(
-    HttpTransport::with_reqwest(),
+    TransportWrapper::with_reqwest(),
     Solana::from_origin("https://api.mainnet-beta.solana.com")?,
   )
   .into_parts();
@@ -27,7 +27,9 @@ async fn http() -> lucia::Result<()> {
   let first_req = rb.get_slot(None);
   let second_req = rb.get_slot(None);
   let mut responses = Vec::new();
-  trans.send_retrieve_and_decode_many(&mut responses, &[first_req, second_req], rb.tp_mut()).await?;
+  trans
+    .send_retrieve_and_decode_many(&mut responses, &[first_req, second_req], rb.tp_mut())
+    .await?;
   println!("{:?}", responses);
 
   Ok(())
@@ -38,10 +40,10 @@ async fn web_socket() -> lucia::Result<()> {
 
   let api = Solana::from_origin("wss://api.mainnet-beta.solana.com")?;
   let (mut rb, mut trans) =
-    Client::new(WsTransport::with_tokio_tungstenite(&api).await?, api).into_parts();
+    Client::new(TransportWrapper::with_tokio_tungstenite(&api).await?, api).into_parts();
 
   let sub = rb.slot_subscribe();
-  let sub_id = trans.send_retrieve_and_decode_one(&sub, rb.tp_mut())).await?.result;
+  let sub_id = trans.send_retrieve_and_decode_one(&sub, rb.tp_mut()).await?.result;
 
   let _data = trans.backend.next().await;
   println!("{:?}", _data);
@@ -49,7 +51,7 @@ async fn web_socket() -> lucia::Result<()> {
   println!("{:?}", _more_data);
 
   let unsub = rb.slot_unsubscribe(sub_id);
-  trans.send(&mut rb, &unsub).await?;
+  trans.send(&unsub, rb.tp_mut()).await?;
 
   Ok(())
 }
