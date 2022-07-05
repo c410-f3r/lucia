@@ -20,6 +20,11 @@ jobs:
           profile: minimal
           toolchain: beta
 
+      - uses: actions-rs/install@v0.1
+        with:
+          crate: rust-tools
+          use-tool-cache: true
+
       - uses: Swatinem/rust-cache@v1
 
       - run: .scripts/internal-tests.sh

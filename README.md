@@ -1,6 +1,6 @@
 # Lucia
 
-[![CI](https://github.com/c410-f3r/lucia/workflows/CI/badge.svg)](https://github.com/c410-f3r/lucia/actions?query=workflow%3ACI)
+[![CI](https://github.com/c410-f3r/lucia/workflows/Tests/badge.svg)](https://github.com/c410-f3r/lucia/actions/workflows/tests.yaml)
 [![crates.io](https://img.shields.io/crates/v/lucia.svg)](https://crates.io/crates/lucia)
 [![Documentation](https://docs.rs/lucia/badge.svg)](https://docs.rs/lucia)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
