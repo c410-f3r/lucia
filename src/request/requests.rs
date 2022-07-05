@@ -10,9 +10,12 @@ use cl_aux::SizeHint;
 use core::{borrow::Borrow, fmt::Debug};
 use serde::{Deserialize, Deserializer};
 
+/// For protocols that allow and process multiple requests in a single call. For example, JSON-RPC.
 pub trait Requests<BU>: SizeHint {
+  /// Everything but tuples return `()`
   type Output;
 
+  /// Process bytes received from a counterpart and generally store them in the passed `buffer`.
   fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output>;
 }
 

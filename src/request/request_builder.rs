@@ -1,13 +1,11 @@
 use crate::{
-  network::{HttpMethod, HttpParams, TransportParams},
+  network::TransportParams,
   protocol::{JsonRequest, JsonRpcRequest},
   types::Id,
 };
 use core::fmt::Debug;
 
 /// Responsible for creating request structures.
-///
-/// Not meant to be created directly, see [crate::Client::new].
 #[derive(Debug)]
 pub struct RequestBuilder<A> {
   pub(crate) _api: A,
@@ -16,15 +14,10 @@ pub struct RequestBuilder<A> {
 }
 
 impl<A> RequestBuilder<A> {
+  /// Creates an instance with valid initial inner values.
   #[inline]
-  pub(crate) fn new(api: A) -> Self {
-    Self {
-      _api: api,
-      _id: 1,
-      _tp: TransportParams {
-        http_params: HttpParams { method: HttpMethod::Get, url: <_>::default() },
-      },
-    }
+  pub fn new(_api: A) -> Self {
+    Self { _api, _id: 1, _tp: TransportParams::dummy() }
   }
 
   /// Mutable reference generally used by [crate::network::Transport] calls.

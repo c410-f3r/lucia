@@ -2,16 +2,18 @@ pub mod endpoint;
 #[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
 
-use crate::types::MaxUrl;
+use crate::{api::Api, types::MaxUrl};
 
 #[derive(Debug)]
 pub struct AgeOfEmpiresII {
   origin: MaxUrl,
 }
 
-impl crate::Api for AgeOfEmpiresII {
+impl Api for AgeOfEmpiresII {
+  type Aux = ();
+
   #[inline]
-  fn from_origin(origin: &str) -> crate::Result<Self> {
+  fn new(origin: &str, _: Self::Aux) -> crate::Result<Self> {
     Ok(Self { origin: origin.try_into()? })
   }
 

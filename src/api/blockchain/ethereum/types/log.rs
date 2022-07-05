@@ -55,6 +55,7 @@ impl Log {
 #[cfg(test)]
 mod tests {
   use crate::api::blockchain::ethereum::types::log::Log;
+  use alloc::vec;
   use ethabi::Address;
   use ethereum_types::{H160, H256};
 

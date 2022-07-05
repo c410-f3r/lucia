@@ -2,6 +2,7 @@ use crate::types::Id;
 use alloc::{borrow::Cow, string::String};
 use core::fmt::{Debug, Display, Formatter};
 
+/// All possible errors are grouped here
 #[derive(Debug)]
 pub enum Error {
   // External

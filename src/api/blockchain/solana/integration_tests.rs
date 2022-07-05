@@ -1,16 +1,19 @@
 use crate::{
-  api::blockchain::solana::{
-    endpoint::{
-      CommitmenOptDataSliceOptEncodingMand, Commitment, CommitmentOptEncoding,
-      CommitmentOptEncodingOpt, DataSlice, GetProgramAccountsReqParams, MintOrProgramId,
+  api::{
+    blockchain::solana::{
+      endpoint::{
+        CommitmenOptDataSliceOptEncodingMand, Commitment, CommitmentOptEncoding,
+        CommitmentOptEncodingOpt, DataSlice, GetProgramAccountsReqParams, MintOrProgramId,
+      },
+      AccountEncoding, Filter, GenericTransaction, InstructionJsonParsedInfo, Memcmp,
+      MemcmpEncodedBytes, MessageInput, Solana, SolanaAddressHash, TransactionEncoding,
+      TransactionInput,
     },
-    AccountEncoding, Filter, GenericTransaction, InstructionJsonParsedInfo, Memcmp,
-    MemcmpEncodedBytes, MessageInput, Solana, SolanaAddressHash, TransactionEncoding,
-    TransactionInput,
+    Api,
   },
   network::Transport,
-  Api,
 };
+use alloc::vec::Vec;
 use ed25519_dalek::Keypair;
 use solana_program::system_instruction::transfer;
 
@@ -128,11 +131,10 @@ _create_http_test!(
       trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result.value.blockhash;
     let message = transfer_message(blockhash, from_public_key);
     let mut buffer = Vec::new();
-    let transaction =
-      TransactionInput::new(&mut buffer, blockhash, message, &[from_keypair]).unwrap();
+    let tx = TransactionInput::new(&mut buffer, blockhash, message, &[from_keypair]).unwrap();
     buffer.clear();
-    let tx_hash =
-      Solana::send_transaction(&mut buffer, None, rb, &transaction, trans).await.unwrap();
+    let req = rb.send_transaction(&mut buffer, None, &tx).unwrap();
+    let tx_hash = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result;
     assert!(Solana::confirm_transaction(None, &tx_hash, rb, trans).await.unwrap());
 
     let req = rb.get_transaction(
@@ -251,7 +253,7 @@ fn alice_keypair() -> [u8; 64] {
 }
 
 fn http() -> Solana {
-  Solana::from_origin("http://localhost:8899").unwrap()
+  Solana::new("http://localhost:8899", None).unwrap()
 }
 
 fn generic_tx_parsed_instruction<'tx>(
@@ -272,5 +274,5 @@ fn transfer_message(blockhash: [u8; 32], from_public_key: [u8; 32]) -> MessageIn
 }
 
 fn ws() -> Solana {
-  Solana::from_origin("ws://localhost:8900").unwrap()
+  Solana::new("ws://localhost:8900", None).unwrap()
 }

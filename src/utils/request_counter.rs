@@ -1,24 +1,24 @@
-use crate::utils::{RequestLimit, _sleep};
-use std::time::Instant;
+use crate::utils::{GenericInstant, RequestLimit, _sleep};
 
 /// Tracks how many requests were performed in a time interval
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct RequestCounter {
-  counter: u64,
-  instant: Instant,
+  counter: u16,
+  instant: GenericInstant,
 }
 
 impl RequestCounter {
   /// If the values defined in [RequestLimit] are in agreement with the **current** values
-  /// of [RequestsCounter], then return `T`. Otherwise, awaits until [RequestsCounter] is updated.
+  /// of [RequestCounter], then return `T`. Otherwise, awaits until [RequestCounter] is updated.
   #[inline]
   pub async fn update_params(&mut self, rl: &RequestLimit) {
-    if rl.limit() == 0 {
-      return;
-    }
-    let now = Instant::now();
+    let now = GenericInstant::now();
     let duration = *rl.duration();
-    let elapsed = now - self.instant;
+    let elapsed = if let Some(elem) = now.checked_duration_since(self.instant) {
+      elem
+    } else {
+      return;
+    };
     if elapsed > duration {
       _debug!("Elapsed is greater than duration. Re-initializing");
       self.counter = 1;
@@ -32,7 +32,7 @@ impl RequestCounter {
         let diff = duration - elapsed;
         _debug!("First recurrent call needs to wait {}ms", diff.as_millis());
         _sleep(diff).await;
-        self.instant = Instant::now();
+        self.instant = GenericInstant::now();
       }
       self.counter = self.counter.wrapping_add(1);
     } else if self.counter >= rl.limit() {
@@ -47,7 +47,7 @@ impl RequestCounter {
 impl Default for RequestCounter {
   #[inline]
   fn default() -> Self {
-    Self { counter: 0, instant: Instant::now() }
+    Self { counter: 0, instant: GenericInstant::now() }
   }
 }
 
@@ -60,7 +60,6 @@ mod tests {
   use tokio::time::sleep;
 
   #[tokio::test]
-  #[ignore]
   async fn awaits_when_called_with_counter_reinitialized() {
     const MS: u64 = 1000;
     const MS_DURATION: Duration = Duration::from_millis(MS);

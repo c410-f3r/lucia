@@ -1,3 +1,19 @@
+#[cfg(feature = "reqwest")]
+mod reqwest;
+#[cfg(feature = "surf")]
+mod surf;
+mod test;
+#[cfg(feature = "tokio-tungstenite")]
+mod tokio_tungstenite;
+
+#[cfg(feature = "reqwest")]
+pub use self::reqwest::*;
+#[cfg(feature = "surf")]
+pub use self::surf::*;
+#[cfg(feature = "tokio-tungstenite")]
+pub use self::tokio_tungstenite::*;
+pub use test::*;
+
 use crate::{
   network::TransportParams,
   utils::{decode_many, decode_one},
@@ -45,7 +61,7 @@ pub trait Transport {
     decode_many(buffer, bytes, requests)
   }
 
-  /// Similar to [send_retrieve_and_decode_many] but expects a single data return from the
+  /// Similar to [Self::send_retrieve_and_decode_many] but expects a single data return from the
   /// counterpart.
   #[inline]
   async fn send_retrieve_and_decode_one<REQ>(

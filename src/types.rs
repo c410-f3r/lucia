@@ -1,3 +1,5 @@
+//! Types used by one or more APIs that are useful for public usage
+
 #![allow(
   // Global types generally used by more than one API
   dead_code

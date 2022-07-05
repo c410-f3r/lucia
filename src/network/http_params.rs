@@ -1,17 +1,19 @@
-use crate::types::MaxUrl;
+use crate::{types::MaxUrl, utils::RequestThrottling};
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) struct HttpParams {
-  pub(crate) method: HttpMethod,
-  pub(crate) url: MaxUrl,
+  pub(crate) _method: HttpMethod,
+  pub(crate) _rt: Option<RequestThrottling>,
+  pub(crate) _url: MaxUrl,
 }
 
 impl HttpParams {
   #[inline]
-  pub(crate) fn _set(&mut self, method: HttpMethod, url: &MaxUrl) {
-    self.method = method;
-    if &self.url != url {
-      self.url = *url;
+  pub(crate) fn _set(&mut self, method: HttpMethod, rt: Option<RequestThrottling>, url: &MaxUrl) {
+    self._method = method;
+    self._rt = rt;
+    if &self._url != url {
+      self._url = *url;
     }
   }
 }

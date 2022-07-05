@@ -11,7 +11,7 @@ use crate::{
     BlockId, Bytes, CallRequest, Ethereum, FilterBuilder, TransactionRequest,
   },
   network::Transport,
-  Client,
+  Pair,
 };
 use alloc::vec::Vec;
 use detokenize::*;
@@ -27,7 +27,7 @@ use tokenize::*;
 pub struct Contract<T> {
   abi: ethabi::Contract,
   address: Address,
-  ethereum: Client<Ethereum, T>,
+  ethereum: Pair<Ethereum, T>,
 }
 
 impl<T> Contract<T>
@@ -36,17 +36,13 @@ where
 {
   /// Creates new Contract Interface given blockchain address and ABI
   #[inline]
-  pub fn new(abi: ethabi::Contract, address: Address, eth: Client<Ethereum, T>) -> Self {
+  pub fn new(abi: ethabi::Contract, address: Address, eth: Pair<Ethereum, T>) -> Self {
     Contract { address, ethereum: eth, abi }
   }
 
   /// Creates new Contract Interface given blockchain address and JSON containing ABI
   #[inline]
-  pub fn from_json(
-    address: Address,
-    eth: Client<Ethereum, T>,
-    json: &[u8],
-  ) -> ethabi::Result<Self> {
+  pub fn from_json(address: Address, eth: Pair<Ethereum, T>, json: &[u8]) -> ethabi::Result<Self> {
     let abi = ethabi::Contract::load(json)?;
     Ok(Self::new(abi, address, eth))
   }
@@ -233,15 +229,24 @@ where
 #[cfg(test)]
 mod tests {
   use crate::{
-    api::blockchain::ethereum::{
-      contract::{Contract, Detokenize, Options},
-      BlockId, BlockNumber, CallRequest, Ethereum,
+    api::{
+      blockchain::ethereum::{
+        contract::{Contract, Detokenize, Options},
+        BlockId, BlockNumber, CallRequest, Ethereum,
+      },
+      Api,
     },
-    network::backend::Test,
+    network::Test,
     protocol::{JsonRpcRequest, JsonRpcResponse},
-    Client,
+    Pair,
   };
-  use alloc::borrow::Cow;
+  use alloc::{
+    borrow::{Cow, ToOwned},
+    format,
+    string::String,
+    vec,
+    vec::Vec,
+  };
   use ethabi::{Address, Token};
   use ethereum_types::{H256, U256};
   use serde::Serialize;
@@ -418,13 +423,9 @@ mod tests {
   }
 
   fn contract(trans: &mut Test) -> Contract<&mut Test> {
-    let client = Client::new(trans, Ethereum { origin: <_>::default() });
-    Contract::from_json(
-      Address::from_low_u64_be(1),
-      client,
-      include_bytes!("./resources/token.json"),
-    )
-    .unwrap()
+    let pair = Pair::new(trans, Ethereum::new("", None).unwrap());
+    Contract::from_json(Address::from_low_u64_be(1), pair, include_bytes!("./resources/token.json"))
+      .unwrap()
   }
 
   fn output<R>() -> R

@@ -15,14 +15,12 @@ pub use filter::*;
 pub use notification::*;
 pub use transaction::*;
 
-use crate::{types::MaxUrl, Api};
+use crate::{api::Api, types::MaxUrl, utils::RequestThrottling};
 use arrayvec::ArrayString;
 use utils::*;
 
 pub(crate) const MAX_BINARY_DATA_LEN: usize = 1024;
 pub(crate) const MAX_TRANSACTION_ACCOUNTS_NUM: usize = 240;
-
-pub type SolanaClient<T> = crate::Client<Solana, T>;
 
 pub(crate) type Epoch = u64;
 pub(crate) type SolanaLogMessage = ArrayString<96>;
@@ -43,12 +41,15 @@ _create_blockchain_constants!(
 #[derive(Debug)]
 pub struct Solana {
   origin: MaxUrl,
+  rt: Option<RequestThrottling>,
 }
 
 impl Api for Solana {
+  type Aux = Option<RequestThrottling>;
+
   #[inline]
-  fn from_origin(origin: &str) -> crate::Result<Self> {
-    Ok(Self { origin: origin.try_into()? })
+  fn new(origin: &str, rt: Self::Aux) -> crate::Result<Self> {
+    Ok(Self { origin: origin.try_into()?, rt })
   }
 
   #[inline]

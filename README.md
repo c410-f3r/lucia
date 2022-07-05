@@ -1,22 +1,25 @@
 # Lucia
 
+[![CI](https://github.com/c410-f3r/lucia/workflows/CI/badge.svg)](https://github.com/c410-f3r/lucia/actions?query=workflow%3ACI)
+[![crates.io](https://img.shields.io/crates/v/lucia.svg)](https://crates.io/crates/lucia)
+[![Documentation](https://docs.rs/lucia/badge.svg)](https://docs.rs/lucia)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Rustc](https://img.shields.io/badge/rustc-1.63-lightgray")](https://blog.rust-lang.org/2022/06/30/Rust-1.62.0.html)
+
 A flexible client API framework as well as a set of API collections written in Rust.
 
 ```rust
 // lucia = { default-features = false, features = ["reqwest", "solana", "tokio-tungstenite"], version = "0.1" }
 
-use lucia::{
-  api::blockchain::solana::Solana,
-  network::{Transport, TransportWrapper},
-  Api, Client,
+use crate::{
+  api::{blockchain::solana::Solana, Api},
+  network::{reqwest, tokio_tungstenite, Transport},
+  Pair,
 };
 
-async fn http() -> lucia::Result<()> {
-  let (mut rb, mut trans) = Client::new(
-    TransportWrapper::with_reqwest(),
-    Solana::from_origin("https://api.mainnet-beta.solana.com")?,
-  )
-  .into_parts();
+async fn http() -> crate::Result<()> {
+  let (mut rb, mut trans) =
+    Pair::new(reqwest(), Solana::new("https://api.mainnet-beta.solana.com", None)?).into_parts();
 
   // Single request
   let req = rb.get_latest_blockhash(None);
@@ -35,19 +38,18 @@ async fn http() -> lucia::Result<()> {
   Ok(())
 }
 
-async fn web_socket() -> lucia::Result<()> {
+async fn web_socket() -> crate::Result<()> {
   use futures::StreamExt;
 
-  let api = Solana::from_origin("wss://api.mainnet-beta.solana.com")?;
-  let (mut rb, mut trans) =
-    Client::new(TransportWrapper::with_tokio_tungstenite(&api).await?, api).into_parts();
+  let api = Solana::new("wss://api.mainnet-beta.solana.com", None)?;
+  let (mut rb, mut trans) = Pair::new(tokio_tungstenite(&api).await?, api).into_parts();
 
   let sub = rb.slot_subscribe();
   let sub_id = trans.send_retrieve_and_decode_one(&sub, rb.tp_mut()).await?.result;
 
-  let _data = trans.backend.next().await;
+  let _data = trans.next().await;
   println!("{:?}", _data);
-  let _more_data = trans.backend.next().await;
+  let _more_data = trans.next().await;
   println!("{:?}", _more_data);
 
   let unsub = rb.slot_unsubscribe(sub_id);
@@ -90,14 +92,6 @@ async fn web_socket() -> lucia::Result<()> {
 |---------------|------------------------------------------------|----|
 |JSONPlaceholder|http://jsonplaceholder.typicode.com             |60%|
 
-## Backend
-
-|Name             |URL                                          |
-|-----------------|---------------------------------------------|
-|reqwest          |https://github.com/seanmonstar/reqwest       |
-|surf             |https://github.com/http-rs/surf              |
-|tokio-tungstenite|https://github.com/snapview/tokio-tungstenite|
-
 ## Code
 
 - No `expect`, `indexing`, `panic` or `unwrap`.
@@ -117,3 +111,11 @@ async fn web_socket() -> lucia::Result<()> {
 |---------|---------------------------------------------------------|
 |HTTP     |https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol|
 |WebSocket|https://en.wikipedia.org/wiki/WebSocket                  |
+
+## Transport implementation
+
+|Name             |URL                                          |
+|-----------------|---------------------------------------------|
+|reqwest          |https://github.com/seanmonstar/reqwest       |
+|surf             |https://github.com/http-rs/surf              |
+|tokio-tungstenite|https://github.com/snapview/tokio-tungstenite|

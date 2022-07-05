@@ -16,7 +16,7 @@ _create_json_endpoint! {
 
   v1_bullet_public() {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Post, api.urls.v1_bullet_public.url());
+      tp._http_params._set(HttpMethod::Post, None, api.urls.v1_bullet_public.url());
       V1BulletPublicReq
     }
   }

@@ -10,20 +10,19 @@ extern crate alloc;
 mod macros;
 
 pub mod api;
-pub mod consts;
 pub mod network;
 pub mod protocol;
 pub mod types;
 pub mod utils;
 
-mod client;
+mod consts;
 mod error;
+mod pair;
 mod request;
 mod tuple_impls;
 
-pub use api::Api;
-pub use client::Client;
 pub use error::Error;
+pub use pair::Pair;
 pub use request::{Request, RequestBuilder, RequestWithAux, Requests};
 
 /// Alias of `core::result::Result<T, lucia::Error>`

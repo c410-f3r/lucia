@@ -17,8 +17,8 @@ _create_json_endpoint! {
 
   v2_currencies(asset: &str) -> crate::Result<:> {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, api.urls.v2_currencies.url());
-      tp.http_params.url.write_fmt(format_args!("/{asset}"))?;
+      tp._http_params._set(HttpMethod::Get, None, api.urls.v2_currencies.url());
+      tp._http_params._url.write_fmt(format_args!("/{asset}"))?;
       V2CurrenciesReq
     }
   }

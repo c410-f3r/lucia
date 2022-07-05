@@ -14,8 +14,8 @@ _create_json_endpoint! {
 
   unit(id: u64) -> crate::Result<:> {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, &api.origin);
-      tp.http_params.url.write_fmt(format_args!("/api/v1/unit/{id}"))?;
+      tp._http_params._set(HttpMethod::Get, None, &api.origin);
+      tp._http_params._url.write_fmt(format_args!("/api/v1/unit/{id}"))?;
       UnitReq
     }
   }

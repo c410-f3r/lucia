@@ -11,8 +11,8 @@ _create_json_endpoint! {
 
   users() -> crate::Result<:> {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, &api.origin);
-      tp.http_params.url.try_push_str("/users")?;
+      tp._http_params._set(HttpMethod::Get, None, &api.origin);
+      tp._http_params._url.try_push_str("/users")?;
       UsersReq
     }
   }

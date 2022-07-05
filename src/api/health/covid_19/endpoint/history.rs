@@ -1,7 +1,7 @@
 use crate::{
   api::health::covid_19::{endpoint::CountryInfo, Covid19},
   network::HttpMethod,
-  utils::QueryParamWriter,
+  utils::_QueryParamWriter,
 };
 use alloc::{boxed::Box, collections::BTreeMap};
 use arrayvec::ArrayString;
@@ -17,16 +17,16 @@ _create_json_endpoint! {
     hs: HistoryStatus, ab: Option<&str>, continent: Option<&str>, country: Option<&str>
   ) -> crate::Result<:> {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, &api.origin);
-      tp.http_params.url.try_push_str("/v1/history")?;
-      let _ = QueryParamWriter::new(&mut tp.http_params.url)
-        .write("status", match hs {
+      tp._http_params._set(HttpMethod::Get, None, &api.origin);
+      tp._http_params._url.try_push_str("/v1/history")?;
+      let _ = _QueryParamWriter::_new(&mut tp._http_params._url)
+        ._write("status", match hs {
           HistoryStatus::Confirmed => "Confirmed",
           HistoryStatus::Deaths => "Deaths",
         })?
-        .write_opt("ab", ab)?
-        .write_opt("continent", continent)?
-        .write_opt("country", country)?;
+        ._write_opt("ab", ab)?
+        ._write_opt("continent", continent)?
+        ._write_opt("country", country)?;
       HistoryReq
     }
   }

@@ -1,26 +1,21 @@
-#![allow(
-  // Used by some APIs
-  dead_code
-)]
-
 use core::fmt::Display;
 
-pub(crate) struct QueryParamWriter<'str, S> {
+pub(crate) struct _QueryParamWriter<'str, S> {
   initial_len: usize,
   s: &'str mut S,
 }
 
-impl<'str, S> QueryParamWriter<'str, S>
+impl<'str, S> _QueryParamWriter<'str, S>
 where
   S: cl_aux::String,
 {
   #[inline]
-  pub(crate) fn new(s: &'str mut S) -> Self {
+  pub(crate) fn _new(s: &'str mut S) -> Self {
     Self { initial_len: s.len(), s }
   }
 
   #[inline]
-  pub(crate) fn write<T>(self, param: &str, value: T) -> crate::Result<Self>
+  pub(crate) fn _write<T>(self, param: &str, value: T) -> crate::Result<Self>
   where
     T: Display,
   {
@@ -33,12 +28,12 @@ where
   }
 
   #[inline]
-  pub(crate) fn write_opt<T>(self, param: &str, opt: Option<T>) -> crate::Result<Self>
+  pub(crate) fn _write_opt<T>(self, param: &str, opt: Option<T>) -> crate::Result<Self>
   where
     T: Display,
   {
     if let Some(value) = opt {
-      self.write(param, value)
+      self._write(param, value)
     } else {
       Ok(self)
     }

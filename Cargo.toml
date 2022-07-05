@@ -21,7 +21,14 @@ bs58 = { default-features = false, features = ["alloc"], optional = true, versio
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 solana-program = { default-features = false, optional = true, version = "1.0" }
 
-###### Backend ######
+###### Etc ######
+
+async-std = { default-features = false, features = ["default"], optional = true, version = "1.0" }
+hex = { default-features = false, optional = true, version = "0.4" }
+tokio = { default-features = false, optional = true, version = "1.0" }
+tracing = { default-features = false, features = ["attributes"], optional = true, version = "0.1" }
+
+###### Transport implementation ######
 
 # Reqwest
 
@@ -36,13 +43,6 @@ surf = { default-features = false, optional = true, version = "2.0" }
 futures = { default-features = false, optional = true, version = "0.3" }
 tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], optional = true, version = "0.17" }
 tungstenite = { default-features = false, optional = true, version = "0.17" }
-
-###### Etc ######
-
-async-std = { default-features = false, features = ["default"], optional = true, version = "1.0" }
-hex = { default-features = false, optional = true, version = "0.4" }
-tokio = { default-features = false, optional = true, version = "1.0" }
-tracing = { default-features = false, features = ["attributes"], optional = true, version = "0.1" }
 
 [dev-dependencies]
 async-std = { default-features = false, features = ["attributes", "default"], version = "1.0" }
@@ -68,19 +68,6 @@ solana = [
   "dep:bincode",
   "dep:bs58",
   "dep:ed25519-dalek",
-  "tokio"
-]
-
-# Backend
-
-reqwest = ["dep:reqwest", "std"]
-surf = ["dep:surf"]
-tokio-tungstenite = [
-  "dep:futures",
-  "dep:tokio-tungstenite",
-  "dep:tokio",
-  "dep:tungstenite",
-  "std"
 ]
 
 # Etc
@@ -93,6 +80,18 @@ tracing = ["dep:tracing"]
 
 _integration-tests = ["reqwest?/rustls-tls"]
 _surf-hack = ["surf?/h1-client-no-tls"]
+
+# Transport implementation
+
+reqwest = ["dep:reqwest", "std", "tokio"]
+surf = ["async-std", "dep:surf"]
+tokio-tungstenite = [
+  "dep:futures",
+  "dep:tokio-tungstenite",
+  "dep:tokio",
+  "dep:tungstenite",
+  "std"
+]
 
 [package]
 categories = ["asynchronous", "data-structures", "network-programming"]

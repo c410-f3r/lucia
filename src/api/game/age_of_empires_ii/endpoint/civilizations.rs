@@ -15,8 +15,8 @@ _create_json_endpoint! {
 
   civilizations() {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, &api.origin);
-      let _rslt = tp.http_params.url.try_push_str("/api/v1/civilizations");
+      tp._http_params._set(HttpMethod::Get, None, &api.origin);
+      let _rslt = tp._http_params._url.try_push_str("/api/v1/civilizations");
       CivilizationsReq
     }
   }

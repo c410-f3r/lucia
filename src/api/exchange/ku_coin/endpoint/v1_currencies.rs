@@ -16,7 +16,7 @@ _create_json_endpoint! {
 
   v1_currencies() {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, api.urls.v1_currencies.url());
+      tp._http_params._set(HttpMethod::Get, None, api.urls.v1_currencies.url());
       V1CurrenciesReq
     }
   }

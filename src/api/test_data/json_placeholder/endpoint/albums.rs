@@ -11,8 +11,8 @@ _create_json_endpoint! {
 
   albums() -> crate::Result<:> {
     |api, tp| {
-      tp.http_params._set(HttpMethod::Get, &api.origin);
-      tp.http_params.url.try_push_str("/albums")?;
+      tp._http_params._set(HttpMethod::Get, None, &api.origin);
+      tp._http_params._url.try_push_str("/albums")?;
       AlbumsReq
     }
   }

@@ -1,4 +1,4 @@
-//! Many parts of the Ethereum code were based on https://github.com/tomusdrw/rust-web3.
+//! Many parts of the Ethereum code were based on <https://github.com/tomusdrw/rust-web3>.
 
 pub mod contract;
 pub mod endpoint;
@@ -29,17 +29,20 @@ pub use transaction_condition::*;
 pub use transaction_request::*;
 pub use types::*;
 
-use crate::types::MaxUrl;
+use crate::{api::Api, types::MaxUrl, utils::RequestThrottling};
 
 #[derive(Debug)]
 pub struct Ethereum {
-  pub origin: MaxUrl,
+  origin: MaxUrl,
+  rt: Option<RequestThrottling>,
 }
 
-impl crate::Api for Ethereum {
+impl Api for Ethereum {
+  type Aux = Option<RequestThrottling>;
+
   #[inline]
-  fn from_origin(origin: &str) -> crate::Result<Self> {
-    Ok(Self { origin: origin.try_into()? })
+  fn new(origin: &str, rt: Self::Aux) -> crate::Result<Self> {
+    Ok(Self { origin: origin.try_into()?, rt })
   }
 
   #[inline]

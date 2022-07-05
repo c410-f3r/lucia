@@ -1,19 +1,4 @@
-#[macro_export]
-macro_rules! arrayvec {
-  ($($x:expr),* $(,)?) => {(|| {
-    #[allow(unused_mut)]
-    let mut vec = arrayvec::ArrayVec::new();
-    $( vec.try_push($x)?; )*
-    $crate::Result::Ok(vec)
-  })()};
-  ($x:expr; $n:expr) => {(|| {
-    let mut vec = arrayvec::ArrayVec::<_, $n>::new();
-    for _ in 0..$n {
-      $( vec.try_push($x)?; )*
-    }
-    $crate::Result::Ok(vec)
-  })()}
-}
+// Protocols
 
 macro_rules! _create_json_endpoint {
   (
@@ -43,7 +28,7 @@ macro_rules! _create_json_endpoint {
     $($build_rslt:expr)?
   ) => {
     #[doc = concat!(
-      "Not meant to be called directly. See [ReqBuilder::",
+      "Not meant to be called directly. See [crate::RequestBuilder::",
       stringify!($build_fn),
       "]"
     )]
@@ -134,7 +119,7 @@ macro_rules! _create_json_rpc_endpoint {
     $($build_rslt:expr)?
   ) => {
     #[doc = concat!(
-      "Not meant to be called directly. See [ReqBuilder::",
+      "Not meant to be called directly. See [crate::RequestBuilder::",
       stringify!($build_fn),
       "]"
     )]
@@ -190,8 +175,8 @@ macro_rules! _create_json_rpc_endpoint {
           >>
         $($req_close)?
       {
-        self._tp.http_params._set(
-          crate::network::HttpMethod::Post, crate::Api::origin(&self._api)
+        self._tp._http_params._set(
+          crate::network::HttpMethod::Post, self._api.rt, crate::api::Api::origin(&self._api)
         );
         let rslt = self._json_rpc_request($method_name, $build_params);
         $( let rslt = $build_rslt(rslt); )?
@@ -199,6 +184,27 @@ macro_rules! _create_json_rpc_endpoint {
       }
     }
   };
+}
+
+// Etc
+
+/// `ArrayVec` is ubiquitous in this project so it is natural to provide a constructor
+/// similar to `vec![]`.
+#[macro_export]
+macro_rules! arrayvec {
+  ($($x:expr),* $(,)?) => {(|| {
+    #[allow(unused_mut)]
+    let mut vec = arrayvec::ArrayVec::new();
+    $( vec.try_push($x)?; )*
+    $crate::Result::Ok(vec)
+  })()};
+  ($x:expr; $n:expr) => {(|| {
+    let mut vec = arrayvec::ArrayVec::<_, $n>::new();
+    for _ in 0..$n {
+      $( vec.try_push($x)?; )*
+    }
+    $crate::Result::Ok(vec)
+  })()}
 }
 
 macro_rules! _create_array_string_type {
@@ -245,27 +251,84 @@ macro_rules! _create_byte_array_wrapper_type {
   };
 }
 
+macro_rules! _create_generic_test {
+  ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr) => {
+    #[$executor::test]
+    async fn $test() {
+      fn parts_cb_infer<'pair, A, O, T>(
+        rb: &'pair mut $crate::RequestBuilder<A>,
+        trans: &'pair mut T,
+        cb: impl FnOnce(&'pair mut $crate::RequestBuilder<A>, &'pair mut T) -> O,
+      ) -> O {
+        cb(rb, trans)
+      }
+      fn rslt_cb_infer<'pair, A, O, R, T>(
+        rb: &'pair mut $crate::RequestBuilder<A>,
+        trans: &'pair mut T,
+        rslt: R,
+        cb: impl FnOnce(&'pair mut $crate::RequestBuilder<A>, &'pair mut T, R) -> O,
+      ) -> O {
+        cb(rb, trans, rslt)
+      }
+      crate::utils::_init_tracing();
+      let mut pair = $pair;
+      let (rb, trans) = pair.parts_mut();
+      let rslt = parts_cb_infer(rb, trans, $parts_cb).await;
+      rslt_cb_infer(rb, trans, rslt, $rslt_cb).await;
+    }
+  };
+}
+
 macro_rules! _create_http_test {
   ($api:expr, $test:ident, $cb:expr) => {
     mod $test {
       use super::*;
 
       #[cfg(feature = "reqwest")]
-      _generic_test! {
+      _create_generic_test! {
         tokio,
         reqwest,
-        crate::Client::new(crate::network::TransportWrapper::with_reqwest(), $api),
+        crate::Pair::new(reqwest::Client::default(), $api),
         $cb,
         |_, _, _| async {}
       }
 
       #[cfg(feature = "surf")]
-      _generic_test! {
+      _create_generic_test! {
         async_std,
         surf,
-        crate::Client::new(crate::network::TransportWrapper::with_surf(), $api),
+        crate::Pair::new(surf::Client::default(), $api),
         $cb,
         |_, _, _| async {}
+      }
+    }
+  };
+}
+
+macro_rules! _create_set_of_request_throttling {
+  (
+    $name:ident {
+      $( $method:ident ),+ $(,)?
+    }
+  ) => {
+    /// A set of [$crate::utils::RequestThrottling] for specified API usage
+    #[derive(Debug)]
+    pub struct $name {
+      $(
+        pub(crate) $method: $crate::utils::RequestThrottling,
+      )+
+    }
+
+    impl $name {
+      #[inline]
+      pub fn new(
+        $( $method: $crate::utils::RequestLimit, )+
+      ) -> Self {
+        Self {
+          $(
+            $method: $crate::utils::RequestThrottling::from_rl($method),
+          )+
+        }
       }
     }
   };
@@ -274,13 +337,10 @@ macro_rules! _create_http_test {
 macro_rules! _create_tokio_tungstenite_test {
   ($api:expr, $sub:ident, ($($unsub:ident),+), $cb:expr) => {
     #[cfg(feature = "tokio-tungstenite")]
-    _generic_test! {
+    _create_generic_test! {
       tokio,
       $sub,
-      crate::Client::new(
-        crate::network::TransportWrapper::with_tokio_tungstenite(&$api).await.unwrap(),
-        $api
-      ),
+      crate::Pair::new(crate::network::tokio_tungstenite(&$api).await.unwrap(), $api),
       $cb,
       |rb, trans, subs| async move {
         let mut iter = subs.into_iter();
@@ -300,30 +360,55 @@ macro_rules! _debug {
   };
 }
 
-macro_rules! _generic_test {
-  ($executor:ident, $test:ident, $client:expr, $parts_cb:expr, $rslt_cb:expr) => {
-    #[$executor::test]
-    async fn $test() {
-      fn parts_cb_infer<'client, A, O, T>(
-        rb: &'client mut $crate::RequestBuilder<A>,
-        trans: &'client mut T,
-        cb: impl FnOnce(&'client mut $crate::RequestBuilder<A>, &'client mut T) -> O,
-      ) -> O {
-        cb(rb, trans)
+/// Sometimes a received blockhash is not valid so this macro tries to perform additional calls
+/// with different blockhashes.
+#[macro_export]
+#[cfg(feature = "solana")]
+macro_rules! try_with_solana_blockhashes {
+  (
+    let $local_blockhash:ident = $initial_blockhash:expr;
+
+    $additional_tries:expr,
+    $pair_mut:expr,
+    $procedure:expr $(,)?
+  ) => {{
+    let fun = || async move {
+      async fn additional_blockhash<T>(
+        pair: &mut $crate::Pair<$crate::api::blockchain::solana::Solana, T>,
+      ) -> $crate::Result<SolanaAddressHash>
+      where
+        T: Send + Transport,
+      {
+        let (rb, trans) = pair.parts_mut();
+        let req = rb.get_latest_blockhash(None);
+        let res = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await?;
+        Ok(res.result.value.blockhash)
       }
-      fn rslt_cb_infer<'client, A, O, R, T>(
-        rb: &'client mut $crate::RequestBuilder<A>,
-        trans: &'client mut T,
-        rslt: R,
-        cb: impl FnOnce(&'client mut $crate::RequestBuilder<A>, &'client mut T, R) -> O,
-      ) -> O {
-        cb(rb, trans, rslt)
+      let initial_try = {
+        let $local_blockhash = $initial_blockhash;
+        $procedure
+      };
+      match initial_try {
+        Err(err) => {
+          let inferred_additional_tries: u8 = $additional_tries;
+          let n = if let Some(elem) = inferred_additional_tries.checked_sub(1) {
+            elem
+          } else {
+            return Err(err);
+          };
+          for _ in 0..n {
+            let $local_blockhash = additional_blockhash($pair_mut).await?;
+            if let Ok(elem) = $procedure {
+              return Ok((elem, Some($local_blockhash)));
+            }
+          }
+          let $local_blockhash = additional_blockhash($pair_mut).await?;
+          let elem = $procedure?;
+          Ok((elem, Some($local_blockhash)))
+        }
+        Ok(elem) => Ok((elem, None)),
       }
-      crate::utils::_init_tracing();
-      let mut client = $client;
-      let (rb, trans) = client.parts_mut();
-      let rslt = parts_cb_infer(rb, trans, $parts_cb).await;
-      rslt_cb_infer(rb, trans, rslt, $rslt_cb).await;
-    }
-  };
+    };
+    fun()
+  }};
 }

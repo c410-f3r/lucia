@@ -1,13 +1,15 @@
 use crate::{
-  api::health::covid_19::{
-    endpoint::{CasesRes, HistoryRes, HistoryStatus, VaccineRes},
-    Covid19,
+  api::{
+    health::covid_19::{
+      endpoint::{CasesRes, HistoryRes, HistoryStatus, VaccineRes},
+      Covid19,
+    },
+    Api,
   },
   network::Transport,
-  Api,
 };
 
-_create_http_test!(api(), cases, |rb, trans| async {
+_create_http_test!(http(), cases, |rb, trans| async {
   let req = rb.cases(None, None, None).unwrap();
   assert!(matches!(
     trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap(),
@@ -20,7 +22,7 @@ _create_http_test!(api(), cases, |rb, trans| async {
   ));
 });
 
-_create_http_test!(api(), history, |rb, trans| async {
+_create_http_test!(http(), history, |rb, trans| async {
   let req = rb.history(HistoryStatus::Confirmed, None, None, None).unwrap();
   assert!(matches!(
     trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap(),
@@ -33,7 +35,7 @@ _create_http_test!(api(), history, |rb, trans| async {
   ));
 });
 
-_create_http_test!(api(), vaccines, |rb, trans| async {
+_create_http_test!(http(), vaccines, |rb, trans| async {
   let req = rb.vaccines(None, None, None).unwrap();
   assert!(matches!(
     trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap(),
@@ -46,6 +48,6 @@ _create_http_test!(api(), vaccines, |rb, trans| async {
   ));
 });
 
-fn api() -> Covid19 {
-  Covid19::from_origin("https://covid-api.mmediagroup.fr").unwrap()
+fn http() -> Covid19 {
+  Covid19::new("https://covid-api.mmediagroup.fr", ()).unwrap()
 }

@@ -3,6 +3,7 @@ pub mod endpoint;
 mod integration_tests;
 
 use crate::{
+  api::Api,
   types::{MaxUrl, MaxUrlParts},
   utils::UrlParts,
 };
@@ -19,9 +20,11 @@ impl KuCoin {
   }
 }
 
-impl crate::Api for KuCoin {
+impl Api for KuCoin {
+  type Aux = ();
+
   #[inline]
-  fn from_origin(origin: &str) -> crate::Result<Self> {
+  fn new(origin: &str, _: Self::Aux) -> crate::Result<Self> {
     Ok(Self {
       urls: KuCoinUrls {
         origin: origin.try_into()?,

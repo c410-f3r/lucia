@@ -1,39 +1,34 @@
-#[cfg(any(all(feature = "async-std", feature = "std"), feature = "tokio"))]
-mod managed_request_resource;
+//! Utility functions and structures
+
+mod generic_instant;
 mod one_mand_and_one_opt;
 mod query_param_writer;
-#[cfg(any(all(feature = "async-std", feature = "std"), feature = "tokio"))]
 mod request_counter;
 mod request_limit;
-#[cfg(any(all(feature = "async-std", feature = "std"), feature = "tokio"))]
 mod request_throttling;
 mod seq_visitor;
 mod url_parts;
 
-#[cfg(any(all(feature = "async-std", feature = "std"), feature = "tokio"))]
-pub use managed_request_resource::*;
-pub use one_mand_and_one_opt::*;
-#[cfg(any(all(feature = "async-std", feature = "std"), feature = "tokio"))]
-pub use request_counter::*;
-pub use request_limit::*;
-#[cfg(any(all(feature = "async-std", feature = "std"), feature = "tokio"))]
-pub use request_throttling::*;
-pub use url_parts::*;
+pub use generic_instant::GenericInstant;
+pub use one_mand_and_one_opt::OneMandAndOneOpt;
+pub use request_counter::RequestCounter;
+pub use request_limit::RequestLimit;
+pub use request_throttling::RequestThrottling;
+pub use url_parts::UrlParts;
 
-#[allow(
-  // Used by some APIs
-  unused_imports
-)]
-pub(crate) use query_param_writer::QueryParamWriter;
+#[allow(unused_imports)]
+pub(crate) use query_param_writer::_QueryParamWriter;
 pub(crate) use seq_visitor::SeqVisitor;
+pub(crate) use url_parts::UrlPartsArrayString;
 
 use crate::{
   protocol::{JsonRpcNotification, JsonRpcResponse},
   Request, Requests,
 };
-use core::{any::type_name, fmt::Debug};
+use core::{any::type_name, fmt::Debug, time::Duration};
 use serde::{de::IgnoredAny, Deserialize, Deserializer, Serialize};
 
+/// Shortcut of `serde_json::from_slice::<JsonRpcNotification<_>>(bytes))`.
 #[inline]
 pub fn decode_json_rpc_notification<R>(bytes: &[u8]) -> crate::Result<JsonRpcNotification<R>>
 where
@@ -42,6 +37,7 @@ where
   Ok(serde_json::from_slice(bytes)?)
 }
 
+/// Shortcut for the internal machinery that decodes many request responses
 #[inline]
 pub fn decode_many<BUFFER, REQS>(
   buffer: &mut BUFFER,
@@ -55,6 +51,7 @@ where
   reqs.manage_responses(buffer, bytes)
 }
 
+/// Shortcut for the internal machinery that decode one request response
 #[inline]
 pub fn decode_one<REQ>(bytes: &[u8], req: &REQ) -> crate::Result<REQ::ProcessedResponse>
 where
@@ -66,6 +63,8 @@ where
   REQ::process_response(res)
 }
 
+/// Useful when a request returns an optional field that needs to be unwrapped in a
+/// [core::result::Result] context.
 #[inline]
 #[track_caller]
 pub fn into_rslt<T>(opt: Option<T>) -> crate::Result<T> {
@@ -132,12 +131,25 @@ where
   Ok(())
 }
 
-#[cfg(any(feature = "tokio", feature = "async-std"))]
-pub(crate) async fn _sleep(duration: core::time::Duration) {
+pub(crate) async fn _sleep(duration: Duration) {
+  #[cfg(all(feature = "async-std", feature = "tokio"))]
+  tokio::time::sleep(duration).await;
   #[cfg(all(feature = "async-std", not(feature = "tokio")))]
   async_std::task::sleep(duration).await;
   #[cfg(all(feature = "tokio", not(feature = "async-std")))]
   tokio::time::sleep(duration).await;
-  #[cfg(all(feature = "async-std", feature = "tokio"))]
-  tokio::time::sleep(duration).await;
+  #[cfg(all(not(feature = "tokio"), not(feature = "async-std")))]
+  {
+    // Not great but still better than std::thread::sleep
+    let now = GenericInstant::now();
+    loop {
+      if let Some(elem) = now.checked_duration_since(GenericInstant::now()) {
+        if elem >= duration {
+          return;
+        }
+      } else {
+        return;
+      }
+    }
+  }
 }

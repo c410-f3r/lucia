@@ -4,12 +4,15 @@ use core::{
   hash::{Hash, Hasher},
 };
 
-/// Used to store any type of auxiliary data along side a request
+/// Used to store any type of auxiliary data along side a request. Auxiliary is not
+/// serialized nor deserialized.
 #[derive(Debug, serde::Serialize)]
 #[serde(transparent)]
 pub struct RequestWithAux<A, R> {
+  /// Auxiliary
   #[serde(skip)]
   pub aux: A,
+  /// Request
   pub req: R,
 }
 
