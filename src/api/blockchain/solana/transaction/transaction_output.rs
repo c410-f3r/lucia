@@ -10,7 +10,7 @@ use arrayvec::ArrayVec;
   // Users can Box if desired
   clippy::large_enum_variant
 )]
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum GenericTransaction {
   Base64(String, TransactionEncoding),
@@ -22,7 +22,7 @@ pub enum GenericTransaction {
   // 28 bytes is not a big difference
   variant_size_differences
 )]
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 pub enum InstructionError {
   /// Deprecated! Use CustomError instead!
   /// The program instruction returned an error
@@ -193,7 +193,7 @@ pub enum InstructionError {
 }
 
 /// Reasons a transaction might be rejected.
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 pub enum TransactionError {
   /// An account is already being processed in another transaction in a way
   /// that does not support parallelism
@@ -269,7 +269,7 @@ pub enum TransactionError {
   WouldExceedMaxAccountDataCostLimit,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionMeta {
   pub err: Option<TransactionError>,
@@ -282,7 +282,7 @@ pub struct TransactionMeta {
   pub pre_token_balances: Option<Vec<TransactionTokenBalance>>,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionOutput {
   pub block_time: Option<i64>,
@@ -291,7 +291,7 @@ pub struct TransactionOutput {
   pub transaction: GenericTransaction,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionTokenBalance {
   pub account_index: u8,

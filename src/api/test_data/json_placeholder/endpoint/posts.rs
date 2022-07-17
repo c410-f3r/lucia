@@ -9,15 +9,18 @@ _create_json_endpoint! {
 
   |raw: Vec<PostsRes>| -> Vec<PostsRes> { Ok(raw) }
 
-  posts() -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      tp._http_params._url.try_push_str("/posts")?;
-      PostsReq
+  PostsParams() -> crate::Result<()> {
+    |cp| {
+      cp._method = HttpMethod::_Get;
+      cp._url_parts.set_path(format_args!("/posts"))?;
     }
   }
 
-  Ok
+  posts() {
+    || {
+      PostsReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]

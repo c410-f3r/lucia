@@ -4,7 +4,7 @@ use ethereum_types::H256;
 use serde::{ser::SerializeStruct, Serialize, Serializer};
 
 /// Block Identifier
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum BlockId {
   /// By Hash
   Hash(H256),

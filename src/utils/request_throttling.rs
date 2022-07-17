@@ -12,7 +12,7 @@ pub struct RequestThrottling {
 impl RequestThrottling {
   /// Creates an instance with default [RequestCounter] values.
   #[inline]
-  pub fn from_rl(rl: RequestLimit) -> Self {
-    Self { rc: <_>::default(), rl }
+  pub fn from_rl(rl: RequestLimit) -> crate::Result<Self> {
+    Ok(Self { rc: RequestCounter::new()?, rl })
   }
 }

@@ -1,5 +1,5 @@
 use crate::{
-  api::exchange::ku_coin::{endpoint::GenericDataResponse, KuCoin},
+  api::exchange::ku_coin::{GenericDataResponse, KuCoin},
   network::HttpMethod,
   types::MaxUrl,
 };
@@ -14,9 +14,15 @@ _create_json_endpoint! {
 
   |raw: Res| -> Res { Ok(raw) }
 
+  V1BulletPublicParams() -> crate::Result<()> {
+    |hp| {
+      hp._method = HttpMethod::_Post;
+      hp._url_parts.set_path(format_args!("/api/v1/bullet-public"))?;
+    }
+  }
+
   v1_bullet_public() {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Post, None, api.urls.v1_bullet_public.url());
+    || {
       V1BulletPublicReq
     }
   }

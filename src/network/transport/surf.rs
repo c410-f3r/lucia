@@ -1,53 +1,69 @@
-use crate::network::{HttpMethod, Transport, TransportParams};
-use alloc::boxed::Box;
-use bytes::Bytes;
+use crate::{
+  network::{HttpMethod, HttpParamsMut, Transport},
+  RequestManager, RequestParams,
+};
+use alloc::{boxed::Box, vec::Vec};
 use core::fmt::Debug;
 use serde::Serialize;
 use surf::{Client, Response};
 
-/// Handy constructor to avoid having to explicitly import `surf` dependencies.
+/// Handy constructor to avoid having to explicitly import `surf`.
 #[inline]
 pub fn surf() -> Client {
   <_>::default()
 }
 
+/// ```rust,no_run
+/// # async fn fun() -> lucia::Result<()> {
+/// use lucia::{
+///   network::{surf, HttpParams, Transport},
+///   Pair,
+/// };
+/// let (mut rm, mut trans) = Pair::<(), _, _>::new(
+///   surf(),
+///   HttpParams::from_origin("ORIGIN")?
+/// ).into_parts();
+/// let req = ();
+/// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
+/// Ok(())
+/// # }
+/// ```
 #[async_trait::async_trait]
-impl Transport for Client {
+impl<A, CP> Transport<A, CP> for Client
+where
+  A: Send,
+  CP: Send,
+  for<'rm> &'rm mut CP: Into<HttpParamsMut<'rm>>,
+{
   #[inline]
-  async fn send<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<()>
+  async fn send<R, RPD>(
+    &mut self,
+    rm: &mut RequestManager<A, CP>,
+    req: R,
+    rpd: RPD,
+  ) -> crate::Result<()>
   where
-    T: Debug + Send + Serialize + Sync,
+    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
+    RPD: Send,
   {
-    let _ = reqwest_send(self, req, tp).await;
+    R::modify_all_params(&mut rm._cp, rpd)?;
+    let _ = reqwest_send(self, req, (&mut rm._cp).into()).await;
     Ok(())
   }
 
   #[inline]
-  async fn send_and_retrieve<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<Bytes>
+  async fn send_and_retrieve<R, RPD>(
+    &mut self,
+    rm: &mut RequestManager<A, CP>,
+    req: R,
+    rpd: RPD,
+  ) -> crate::Result<Vec<u8>>
   where
-    T: Debug + Send + Serialize + Sync,
+    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
+    RPD: Send,
   {
-    Ok(reqwest_send(self, req, tp).await?.body_bytes().await?.into())
-  }
-}
-
-#[async_trait::async_trait]
-impl Transport for &Client {
-  #[inline]
-  async fn send<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<()>
-  where
-    T: Debug + Send + Serialize + Sync,
-  {
-    let _ = reqwest_send(self, req, tp).await;
-    Ok(())
-  }
-
-  #[inline]
-  async fn send_and_retrieve<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<Bytes>
-  where
-    T: Debug + Send + Serialize + Sync,
-  {
-    Ok(reqwest_send(self, req, tp).await?.body_bytes().await?.into())
+    R::modify_all_params(&mut rm._cp, rpd)?;
+    Ok(reqwest_send(self, req, (&mut rm._cp).into()).await?.body_bytes().await?)
   }
 }
 
@@ -55,18 +71,21 @@ impl Transport for &Client {
 async fn reqwest_send<T>(
   client: &Client,
   req: T,
-  tp: &mut TransportParams,
+  mut params: HttpParamsMut<'_>,
 ) -> crate::Result<Response>
 where
   T: Debug + Send + Serialize + Sync,
 {
-  if let Some(ref mut rt) = tp._http_params._rt {
-    rt.rc.update_params(&rt.rl).await;
+  if let Some(ref mut rt) = params._rt {
+    rt.rc.update_params(&rt.rl).await?;
   }
-  let rslt = match tp._http_params._method {
-    HttpMethod::Get => client.get(tp._http_params._url.as_str()).await,
-    HttpMethod::Post => client.post(tp._http_params._url.as_str()).body_json(&req)?.await,
+  let mut req = match params._method {
+    HttpMethod::_Get => client.get(params._url_parts.url()),
+    HttpMethod::_Post => client.post(params._url_parts.url()).body_json(&req)?,
   };
-  tp._clear();
-  Ok(rslt?)
+  for header in params._headers.iter() {
+    req = req.header(header._key.as_str(), header._value.as_str());
+  }
+  params._reset();
+  Ok(req.await?)
 }

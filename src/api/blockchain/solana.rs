@@ -1,26 +1,53 @@
+//! Solana is a public blockchain platform with smart contract functionality.
+//!
+//! ```rust,no_run
+//! # async fn fun() -> lucia::Result<()> {
+//! use lucia::{
+//!   network::{HttpParams, Transport},
+//!   Pair,
+//! };
+//! let (mut rm, mut trans) = Pair::new((), HttpParams::from_origin("ORIGIN")?).into_parts();
+//! let req = rm.get_slot(None);
+//! let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
+//! Ok(())
+//! # };
+//! ```
+
+#![cfg(feature = "solana")]
+
 mod account;
-pub mod endpoint;
+mod endpoint;
 mod filter;
-#[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
 mod notification;
 pub mod program;
 mod short_vec;
-mod solana_impl;
 mod transaction;
 mod utils;
 
 pub use account::*;
+pub use endpoint::*;
 pub use filter::*;
 pub use notification::*;
 pub use transaction::*;
 
-use crate::{api::Api, types::MaxUrl, utils::RequestThrottling};
-use arrayvec::ArrayString;
+use crate::{
+  api::blockchain::ConfirmTransactionOptions,
+  network::Transport,
+  protocol::{JsonRpcRequest, JsonRpcResponse, ProcessedJsonRpcResponse},
+  Request, RequestManager,
+};
+use arrayvec::{ArrayString, ArrayVec};
+use core::{fmt::Debug, time::Duration};
 use utils::*;
 
 pub(crate) const MAX_BINARY_DATA_LEN: usize = 1024;
 pub(crate) const MAX_TRANSACTION_ACCOUNTS_NUM: usize = 240;
+
+const DEFAULT_CTO: ConfirmTransactionOptions = ConfirmTransactionOptions::TriesWithInterval {
+  interval: Duration::from_millis(1000),
+  number: 60 * 3,
+};
 
 pub(crate) type Epoch = u64;
 pub(crate) type SolanaLogMessage = ArrayString<96>;
@@ -39,21 +66,107 @@ _create_blockchain_constants!(
 );
 
 #[derive(Debug)]
-pub struct Solana {
-  origin: MaxUrl,
-  rt: Option<RequestThrottling>,
-}
+pub struct Solana;
 
-impl Api for Solana {
-  type Aux = Option<RequestThrottling>;
-
+impl Solana {
   #[inline]
-  fn new(origin: &str, rt: Self::Aux) -> crate::Result<Self> {
-    Ok(Self { origin: origin.try_into()?, rt })
+  pub async fn confirm_transaction<'tx_hash, CP, T>(
+    cto_opt: Option<ConfirmTransactionOptions>,
+    tx_hash: &'tx_hash str,
+    rm: &mut RequestManager<Self, CP>,
+    trans: &mut T,
+  ) -> crate::Result<bool>
+  where
+    CP: Send,
+    T: Send + Transport<Self, CP>,
+    JsonRpcRequest<GetSignatureStatusesReq<1, &'tx_hash str>>: Request<
+      CP,
+      (),
+      ProcessedResponse = ProcessedJsonRpcResponse<
+        JsonRpcResponseResultWithContext<ArrayVec<Option<GetSignatureStatusesRes>, 1>>,
+      >,
+      RawResponse = JsonRpcResponse<
+        JsonRpcResponseResultWithContext<ArrayVec<Option<GetSignatureStatusesRes>, 1>>,
+      >,
+    >,
+  {
+    macro_rules! call {
+      () => {{
+        let req = rm.get_signature_statuses(None, [tx_hash].into());
+        if let &[Some(GetSignatureStatusesRes {
+          confirmation_status: Commitment::Finalized, ..
+        }), ..] = &*trans.send_retrieve_and_decode_one(rm, &req, ()).await?.result.value
+        {
+          true
+        } else {
+          false
+        }
+      }};
+    }
+
+    match cto_opt.unwrap_or(DEFAULT_CTO) {
+      ConfirmTransactionOptions::Tries { number } => {
+        for _ in 0u16..number {
+          if call!() {
+            return Ok(true);
+          }
+        }
+      }
+      ConfirmTransactionOptions::TriesWithInterval { interval, number } => {
+        for _ in 0u16..number {
+          if call!() {
+            return Ok(true);
+          }
+          crate::utils::_sleep(interval).await?;
+        }
+      }
+    }
+
+    Ok(false)
+  }
+
+  /// If existing, extracts the parsed spl token account ([program::spl_token::MintAccount]) out of
+  /// a generic [AccountData].
+  #[inline]
+  pub fn spl_token_mint_account(
+    account_data: &AccountData,
+  ) -> crate::Result<&program::spl_token::MintAccount> {
+    if let program::spl_token::GenericAccount::Mint(ref elem) =
+      Self::spl_token_account(account_data)?
+    {
+      Ok(elem)
+    } else {
+      Err(crate::Error::SolanaAccountIsNotSplToken)
+    }
+  }
+
+  /// If existing, extracts the parsed spl token account ([program::spl_token::Account]) out of
+  /// a generic [AccountData].
+  #[inline]
+  pub fn spl_token_normal_account(
+    account_data: &AccountData,
+  ) -> crate::Result<&program::spl_token::Account> {
+    if let program::spl_token::GenericAccount::Account(ref elem) =
+      Self::spl_token_account(account_data)?
+    {
+      Ok(elem)
+    } else {
+      Err(crate::Error::SolanaAccountIsNotSplToken)
+    }
   }
 
   #[inline]
-  fn origin(&self) -> &MaxUrl {
-    &self.origin
+  fn spl_token_account(
+    account_data: &AccountData,
+  ) -> crate::Result<&program::spl_token::GenericAccount> {
+    if let &AccountData::Json(AccountDataJson {
+      parsed: AccountDataJsonParsed::SplTokenAccount(ref spl_token_account),
+      ..
+    }) = account_data
+    {
+      Ok(spl_token_account)
+    } else {
+      Err(crate::Error::SolanaAccountIsNotSplToken)
+    }
   }
 }

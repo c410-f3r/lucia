@@ -1,7 +1,6 @@
 use crate::{
-  api::health::covid_19::{endpoint::CountryInfo, Covid19},
+  api::health::covid_19::{CountryInfo, Covid19},
   network::HttpMethod,
-  utils::_QueryParamWriter,
 };
 use alloc::{boxed::Box, collections::BTreeMap};
 use arrayvec::ArrayString;
@@ -13,21 +12,24 @@ _create_json_endpoint! {
 
   |raw: VaccineRes| -> VaccineRes { Ok(raw) }
 
-  vaccines(
-    ab: Option<&str>, continent: Option<&str>, country: Option<&str>
-  ) -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      tp._http_params._url.try_push_str("/v1/vaccines")?;
-      let _ = _QueryParamWriter::_new(&mut tp._http_params._url)
-        ._write_opt("ab", ab)?
-        ._write_opt("continent", continent)?
-        ._write_opt("country", country)?;
-      VaccinesReq
+  VaccinesParams(
+    ab: Option<&'rpd str>, continent: Option<&'rpd str>, country: Option<&'rpd str>
+  ) -> crate::Result<()> {
+    |hp| {
+      hp._method = HttpMethod::_Get;
+      hp._url_parts.set_path(format_args!("/v1/vaccines"))?;
+      let _ = hp._url_parts.query_writer()
+        .write_opt("ab", ab)?
+        .write_opt("continent", continent)?
+        .write_opt("country", country)?;
     }
   }
 
-  Ok
+  vaccines() {
+    || {
+      VaccinesReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]

@@ -1,8 +1,8 @@
 use crate::{
-  api::Api,
-  network::{Transport, TransportParams},
+  network::{Transport, WsParams},
+  RequestManager, RequestParams,
 };
-use bytes::Bytes;
+use alloc::vec::Vec;
 use core::fmt::Debug;
 use futures::{SinkExt, StreamExt};
 use serde::Serialize;
@@ -13,60 +13,61 @@ use tungstenite::Message;
 /// Shortcut of `WebSocketStream<MaybeTlsStream<TcpStream>>`.
 pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
-type TokioTungsteniteMut<'transport> = &'transport mut TokioTungstenite;
-
-/// Handy constructor to avoid having to explicitly import `tokio_tungstenite` dependencies.
+/// Handy constructor to avoid having to explicitly import `tokio-tungstenite`.
 #[inline]
-pub async fn tokio_tungstenite<A>(api: &A) -> crate::Result<TokioTungstenite>
-where
-  A: Api,
-{
-  let (elem, _) = tokio_tungstenite::connect_async(api.origin().as_str()).await?;
+pub async fn tokio_tungstenite(ws_params: &WsParams) -> crate::Result<TokioTungstenite> {
+  let (elem, _) = tokio_tungstenite::connect_async(ws_params._url_parts.origin()).await?;
   Ok(elem)
 }
 
+/// Handy constructor to avoid having to explicitly import `tokio_tungstenite` dependencies.
+///
+/// ```rust,no_run
+/// # async fn fun() -> lucia::Result<()> {
+/// use lucia::{
+///   network::{tokio_tungstenite, Transport, WsParams},
+///   Pair,
+/// };
+/// let ws_params = WsParams::from_origin("ORIGIN")?;
+/// let (mut rm, mut trans) =
+///   Pair::<(), _, _>::new(tokio_tungstenite(&ws_params).await?, ws_params).into_parts();
+/// let req = ();
+/// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
+/// Ok(())
+/// # }
+/// ```
 #[async_trait::async_trait]
-impl Transport for WebSocketStream<MaybeTlsStream<TcpStream>> {
+impl<A> Transport<A, WsParams> for TokioTungstenite
+where
+  A: Send,
+{
   #[inline]
-  async fn send<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<()>
+  async fn send<R, RPD>(
+    &mut self,
+    _: &mut RequestManager<A, WsParams>,
+    req: R,
+    _: RPD,
+  ) -> crate::Result<()>
   where
-    T: Debug + Send + Serialize + Sync,
-  {
-    <Self as Transport>::send(self, req, tp).await
-  }
-
-  #[inline]
-  async fn send_and_retrieve<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<Bytes>
-  where
-    T: Debug + Send + Serialize + Sync,
-  {
-    <Self as Transport>::send_and_retrieve(self, req, tp).await
-  }
-}
-
-#[async_trait::async_trait]
-impl Transport for TokioTungsteniteMut<'_> {
-  #[inline]
-  async fn send<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<()>
-  where
-    T: Debug + Send + Serialize + Sync,
+    R: Debug + RequestParams<WsParams, RPD> + Send + Serialize + Sync,
+    RPD: Send,
   {
     <Self as SinkExt<_>>::send(self, Message::Binary(serde_json::to_vec(&req)?)).await?;
-    tp._clear();
     Ok(())
   }
 
   #[inline]
-  async fn send_and_retrieve<T>(&mut self, req: T, tp: &mut TransportParams) -> crate::Result<Bytes>
+  async fn send_and_retrieve<R, RPD>(
+    &mut self,
+    _: &mut RequestManager<A, WsParams>,
+    req: R,
+    _: RPD,
+  ) -> crate::Result<Vec<u8>>
   where
-    T: Debug + Send + Serialize + Sync,
+    R: Debug + RequestParams<WsParams, RPD> + Send + Serialize + Sync,
+    RPD: Send,
   {
-    <Self as Transport>::send(self, req, tp).await?;
-    tp._clear();
-    Ok(if let Some(elem) = self.next().await {
-      elem?.into_data().into()
-    } else {
-      Default::default()
-    })
+    <Self as SinkExt<_>>::send(self, Message::Binary(serde_json::to_vec(&req)?)).await?;
+    Ok(if let Some(elem) = self.next().await { elem?.into_data().into() } else { Vec::new() })
   }
 }

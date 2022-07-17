@@ -1,21 +1,16 @@
+#![cfg(all(test, feature = "_integration-tests"))]
+
 use crate::{
-  api::{
-    blockchain::solana::{
-      endpoint::{
-        CommitmenOptDataSliceOptEncodingMand, Commitment, CommitmentOptEncoding,
-        CommitmentOptEncodingOpt, DataSlice, GetProgramAccountsReqParams, MintOrProgramId,
-      },
-      AccountEncoding, Filter, GenericTransaction, InstructionJsonParsedInfo, Memcmp,
-      MemcmpEncodedBytes, MessageInput, Solana, SolanaAddressHash, TransactionEncoding,
-      TransactionInput,
-    },
-    Api,
+  api::blockchain::solana::{
+    AccountEncoding, CommitmenOptDataSliceOptEncodingMand, Commitment, CommitmentOptEncoding,
+    CommitmentOptEncodingOpt, DataSlice, Filter, GenericTransaction, GetProgramAccountsReqParams,
+    InstructionJsonParsedInfo, Memcmp, MemcmpEncodedBytes, MessageInput, MintOrProgramId, Solana,
+    SolanaAddressHash, TransactionEncoding, TransactionInput,
   },
-  network::Transport,
+  network::{HttpParams, Transport, WsParams},
 };
 use alloc::vec::Vec;
 use ed25519_dalek::Keypair;
-use solana_program::system_instruction::transfer;
 
 const ALICE_PUBLIC_KEY: SolanaAddressHash = [
   72, 221, 15, 10, 15, 203, 187, 109, 166, 124, 138, 38, 199, 74, 146, 72, 63, 245, 197, 247, 201,
@@ -34,8 +29,8 @@ const TO_SOL_TOKEN_ACCOUNT: &str = "CDqKzghiixHryqny9r8RPJzYfg3hiiF7e8JecsF6fuJw
 const TO_SOL_TOKEN_MINT: &str = "So11111111111111111111111111111111111111112";
 const TOKEN_PROGRAM: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 
-_create_http_test!(http(), get_account_info, |rb, trans| async {
-  let req = rb.get_account_info(
+_create_http_test!(http(), get_account_info, |rm, trans| async {
+  let req = rm.get_account_info(
     TO_NORMAL_ACCOUNT,
     Some(CommitmenOptDataSliceOptEncodingMand {
       commitment: None,
@@ -43,37 +38,47 @@ _create_http_test!(http(), get_account_info, |rb, trans| async {
       encoding: AccountEncoding::JsonParsed,
     }),
   );
-  let _ =
-    trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result.value.unwrap();
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.value.unwrap();
 });
 
-_create_http_test!(http(), get_balance, |rb, trans| async {
-  let req = rb.get_balance(TO_NORMAL_ACCOUNT, None);
-  let _ = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap();
+_create_http_test!(http(), get_balance, |rm, trans| async {
+  let req = rm.get_balance(TO_NORMAL_ACCOUNT, None);
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
 });
 
-_create_http_test!(http(), get_fee_for_message, |rb, trans| async {
+_create_http_test!(http(), get_block_height, |rm, trans| async {
+  let req = rm.get_block_height(None, None);
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
+});
+
+#[cfg(feature = "solana-program")]
+_create_http_test!(http(), get_fee_for_message, |rm, trans| async {
   let mut buffer = Vec::new();
   let from_keypair = Keypair::from_bytes(&alice_keypair()[..]).unwrap();
   let from_public_key = from_keypair.public.to_bytes();
-  let req = rb.get_latest_blockhash(None);
+  let req = rm.get_latest_blockhash(None);
   let blockhash =
-    trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result.value.blockhash;
+    trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.value.blockhash;
   let message = transfer_message(blockhash, from_public_key);
-  let req = rb.get_fee_for_message(&mut buffer, &message, None).unwrap();
+  let req = rm.get_fee_for_message(&mut buffer, &message, None).unwrap();
   assert_eq!(
-    trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result.value.unwrap(),
+    trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.value.unwrap(),
     5000
   );
 });
 
-_create_http_test!(http(), get_minimum_balance_for_rent_exemption, |rb, trans| async {
-  let req = rb.get_minimum_balance_for_rent_exemption(100, None);
-  let _ = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap();
+_create_http_test!(http(), get_minimum_balance_for_rent_exemption, |rm, trans| async {
+  let req = rm.get_minimum_balance_for_rent_exemption(100, None);
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
 });
 
-_create_http_test!(http(), get_program_accounts, |rb, trans| async {
-  let req = rb.get_program_accounts(
+_create_http_test!(http(), get_multiple_accounts, |rm, trans| async {
+  let req = rm.get_multiple_accounts(&[TO_NORMAL_ACCOUNT, TO_SOL_TOKEN_ACCOUNT], None);
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
+});
+
+_create_http_test!(http(), get_program_accounts, |rm, trans| async {
+  let req = rm.get_program_accounts(
     TOKEN_PROGRAM,
     Some(GetProgramAccountsReqParams {
       commitment: None,
@@ -86,21 +91,21 @@ _create_http_test!(http(), get_program_accounts, |rb, trans| async {
       min_context_slot: None,
     }),
   );
-  assert_eq!(trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result.len(), 1);
+  assert_eq!(trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.len(), 1);
 });
 
-_create_http_test!(http(), get_slot, |rb, trans| async {
-  let req = rb.get_slot(None);
-  let _ = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap();
+_create_http_test!(http(), get_slot, |rm, trans| async {
+  let req = rm.get_slot(None);
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
 });
 
-_create_http_test!(http(), get_token_account_balance, |rb, trans| async {
-  let req = rb.get_token_account_balance(TO_SOL_TOKEN_ACCOUNT, None);
-  let _ = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap();
+_create_http_test!(http(), get_token_account_balance, |rm, trans| async {
+  let req = rm.get_token_account_balance(TO_SOL_TOKEN_ACCOUNT, None);
+  let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
 });
 
-_create_http_test!(http(), get_token_accounts_by_owner, |rb, trans| async {
-  let req = rb.get_token_accounts_by_owner::<16, _>(
+_create_http_test!(http(), get_token_accounts_by_owner, |rm, trans| async {
+  let req = rm.get_token_accounts_by_owner::<16, _>(
     TO_NORMAL_ACCOUNT,
     MintOrProgramId::Mint(TO_SOL_TOKEN_MINT),
     Some(CommitmenOptDataSliceOptEncodingMand {
@@ -109,63 +114,60 @@ _create_http_test!(http(), get_token_accounts_by_owner, |rb, trans| async {
       encoding: AccountEncoding::JsonParsed,
     }),
   );
-  let res = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap();
+  let res = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
   let _ = res.result.value[0].pubkey;
 });
 
-_create_http_test!(http(), get_version, |rb, trans| async {
-  let req = rb.get_version();
-  let res = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap();
+_create_http_test!(http(), get_version, |rm, trans| async {
+  let req = rm.get_version();
+  let res = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
   let _ = res.result.feature_set;
 });
 
-#[cfg(feature = "tokio")]
+#[cfg(feature = "solana-program")]
 _create_http_test!(
   http(),
   http_get_latest_blockhash_send_transaction_and_get_transaction,
-  |rb, trans| async {
+  |rm, trans| async {
     let from_keypair = Keypair::from_bytes(&alice_keypair()[..]).unwrap();
     let from_public_key = from_keypair.public.to_bytes();
-    let req = rb.get_latest_blockhash(None);
+    let req = rm.get_latest_blockhash(None);
     let blockhash =
-      trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result.value.blockhash;
+      trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.value.blockhash;
     let message = transfer_message(blockhash, from_public_key);
     let mut buffer = Vec::new();
     let tx = TransactionInput::new(&mut buffer, blockhash, message, &[from_keypair]).unwrap();
     buffer.clear();
-    let req = rb.send_transaction(&mut buffer, None, &tx).unwrap();
-    let tx_hash = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await.unwrap().result;
-    assert!(Solana::confirm_transaction(None, &tx_hash, rb, trans).await.unwrap());
+    let req = rm.send_transaction(&mut buffer, None, &tx).unwrap();
+    let tx_hash = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result;
+    assert!(Solana::confirm_transaction(None, &tx_hash, rm, trans).await.unwrap());
 
-    let req = rb.get_transaction(
+    let req = rm.get_transaction(
       tx_hash.as_str(),
       Some(CommitmentOptEncodingOpt {
         commitment: Some(Commitment::Finalized),
         encoding: Some(TransactionEncoding::Base64),
       }),
     );
-    let _ =
-      trans.send_retrieve_and_decode_one(&mut &req, rb.tp_mut()).await.unwrap().result.transaction;
+    let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.transaction;
 
-    let req = rb.get_transaction(
+    let req = rm.get_transaction(
       tx_hash.as_str(),
       Some(CommitmentOptEncodingOpt {
         commitment: Some(Commitment::Finalized),
         encoding: Some(TransactionEncoding::Json),
       }),
     );
-    let _ =
-      trans.send_retrieve_and_decode_one(&mut &req, rb.tp_mut()).await.unwrap().result.transaction;
+    let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.transaction;
 
-    let req = rb.get_transaction(
+    let req = rm.get_transaction(
       tx_hash.as_str(),
       Some(CommitmentOptEncodingOpt {
         commitment: Some(Commitment::Finalized),
         encoding: Some(TransactionEncoding::JsonParsed),
       }),
     );
-    let tx =
-      trans.send_retrieve_and_decode_one(&mut &req, rb.tp_mut()).await.unwrap().result.transaction;
+    let tx = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result.transaction;
     if !matches!(
       generic_tx_parsed_instruction(&tx, 0).unwrap(),
       InstructionJsonParsedInfo::TransferInstruction(..)
@@ -175,73 +177,52 @@ _create_http_test!(
   }
 );
 
-_create_http_test!(http(), http_reqs_with_array, |rb, trans| async {
-  let first = rb.get_balance(TO_NORMAL_ACCOUNT, None);
-  let second = rb.get_balance(TO_NORMAL_ACCOUNT, None);
+_create_http_test!(http(), http_reqs_with_array, |rm, trans| async {
+  let first = rm.get_balance(TO_NORMAL_ACCOUNT, None);
+  let second = rm.get_balance(TO_NORMAL_ACCOUNT, None);
   let mut buffer = Vec::new();
-  let _ =
-    trans.send_retrieve_and_decode_many(&mut buffer, &[first, second], rb.tp_mut()).await.unwrap();
-});
-
-_create_http_test!(http(), http_reqs_with_tuple, |rb, trans| async {
-  let first = rb.get_balance(TO_NORMAL_ACCOUNT, None);
-  let second = rb.get_slot(None);
-  let _ =
-    trans.send_retrieve_and_decode_many(&mut (), &(first, second), rb.tp_mut()).await.unwrap();
+  let _ = trans.send_retrieve_and_decode_many(&mut buffer, rm, &[first, second], ()).await.unwrap();
 });
 
 _create_tokio_tungstenite_test!(
   ws(),
   account_subscribe,
   (account_unsubscribe),
-  |rb, trans| async {
-    let sub = rb.account_subscribe(
+  |rm, trans| async {
+    let req = rm.account_subscribe(
       TO_NORMAL_ACCOUNT,
       Some(CommitmentOptEncoding { commitment: None, encoding: AccountEncoding::JsonParsed }),
     );
-    [trans.send_retrieve_and_decode_one(&sub, rb.tp_mut()).await.unwrap().result]
+    [trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result]
   }
 );
 
-_create_tokio_tungstenite_test!(ws(), root_subscribe, (root_unsubscribe), |rb, trans| async {
-  let sub = rb.root_subscribe();
-  [trans.send_retrieve_and_decode_one(&sub, rb.tp_mut()).await.unwrap().result]
+_create_tokio_tungstenite_test!(ws(), root_subscribe, (root_unsubscribe), |rm, trans| async {
+  let req = rm.root_subscribe();
+  [trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result]
 });
 
-_create_tokio_tungstenite_test!(ws(), slot_subscribe, (slot_unsubscribe), |rb, trans| async {
-  let sub = rb.slot_subscribe();
-  [trans.send_retrieve_and_decode_one(&sub, rb.tp_mut()).await.unwrap().result]
+_create_tokio_tungstenite_test!(ws(), slot_subscribe, (slot_unsubscribe), |rm, trans| async {
+  let req = rm.slot_subscribe();
+  [trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap().result]
 });
 
 _create_tokio_tungstenite_test!(
   ws(),
   ws_reqs_with_array,
   (account_unsubscribe, account_unsubscribe),
-  |rb, trans| async {
-    let first = rb.account_subscribe(
+  |rm, trans| async {
+    let first = rm.account_subscribe(
       TO_NORMAL_ACCOUNT,
       Some(CommitmentOptEncoding { commitment: None, encoding: AccountEncoding::JsonParsed }),
     );
-    let second = rb.account_subscribe(
+    let second = rm.account_subscribe(
       TO_NORMAL_ACCOUNT,
       Some(CommitmentOptEncoding { commitment: None, encoding: AccountEncoding::JsonParsed }),
     );
     let mut buffer = Vec::new();
-    trans.send_retrieve_and_decode_many(&mut buffer, &[first, second], rb.tp_mut()).await.unwrap();
+    trans.send_retrieve_and_decode_many(&mut buffer, rm, &[first, second], ()).await.unwrap();
     [buffer[0].result, buffer[1].result]
-  }
-);
-
-_create_tokio_tungstenite_test!(
-  ws(),
-  ws_reqs_with_tuple,
-  (root_unsubscribe, slot_unsubscribe),
-  |rb, trans| async {
-    let first = rb.root_subscribe();
-    let second = rb.slot_subscribe();
-    let (first_sub_res, second_sub_res) =
-      trans.send_retrieve_and_decode_many(&mut (), &(first, second), rb.tp_mut()).await.unwrap();
-    [first_sub_res.result.unwrap(), second_sub_res.result.unwrap()]
   }
 );
 
@@ -252,8 +233,8 @@ fn alice_keypair() -> [u8; 64] {
   array
 }
 
-fn http() -> Solana {
-  Solana::new("http://localhost:8899", None).unwrap()
+fn http() -> HttpParams {
+  HttpParams::from_origin("http://localhost:8899").unwrap()
 }
 
 fn generic_tx_parsed_instruction<'tx>(
@@ -267,12 +248,18 @@ fn generic_tx_parsed_instruction<'tx>(
   }
 }
 
+#[cfg(feature = "solana-program")]
 fn transfer_message(blockhash: [u8; 32], from_public_key: [u8; 32]) -> MessageInput {
-  let transfer =
-    transfer(&from_public_key.into(), &BOB_PUBLIC_KEY.into(), 100000000).try_into().unwrap();
+  let transfer = solana_program::system_instruction::transfer(
+    &from_public_key.into(),
+    &BOB_PUBLIC_KEY.into(),
+    100000000,
+  )
+  .try_into()
+  .unwrap();
   MessageInput::with_params(&[transfer], Some(from_public_key), blockhash).unwrap()
 }
 
-fn ws() -> Solana {
-  Solana::new("ws://localhost:8900", None).unwrap()
+fn ws() -> WsParams {
+  WsParams::from_origin("ws://localhost:8900").unwrap()
 }

@@ -1,7 +1,6 @@
 use crate::{
   api::blockchain::solana::{
-    endpoint::{Commitment, JsonRpcResponseResultWithContext},
-    Solana, TransactionError,
+    Commitment, JsonRpcResponseResultWithContext, Solana, TransactionError,
   },
   utils::OneMandAndOneOpt,
 };
@@ -36,13 +35,13 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSignatureStatusesCfg {
   pub search_transaction_history: bool,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSignatureStatusesRes {
   pub confirmation_status: Commitment,

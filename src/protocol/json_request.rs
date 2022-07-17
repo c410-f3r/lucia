@@ -4,10 +4,13 @@ use core::{
   hash::{Hash, Hasher},
 };
 
+/// Any opaque and generic JSON request
 #[derive(Debug, serde::Serialize)]
 #[serde(transparent)]
 pub struct JsonRequest<D> {
+  /// Data that will be sent or retrieved
   pub data: D,
+  /// Id used for internal identification. Not deserialized nor serialized.
   #[serde(skip)]
   pub id: Id,
 }

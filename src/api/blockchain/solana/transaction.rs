@@ -6,7 +6,7 @@ pub use transaction_input::*;
 pub use transaction_json::*;
 pub use transaction_output::*;
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum TransactionEncoding {
   Base58,

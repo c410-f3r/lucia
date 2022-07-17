@@ -2,7 +2,7 @@ use crate::{
   protocol::{JsonRpcResponse, ProcessedJsonRpcResponse},
   types::Id,
   utils::{manage_json_rpc_response, SeqVisitor},
-  Request,
+  Request, RequestParams,
 };
 use alloc::{collections::BTreeSet, vec::Vec};
 use arrayvec::ArrayVec;
@@ -10,107 +10,183 @@ use cl_aux::SizeHint;
 use core::{borrow::Borrow, fmt::Debug};
 use serde::{Deserialize, Deserializer};
 
-/// For protocols that allow and process multiple requests in a single call. For example, JSON-RPC.
-pub trait Requests<BU>: SizeHint {
-  /// Everything but tuples return `()`
-  type Output;
-
-  /// Process bytes received from a counterpart and generally store them in the passed `buffer`.
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output>;
+/// For protocols that allow and process multiple requests in a single call like JSON-RPC
+/// or a normal request that return a collection of items.
+pub trait Requests<BU, CP, RPD>: RequestParams<CP, RPD> + SizeHint {
+  /// Process bytes received from a counterpart and stores them in the passed `buffer`.
+  ///
+  /// `buffer` is always extended with new elements.
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()>;
 }
 
-impl<BU, PR, REQ, RR> Requests<BU> for [REQ]
-where
-  BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
-    + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
-  REQ: Debug
-    + PartialOrd
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
-  RR: Debug + for<'de> Deserialize<'de>,
-{
-  type Output = ();
-
+impl<BU, CP, RPD> Requests<BU, CP, RPD> for () {
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
-    push_responses_from_reqs_slice(buffer, bytes, self)
+  fn manage_responses(&self, _: &mut BU, _: &[u8]) -> crate::Result<()> {
+    Ok(())
   }
 }
 
-impl<BU, PR, REQ, RR, const N: usize> Requests<BU> for [REQ; N]
+impl<BU, CP, RPD, T> Requests<BU, CP, RPD> for &'_ T
+where
+  T: Requests<BU, CP, RPD>,
+{
+  #[inline]
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
+    T::manage_responses(self, buffer, bytes)
+  }
+}
+
+impl<BU, CP, PR, REQ, RPD, RR> Requests<BU, CP, RPD> for &'_ [REQ]
 where
   BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
     + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
   REQ: Debug
     + PartialOrd
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
   RR: Debug + for<'de> Deserialize<'de>,
 {
-  type Output = ();
-
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
+    push_responses_from_reqs_slice(buffer, bytes, self)
+  }
+}
+impl<CP, R, RPD> RequestParams<CP, RPD> for &'_ [R]
+where
+  R: Request<CP, RPD>,
+{
+  #[inline]
+  fn modify_all_params(cp: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(cp, rpd)
+  }
+}
+
+impl<BU, CP, PR, REQ, RPD, RR> Requests<BU, CP, RPD> for [REQ]
+where
+  BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
+    + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
+  REQ: Debug
+    + PartialOrd
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
+  RR: Debug + for<'de> Deserialize<'de>,
+{
+  #[inline]
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
+    push_responses_from_reqs_slice(buffer, bytes, self)
+  }
+}
+impl<CP, R, RPD> RequestParams<CP, RPD> for [R]
+where
+  R: Request<CP, RPD>,
+{
+  #[inline]
+  fn modify_all_params(cp: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(cp, rpd)
+  }
+}
+
+impl<BU, CP, PR, REQ, RPD, RR, const N: usize> Requests<BU, CP, RPD> for [REQ; N]
+where
+  BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
+    + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
+  REQ: Debug
+    + PartialOrd
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
+  RR: Debug + for<'de> Deserialize<'de>,
+{
+  #[inline]
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
     push_responses_from_reqs_slice(buffer, bytes, &self[..])
   }
 }
+impl<CP, R, RPD, const N: usize> RequestParams<CP, RPD> for [R; N]
+where
+  R: Request<CP, RPD>,
+{
+  #[inline]
+  fn modify_all_params(cp: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(cp, rpd)
+  }
+}
 
-impl<BU, PR, REQ, RR, const N: usize> Requests<BU> for ArrayVec<REQ, N>
+impl<BU, CP, PR, REQ, RPD, RR, const N: usize> Requests<BU, CP, RPD> for ArrayVec<REQ, N>
 where
   BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
     + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
   REQ: Debug
     + PartialOrd
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
   RR: Debug + for<'de> Deserialize<'de>,
 {
-  type Output = ();
-
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
     push_responses_from_reqs_slice(buffer, bytes, self)
   }
 }
-
-impl<BU, PR, REQ, RR> Requests<BU> for Vec<REQ>
+impl<CP, R, RPD, const N: usize> RequestParams<CP, RPD> for ArrayVec<R, N>
 where
-  BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
-    + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
-  REQ: Debug
-    + PartialOrd
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
-  RR: Debug + for<'de> Deserialize<'de>,
+  R: Request<CP, RPD>,
 {
-  type Output = ();
-
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
-    push_responses_from_reqs_slice(buffer, bytes, self)
+  fn modify_all_params(params: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(params, rpd)
   }
 }
 
-impl<BU, PR, REQ, RR> Requests<BU> for BTreeSet<REQ>
+impl<BU, CP, PR, REQ, RPD, RR> Requests<BU, CP, RPD> for BTreeSet<REQ>
 where
   BU: cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
   REQ: Borrow<usize>
     + Debug
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>
-    + Ord,
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    > + Ord,
   RR: Debug + for<'de> Deserialize<'de>,
 {
-  type Output = ();
-
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
     if self.is_empty() {
       return Ok(());
     }
-    push_responses_from_reqs_cb::<_, _, _, REQ, _>(buffer, bytes, |id| {
+    push_responses_from_reqs_cb::<_, _, _, _, _, REQ, _, _>(buffer, bytes, |id| {
       self.get(&id).ok_or(crate::Error::JsonRpcResponseIsNotPresentInAnySentRequest(id))
     })
   }
 }
+impl<CP, R, RPD> RequestParams<CP, RPD> for BTreeSet<R>
+where
+  R: Request<CP, RPD>,
+{
+  #[inline]
+  fn modify_all_params(cp: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(cp, rpd)
+  }
+}
 
 #[cfg(feature = "std")]
-impl<BU, PR, REQ, RR> Requests<BU> for std::collections::HashSet<REQ>
+impl<BU, CP, PR, REQ, RPD, RR> Requests<BU, CP, RPD> for std::collections::HashSet<REQ>
 where
   BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
     + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
@@ -118,31 +194,61 @@ where
     + Debug
     + Eq
     + core::hash::Hash
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
   RR: Debug + for<'de> Deserialize<'de>,
 {
-  type Output = ();
-
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
     if self.is_empty() {
       return Ok(());
     }
-    push_responses_from_reqs_cb::<_, _, _, REQ, _>(buffer, bytes, |id| {
+    push_responses_from_reqs_cb::<_, _, _, _, _, REQ, _, _>(buffer, bytes, |id| {
       self.get(&id).ok_or(crate::Error::JsonRpcResponseIsNotPresentInAnySentRequest(id))
     })
   }
 }
-
-impl<BU, T> Requests<BU> for &'_ T
+#[cfg(feature = "std")]
+impl<CP, RPD, R> RequestParams<CP, RPD> for std::collections::HashSet<R>
 where
-  T: Requests<BU>,
+  R: Request<CP, RPD>,
 {
-  type Output = T::Output;
-
   #[inline]
-  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<Self::Output> {
-    T::manage_responses(self, buffer, bytes)
+  fn modify_all_params(cp: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(cp, rpd)
+  }
+}
+
+impl<BU, CP, PR, REQ, RPD, RR> Requests<BU, CP, RPD> for Vec<REQ>
+where
+  BU: AsMut<[ProcessedJsonRpcResponse<PR>]>
+    + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
+  REQ: Debug
+    + PartialOrd
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
+  RR: Debug + for<'de> Deserialize<'de>,
+{
+  #[inline]
+  fn manage_responses(&self, buffer: &mut BU, bytes: &[u8]) -> crate::Result<()> {
+    push_responses_from_reqs_slice(buffer, bytes, self)
+  }
+}
+impl<CP, R, RPD> RequestParams<CP, RPD> for Vec<R>
+where
+  R: Request<CP, RPD>,
+{
+  #[inline]
+  fn modify_all_params(cp: &mut CP, rpd: RPD) -> crate::Result<()> {
+    R::modify_all_params(cp, rpd)
   }
 }
 
@@ -169,16 +275,22 @@ where
 }
 
 #[inline]
-fn push_responses_from_reqs_cb<BU, PR, ITEM, REQ, RR>(
+fn push_responses_from_reqs_cb<BU, CP, F, ITEM, PR, REQ, RPD, RR>(
   buffer: &mut BU,
   bytes: &[u8],
-  mut cb: impl FnMut(Id) -> crate::Result<ITEM>,
+  mut cb: F,
 ) -> crate::Result<()>
 where
   BU: cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
+  F: FnMut(Id) -> crate::Result<ITEM>,
   ITEM: Borrow<REQ>,
   REQ: Debug
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
   RR: Debug + for<'de> Deserialize<'de>,
 {
   let mut de = serde_json::Deserializer::from_slice(bytes);
@@ -192,7 +304,7 @@ where
 }
 
 #[inline]
-fn push_responses_from_reqs_slice<BU, PR, REQ, RR>(
+fn push_responses_from_reqs_slice<BU, CP, PR, REQ, RPD, RR>(
   buffer: &mut BU,
   bytes: &[u8],
   slice: &[REQ],
@@ -202,7 +314,12 @@ where
     + cl_aux::Extend<ProcessedJsonRpcResponse<PR>, Error = cl_aux::Error, Output = ()>,
   REQ: Debug
     + PartialOrd
-    + Request<ProcessedResponse = ProcessedJsonRpcResponse<PR>, RawResponse = JsonRpcResponse<RR>>,
+    + Request<
+      CP,
+      RPD,
+      ProcessedResponse = ProcessedJsonRpcResponse<PR>,
+      RawResponse = JsonRpcResponse<RR>,
+    >,
   RR: Debug + for<'de> Deserialize<'de>,
 {
   if slice.is_empty() {
@@ -229,9 +346,9 @@ where
 }
 
 // First try indexing and then falls back to binary search
-fn search_slice<REQ>(idx: usize, res_id: Id, reqs: &[REQ]) -> crate::Result<(&REQ, usize)>
+fn search_slice<CP, REQ, RPD>(idx: usize, res_id: Id, reqs: &[REQ]) -> crate::Result<(&REQ, usize)>
 where
-  REQ: Request,
+  REQ: Request<CP, RPD>,
 {
   let opt = reqs.get(idx).and_then(|req| (req.id() == res_id).then(|| req));
   if let Some(elem) = opt {

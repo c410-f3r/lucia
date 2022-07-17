@@ -1,6 +1,6 @@
 use crate::types::MaxNumberStr;
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountBalance {
   pub amount: MaxNumberStr,

@@ -6,7 +6,7 @@ use alloc::{vec, vec::Vec};
 use arrayvec::ArrayVec;
 
 /// Compiled [InstructionInput]
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CompiledInstructionInput {
   pub program_id_index: u8,
@@ -17,7 +17,7 @@ pub struct CompiledInstructionInput {
 }
 
 /// Used when performing requests
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InstructionInput {
   pub accounts: ArrayVec<InstructionAccountInput, MAX_TRANSACTION_ACCOUNTS_NUM>,
@@ -49,7 +49,7 @@ impl TryFrom<solana_program::instruction::Instruction> for InstructionInput {
   }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct InstructionAccountInput {
   pub pubkey: SolanaAddressHash,
@@ -69,7 +69,7 @@ impl From<solana_program::instruction::AccountMeta> for InstructionAccountInput 
   }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageInput {
   pub header: MessageHeaderInput,
@@ -207,7 +207,7 @@ impl MessageInput {
   }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MessageHeaderInput {
   pub num_required_signatures: u8,
@@ -215,7 +215,7 @@ pub struct MessageHeaderInput {
   pub num_readonly_unsigned_accounts: u8,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransactionInput {
   #[serde(with = "short_vec")]
@@ -236,7 +236,7 @@ impl TransactionInput {
     B: AsRef<[u8]> + std::io::Write,
   {
     use ed25519_dalek::Signer;
-    let mut this = Self { signatures: Default::default(), message };
+    let mut this = Self { signatures: <_>::default(), message };
     this._set_empty_signatures()?;
     if blockhash != this.message.recent_blockhash {
       this.message.recent_blockhash = blockhash;

@@ -28,6 +28,9 @@ pub enum Error {
   /// See [hex::FromHexError]
   #[cfg(feature = "hex")]
   Hex(hex::FromHexError),
+  #[cfg(feature = "ku-coin")]
+  /// See [crypto_common::InvalidLength].
+  InvalidLength(crypto_common::InvalidLength),
   /// See [reqwest::Error]
   #[cfg(feature = "reqwest")]
   Reqwest(reqwest::Error),
@@ -36,24 +39,35 @@ pub enum Error {
   /// See [surf::Error]
   #[cfg(feature = "surf")]
   Surf(surf::Error),
+  /// See [core::num::TryFromIntError]
+  TryFromIntError(core::num::TryFromIntError),
   /// See [tungstenite::Error]
   #[cfg(feature = "tokio-tungstenite")]
   Tungstenite(Box<tungstenite::Error>),
+  /// See [core::str::Utf8Error]
+  Utf8Error(core::str::Utf8Error),
+  #[cfg(feature = "std")]
+  /// See [std::env::VarError]
+  VarError(std::env::VarError),
 
   // Features
   //
   // Ethereum
+  /// Bad data serialization
   #[cfg(feature = "ethereum")]
   TokensInvalidOutputType(String),
 
   // Solana
+  /// Returned data from counterpart is everything a spl-token account
   #[cfg(feature = "solana")]
   SolanaAccountIsNotSplToken,
   /// Usually means that no signing public key is available in the list of all public keys
   #[cfg(feature = "solana")]
   SolanaInexistentOrOutOfBoundsSignatureIndex(usize, Option<usize>),
+  /// Hard-coded behavior specified by the Solana blockchain
   #[cfg(feature = "solana")]
   SolanaMessageCanNotHaveMoreThan240Accounts,
+  /// The number of signers is not equal the number os signed signatures
   #[cfg(feature = "solana")]
   SolanaSignersShouldHaveSignedAllTransactionSignatures(usize, usize),
 
@@ -63,6 +77,10 @@ pub enum Error {
   DifferentSequenceDeserialization(usize),
   /// For third-party dependencies that throws strings errors
   Generic(Cow<'static, str>),
+  /// The hardware returned an incorrect time value
+  IncorrectHardwareTime,
+  /// `no_std` has no knowledge of time. Try enabling the `std` feature
+  ItIsNotPossibleToUseTimeInNoStd,
   /// A slice-like batch of requests is not sorted
   JsonRpcRequestsAreNotSorted,
   /// Index is greater than the maximum capacity
@@ -138,6 +156,14 @@ impl From<hex::FromHexError> for Error {
   }
 }
 
+#[cfg(feature = "ku-coin")]
+impl From<crypto_common::InvalidLength> for Error {
+  #[inline]
+  fn from(from: crypto_common::InvalidLength) -> Self {
+    Self::InvalidLength(from)
+  }
+}
+
 #[cfg(feature = "reqwest")]
 impl From<reqwest::Error> for Error {
   #[inline]
@@ -161,6 +187,13 @@ impl From<surf::Error> for Error {
   }
 }
 
+impl From<core::num::TryFromIntError> for Error {
+  #[inline]
+  fn from(from: core::num::TryFromIntError) -> Self {
+    Self::TryFromIntError(from)
+  }
+}
+
 #[cfg(feature = "tokio-tungstenite")]
 impl From<tungstenite::Error> for Error {
   #[inline]
@@ -169,9 +202,24 @@ impl From<tungstenite::Error> for Error {
   }
 }
 
+impl From<core::str::Utf8Error> for Error {
+  #[inline]
+  fn from(from: core::str::Utf8Error) -> Self {
+    Self::Utf8Error(from)
+  }
+}
+
+#[cfg(feature = "std")]
+impl From<std::env::VarError> for Error {
+  #[inline]
+  fn from(from: std::env::VarError) -> Self {
+    Self::VarError(from)
+  }
+}
+
 impl Display for Error {
   #[inline]
-  fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), core::fmt::Error> {
+  fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
     <Error as Debug>::fmt(self, f)
   }
 }

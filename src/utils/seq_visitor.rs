@@ -21,7 +21,7 @@ where
   type Value = ();
 
   #[inline]
-  fn expecting(&self, formatter: &mut Formatter<'_>) -> Result<(), core::fmt::Error> {
+  fn expecting(&self, formatter: &mut Formatter<'_>) -> core::fmt::Result {
     formatter.write_fmt(format_args!("generic sequence of {}", type_name::<T>()))
   }
 

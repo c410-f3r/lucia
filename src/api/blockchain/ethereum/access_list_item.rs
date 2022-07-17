@@ -3,7 +3,7 @@ use ethabi::Address;
 use ethereum_types::H256;
 
 /// Access list item
-#[derive(Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccessListItem {
   /// Accessed address

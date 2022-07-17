@@ -8,10 +8,12 @@ mod tokenize;
 
 use crate::{
   api::blockchain::ethereum::{
-    BlockId, Bytes, CallRequest, Ethereum, FilterBuilder, TransactionRequest,
+    BlockId, CallRequest, EthCallReq, EthEstimateGasReq, EthGetLogsReq, EthSendTransactionReq,
+    Ethereum, FilterBuilder, Log, TransactionRequest,
   },
   network::Transport,
-  Pair,
+  protocol::{JsonRpcRequest, JsonRpcResponse, ProcessedJsonRpcResponse},
+  Pair, Request,
 };
 use alloc::vec::Vec;
 use detokenize::*;
@@ -24,25 +26,34 @@ use tokenize::*;
 
 /// Ethereum Contract Interface
 #[derive(Debug)]
-pub struct Contract<T> {
+pub struct Contract<CP, T>
+where
+  CP: Send,
+  T: Transport<Ethereum, CP>,
+{
   abi: ethabi::Contract,
   address: Address,
-  ethereum: Pair<Ethereum, T>,
+  ethereum: Pair<Ethereum, CP, T>,
 }
 
-impl<T> Contract<T>
+impl<CP, T> Contract<CP, T>
 where
-  T: Send + Transport,
+  CP: Send,
+  T: Send + Transport<Ethereum, CP>,
 {
   /// Creates new Contract Interface given blockchain address and ABI
   #[inline]
-  pub fn new(abi: ethabi::Contract, address: Address, eth: Pair<Ethereum, T>) -> Self {
+  pub fn new(abi: ethabi::Contract, address: Address, eth: Pair<Ethereum, CP, T>) -> Self {
     Contract { address, ethereum: eth, abi }
   }
 
   /// Creates new Contract Interface given blockchain address and JSON containing ABI
   #[inline]
-  pub fn from_json(address: Address, eth: Pair<Ethereum, T>, json: &[u8]) -> ethabi::Result<Self> {
+  pub fn from_json(
+    address: Address,
+    eth: Pair<Ethereum, CP, T>,
+    json: &[u8],
+  ) -> ethabi::Result<Self> {
     let abi = ethabi::Contract::load(json)?;
     Ok(Self::new(abi, address, eth))
   }
@@ -61,17 +72,23 @@ where
 
   /// Execute a contract function
   #[inline]
-  pub async fn call<P>(
+  pub async fn call<FP>(
     &mut self,
     func: &str,
-    params: P,
+    func_params: FP,
     from: Address,
     options: Options,
   ) -> crate::Result<Option<H256>>
   where
-    P: Tokenize,
+    FP: Tokenize,
+    for<'tr> JsonRpcRequest<EthSendTransactionReq<'tr>>: Request<
+      CP,
+      (),
+      ProcessedResponse = ProcessedJsonRpcResponse<Option<H256>>,
+      RawResponse = JsonRpcResponse<Option<H256>>,
+    >,
   {
-    let data = self.abi.function(func)?.encode_input(&params.into_tokens())?;
+    let data = self.abi.function(func)?.encode_input(&func_params.into_tokens())?;
     let Options {
       gas,
       gas_price,
@@ -90,46 +107,52 @@ where
       gas_price,
       value,
       nonce,
-      data: Some(Bytes(data)),
+      data: Some(crate::api::blockchain::ethereum::Bytes(data)),
       condition,
       transaction_type,
       access_list,
       max_fee_per_gas,
       max_priority_fee_per_gas,
     };
-    let (rb, trans) = self.ethereum.parts_mut();
-    let req = rb.eth_send_transaction(&tr);
-    Ok(trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await?.result)
+    let (rm, trans) = self.ethereum.parts_mut();
+    let req = rm.eth_send_transaction(&tr);
+    Ok(trans.send_retrieve_and_decode_one(rm, &req, ()).await?.result)
   }
 
   /// Estimate gas required for this function call.
   #[inline]
-  pub async fn estimate_gas<P>(
+  pub async fn estimate_gas<FP>(
     &mut self,
     func: &str,
-    params: P,
+    func_params: FP,
     from: Address,
     options: Options,
-  ) -> crate::Result<Option<U256>>
+  ) -> crate::Result<U256>
   where
-    P: Tokenize,
+    FP: Tokenize,
+    for<'cr> JsonRpcRequest<EthEstimateGasReq<'cr>>: Request<
+      CP,
+      (),
+      ProcessedResponse = ProcessedJsonRpcResponse<U256>,
+      RawResponse = JsonRpcResponse<U256>,
+    >,
   {
-    let data = self.abi.function(func)?.encode_input(&params.into_tokens())?;
+    let data = self.abi.function(func)?.encode_input(&func_params.into_tokens())?;
     let call_request = CallRequest {
       from: Some(from),
       to: Some(self.address),
       gas: options.gas,
       gas_price: options.gas_price,
       value: options.value,
-      data: Some(Bytes(data)),
+      data: Some(crate::api::blockchain::ethereum::Bytes(data)),
       transaction_type: options.transaction_type,
       access_list: options.access_list,
       max_fee_per_gas: options.max_fee_per_gas,
       max_priority_fee_per_gas: options.max_priority_fee_per_gas,
     };
-    let (rb, trans) = self.ethereum.parts_mut();
-    let req = rb.eth_estimate_gas(None, &call_request);
-    Ok(trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await?.result)
+    let (rm, trans) = self.ethereum.parts_mut();
+    let req = rm.eth_estimate_gas(None, &call_request);
+    Ok(trans.send_retrieve_and_decode_one(rm, &req, ()).await?.result)
   }
 
   /// Find events matching the topics.
@@ -146,6 +169,12 @@ where
     BB: Tokenize,
     CC: Tokenize,
     R: Detokenize,
+    for<'filter> JsonRpcRequest<EthGetLogsReq<'filter>>: Request<
+      CP,
+      (),
+      ProcessedResponse = ProcessedJsonRpcResponse<Option<Vec<Log>>>,
+      RawResponse = JsonRpcResponse<Option<Vec<Log>>>,
+    >,
   {
     fn to_topic<A: Tokenize>(x: A) -> ethabi::Topic<ethabi::Token> {
       let tokens = x.into_tokens();
@@ -165,20 +194,18 @@ where
     })?;
 
     let filter = FilterBuilder::default().topic_filter(topic_filer).build();
-    let (rb, trans) = self.ethereum.parts_mut();
-    let req = rb.eth_get_logs(&filter);
-    let logs = if let Some(el) = trans.send_retrieve_and_decode_one(&req, rb.tp_mut()).await?.result
-    {
+    let (rm, trans) = self.ethereum.parts_mut();
+    let req = rm.eth_get_logs(&filter);
+    let logs = if let Some(el) = trans.send_retrieve_and_decode_one(rm, &req, ()).await?.result {
       el
     } else {
-      return Ok(Default::default());
+      return Ok(Vec::new());
     };
 
     logs
       .into_iter()
       .map(move |l| {
         let log = ev.parse_log(ethabi::RawLog { topics: l.topics, data: l.data.0 })?;
-
         R::from_tokens(log.params.into_iter().map(|x| x.value).collect::<Vec<_>>())
       })
       .collect::<crate::Result<Vec<R>>>()
@@ -186,10 +213,10 @@ where
 
   /// Call constant function
   #[inline]
-  pub async fn query<R, A, B, P>(
+  pub async fn query<R, A, B, FP>(
     &mut self,
     func: &str,
-    params: P,
+    func_params: FP,
     from: A,
     options: Options,
     block: B,
@@ -197,11 +224,17 @@ where
   where
     A: Into<Option<Address>>,
     B: Into<Option<BlockId>>,
-    P: Tokenize,
+    FP: Tokenize,
     R: Detokenize,
+    for<'cr> JsonRpcRequest<EthCallReq<'cr>>: Request<
+      CP,
+      (),
+      ProcessedResponse = ProcessedJsonRpcResponse<Option<crate::api::blockchain::ethereum::Bytes>>,
+      RawResponse = JsonRpcResponse<Option<crate::api::blockchain::ethereum::Bytes>>,
+    >,
   {
     let function = self.abi.function(func)?;
-    let bytes = function.encode_input(&params.into_tokens())?;
+    let bytes = function.encode_input(&func_params.into_tokens())?;
     let block_id = block.into();
     let call_request = CallRequest {
       from: from.into(),
@@ -209,16 +242,16 @@ where
       gas: options.gas,
       gas_price: options.gas_price,
       value: options.value,
-      data: Some(Bytes(bytes)),
+      data: Some(crate::api::blockchain::ethereum::Bytes(bytes)),
       transaction_type: options.transaction_type,
       access_list: options.access_list,
       max_fee_per_gas: options.max_fee_per_gas,
       max_priority_fee_per_gas: options.max_priority_fee_per_gas,
     };
-    let (rb, trans) = self.ethereum.parts_mut();
-    let req = rb.eth_call(block_id, &call_request);
+    let (rm, trans) = self.ethereum.parts_mut();
+    let req = rm.eth_call(block_id, &call_request);
     trans
-      .send_retrieve_and_decode_one(&req, rb.tp_mut())
+      .send_retrieve_and_decode_one(rm, &req, ())
       .await?
       .result
       .map(|el| R::from_tokens(function.decode_output(&el.0)?))
@@ -226,15 +259,12 @@ where
   }
 }
 
-#[cfg(test)]
+#[cfg(all(feature = "_dev", test))]
 mod tests {
   use crate::{
-    api::{
-      blockchain::ethereum::{
-        contract::{Contract, Detokenize, Options},
-        BlockId, BlockNumber, CallRequest, Ethereum,
-      },
-      Api,
+    api::blockchain::ethereum::{
+      contract::{Contract, Detokenize, Options},
+      BlockId, BlockNumber, CallRequest,
     },
     network::Test,
     protocol::{JsonRpcRequest, JsonRpcResponse},
@@ -299,7 +329,7 @@ mod tests {
   async fn should_call_constant_function() {
     let block_id = BlockId::Number(BlockNumber::Number(1));
     let mut trans = Test::default();
-    trans.set_responses(response(HELLO_WORLD.into()));
+    trans.push_response(response(HELLO_WORLD.into()));
     let result: String = contract(&mut trans)
       .query("name", (), None, Options::default(), block_id)
       .await
@@ -308,7 +338,7 @@ mod tests {
     assert_eq!(result, "Hello World!");
     let mut cr = call_request();
     cr.data = Some(hex::decode("06fdde03").unwrap().into());
-    trans.assert_has_request(&req("eth_call", (cr, block_id)));
+    trans.assert_request(&req("eth_call", (cr, block_id)));
     trans.assert_does_not_have_non_asserted_requests();
   }
 
@@ -316,7 +346,7 @@ mod tests {
   async fn should_call_constant_function_by_hash() {
     let block_id = BlockId::Hash(H256::default());
     let mut trans = Test::default();
-    trans.set_responses(response(HELLO_WORLD.into()));
+    trans.push_response(response(HELLO_WORLD.into()));
     let result: String = contract(&mut trans)
       .query("name", (), None, Options::default(), block_id)
       .await
@@ -325,7 +355,7 @@ mod tests {
     assert_eq!(result, "Hello World!".to_owned());
     let mut cr = call_request();
     cr.data = Some(hex::decode("06fdde03").unwrap().into());
-    trans.assert_has_request(&req("eth_call", (cr, block_id)));
+    trans.assert_request(&req("eth_call", (cr, block_id)));
     trans.assert_does_not_have_non_asserted_requests();
   }
 
@@ -334,7 +364,7 @@ mod tests {
     let block_id = BlockId::Number(BlockNumber::Latest);
     let from = Address::from_low_u64_be(5);
     let mut trans = Test::default();
-    trans.set_responses(response(HELLO_WORLD.into()));
+    trans.push_response(response(HELLO_WORLD.into()));
     let result: String = contract(&mut trans)
       .query(
         "name",
@@ -351,7 +381,7 @@ mod tests {
     cr.data = Some(hex::decode("06fdde03").unwrap().into());
     cr.from = Some(from);
     cr.gas_price = Some(10_000_000.into());
-    trans.assert_has_request(&req("eth_call", (cr, block_id)));
+    trans.assert_request(&req("eth_call", (cr, block_id)));
     trans.assert_does_not_have_non_asserted_requests();
   }
 
@@ -359,14 +389,14 @@ mod tests {
   async fn should_call_a_contract_function() {
     let from = Address::from_low_u64_be(5);
     let mut trans = Test::default();
-    trans.set_responses(response(format!("{:#x}", H256::from_low_u64_be(5)).into()));
+    trans.push_response(response(format!("{:#x}", H256::from_low_u64_be(5)).into()));
     let result =
       contract(&mut trans).call("name", (), from, Options::default()).await.unwrap().unwrap();
     assert_eq!(result, H256::from_low_u64_be(5));
     let mut cr = call_request();
     cr.data = Some(hex::decode("06fdde03").unwrap().into());
     cr.from = Some(from);
-    trans.assert_has_request(&req("eth_sendTransaction", [cr]));
+    trans.assert_request(&req("eth_sendTransaction", [cr]));
     trans.assert_does_not_have_non_asserted_requests();
   }
 
@@ -374,24 +404,21 @@ mod tests {
   async fn should_estimate_gas_usage() {
     let from = Address::from_low_u64_be(5);
     let mut trans = Test::default();
-    trans.set_responses(response(format!("{:#x}", U256::from(5)).into()));
-    let result = contract(&mut trans)
-      .estimate_gas("name", (), from, Options::default())
-      .await
-      .unwrap()
-      .unwrap();
+    trans.push_response(response(format!("{:#x}", U256::from(5)).into()));
+    let result =
+      contract(&mut trans).estimate_gas("name", (), from, Options::default()).await.unwrap();
     assert_eq!(result, 5.into());
     let mut cr = call_request();
     cr.data = Some(hex::decode("06fdde03").unwrap().into());
     cr.from = Some(from);
-    trans.assert_has_request(&req("eth_estimateGas", [cr]));
+    trans.assert_request(&req("eth_estimateGas", [cr]));
     trans.assert_does_not_have_non_asserted_requests();
   }
 
   #[tokio::test]
   async fn should_query_single_parameter_function() {
     let mut trans = Test::default();
-    trans.set_responses(response(
+    trans.push_response(response(
       "0x0000000000000000000000000000000000000000000000000000000000000020".into(),
     ));
     let result: U256 = contract(&mut trans)
@@ -412,7 +439,7 @@ mod tests {
         .unwrap()
         .into(),
     );
-    trans.assert_has_request(&req("eth_call", (cr, BlockId::Number(BlockNumber::Latest))));
+    trans.assert_request(&req("eth_call", (cr, BlockId::Number(BlockNumber::Latest))));
     trans.assert_does_not_have_non_asserted_requests();
   }
 
@@ -422,8 +449,8 @@ mod tests {
     cr
   }
 
-  fn contract(trans: &mut Test) -> Contract<&mut Test> {
-    let pair = Pair::new(trans, Ethereum::new("", None).unwrap());
+  fn contract(trans: &mut Test) -> Contract<(), &mut Test> {
+    let pair = Pair::new(trans, ());
     Contract::from_json(Address::from_low_u64_be(1), pair, include_bytes!("./resources/token.json"))
       .unwrap()
   }
@@ -442,8 +469,8 @@ mod tests {
     serde_json::to_string(&JsonRpcRequest { id: 1, method, params }).unwrap()
   }
 
-  fn response(result: Cow<'static, str>) -> impl Iterator<Item = Cow<'static, str>> {
+  fn response(result: Cow<'static, str>) -> Cow<'static, str> {
     let elem = JsonRpcResponse { id: 1, method: None, result: Ok(result) };
-    [serde_json::to_string(&elem).unwrap().into()].into_iter()
+    serde_json::to_string(&elem).unwrap().into()
   }
 }

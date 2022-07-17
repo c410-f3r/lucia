@@ -9,15 +9,18 @@ _create_json_endpoint! {
 
   |raw: Vec<PhotosRes>| -> Vec<PhotosRes> { Ok(raw) }
 
-  photos() -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      tp._http_params._url.try_push_str("/photos")?;
-      PhotosReq
+  PhotosParams() -> crate::Result<()> {
+    |cp| {
+      cp._method = HttpMethod::_Get;
+      cp._url_parts.set_path(format_args!("/photos"))?;
     }
   }
 
-  Ok
+  photos() {
+    || {
+      PhotosReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]

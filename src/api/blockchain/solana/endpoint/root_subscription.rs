@@ -19,10 +19,3 @@ _create_json_rpc_endpoint! {
 
   root_unsubscribe(id: u64) { RootUnsubscribeReq([id]) }
 }
-
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
-pub struct SlotSubscribeNotification {
-  parent: u64,
-  root: u64,
-  slot: u64,
-}

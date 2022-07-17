@@ -1,24 +1,27 @@
-use crate::utils::{GenericInstant, RequestLimit, _sleep};
+use crate::utils::{GenericTime, RequestLimit, _sleep};
+use core::time::Duration;
 
 /// Tracks how many requests were performed in a time interval
 #[derive(Clone, Copy, Debug)]
 pub struct RequestCounter {
   counter: u16,
-  instant: GenericInstant,
+  instant: GenericTime,
 }
 
 impl RequestCounter {
+  /// Instance with valid initial values
+  #[inline]
+  pub fn new() -> crate::Result<Self> {
+    Ok(Self { counter: 0, instant: GenericTime::now()? })
+  }
+
   /// If the values defined in [RequestLimit] are in agreement with the **current** values
   /// of [RequestCounter], then return `T`. Otherwise, awaits until [RequestCounter] is updated.
   #[inline]
-  pub async fn update_params(&mut self, rl: &RequestLimit) {
-    let now = GenericInstant::now();
+  pub async fn update_params(&mut self, rl: &RequestLimit) -> crate::Result<()> {
+    let now = GenericTime::now()?;
     let duration = *rl.duration();
-    let elapsed = if let Some(elem) = now.checked_duration_since(self.instant) {
-      elem
-    } else {
-      return;
-    };
+    let elapsed = now.duration_since(self.instant)?;
     if elapsed > duration {
       _debug!("Elapsed is greater than duration. Re-initializing");
       self.counter = 1;
@@ -26,32 +29,34 @@ impl RequestCounter {
     } else if self.counter == 0 {
       _debug!("First instance call");
       self.counter = 2;
+    } else if self.counter > rl.limit() {
+      _debug!("Counter exceeded its limit within max duration");
+      self.manage_sleep(elapsed, duration).await?;
+      self.counter = 1;
     } else if self.counter == 1 {
       _debug!("First recurrent call");
-      if elapsed <= duration {
-        let diff = duration - elapsed;
-        _debug!("First recurrent call needs to wait {}ms", diff.as_millis());
-        _sleep(diff).await;
-        self.instant = GenericInstant::now();
-      }
+      self.manage_sleep(elapsed, duration).await?;
       self.counter = self.counter.wrapping_add(1);
-    } else if self.counter >= rl.limit() {
-      _debug!("Counter exceeded its limit within max duration");
+    } else if self.counter == rl.limit() {
+      _debug!("Counter equals its limit within max duration");
       self.counter = 1;
     } else {
       self.counter = self.counter.wrapping_add(1);
     }
+    Ok(())
+  }
+
+  async fn manage_sleep(&mut self, elapsed: Duration, duration: Duration) -> crate::Result<()> {
+    if let Some(diff) = duration.checked_sub(elapsed) {
+      _debug!("Call needs to wait {}ms", diff.as_millis());
+      _sleep(diff).await?;
+      self.instant = GenericTime::now()?;
+    }
+    Ok(())
   }
 }
 
-impl Default for RequestCounter {
-  #[inline]
-  fn default() -> Self {
-    Self { counter: 0, instant: GenericInstant::now() }
-  }
-}
-
-#[cfg(feature = "tokio")]
+#[cfg(all(feature = "_dev", feature = "tokio"))]
 #[cfg(test)]
 mod tests {
   use crate::utils::{RequestCounter, RequestLimit};
@@ -59,52 +64,54 @@ mod tests {
   use std::time::Instant;
   use tokio::time::sleep;
 
+  // Minus 1ms because awaiting is `duration - elapsed` instead of `duration`
   #[tokio::test]
   async fn awaits_when_called_with_counter_reinitialized() {
-    const MS: u64 = 1000;
-    const MS_DURATION: Duration = Duration::from_millis(MS);
+    const DURATION: Duration = Duration::from_millis(1000);
 
-    let rl = RequestLimit::from_ms(2, MS);
-    let mut rc = RequestCounter::default();
+    let rl = RequestLimit::new(2, DURATION).unwrap();
+    let mut rc = RequestCounter::new().unwrap();
 
     async fn test(first_ms: Duration, rc: &mut RequestCounter, rl: &RequestLimit) {
       let first = Instant::now();
-      rc.update_params(rl).await;
+      rc.update_params(rl).await.unwrap();
       assert!(first.elapsed() >= first_ms);
 
       let second = Instant::now();
-      rc.update_params(rl).await;
-      assert!(second.elapsed() <= Duration::from_millis(10));
+      rc.update_params(rl).await.unwrap();
+      assert!(second.elapsed() <= Duration::from_millis(2));
     }
 
     test(Duration::from_millis(0), &mut rc, &rl).await;
-    test(MS_DURATION, &mut rc, &rl).await;
-    test(MS_DURATION, &mut rc, &rl).await;
+    test(DURATION - Duration::from_millis(1), &mut rc, &rl).await;
+    test(DURATION - Duration::from_millis(1), &mut rc, &rl).await;
+    test(DURATION - Duration::from_millis(1), &mut rc, &rl).await;
+    test(DURATION - Duration::from_millis(1), &mut rc, &rl).await;
   }
 
   #[tokio::test]
   async fn counter_is_reinitialized_when_time_expires() {
-    let rl = RequestLimit::from_ms(10, 1000);
-    let mut rc = RequestCounter::default();
+    let rl = RequestLimit::new(10, Duration::from_millis(1000)).unwrap();
+    let mut rc = RequestCounter::new().unwrap();
     assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 2);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 3);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     sleep(Duration::from_millis(1110)).await;
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 1);
   }
 
   #[tokio::test]
   async fn does_not_awaits_when_idle_is_greater_than_duration() {
-    let rl = RequestLimit::from_ms(2, 50);
-    let mut rc = RequestCounter::default();
+    let rl = RequestLimit::new(2, Duration::from_millis(50)).unwrap();
+    let mut rc = RequestCounter::new().unwrap();
 
     async fn test(rc: &mut RequestCounter, rl: &RequestLimit) {
       let now = Instant::now();
-      rc.update_params(rl).await;
+      rc.update_params(rl).await.unwrap();
       assert!(now.elapsed() <= Duration::from_millis(10));
     }
 
@@ -126,38 +133,55 @@ mod tests {
 
   #[tokio::test]
   async fn has_correct_counter_increment() {
-    let rl = RequestLimit::from_ms(2, 100);
-    let mut rc = RequestCounter::default();
+    let rl = RequestLimit::new(2, Duration::from_millis(100)).unwrap();
+    let mut rc = RequestCounter::new().unwrap();
     assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 2);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 1);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 2);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 1);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 2);
-    rc.update_params(&rl).await;
+    rc.update_params(&rl).await.unwrap();
+    assert_eq!(rc.counter, 1);
+    rc.update_params(&rl).await.unwrap();
+    assert_eq!(rc.counter, 2);
+    rc.update_params(&rl).await.unwrap();
     assert_eq!(rc.counter, 1);
   }
 
   #[tokio::test]
-  async fn zero_limit_does_not_block_and_does_not_increment() {
-    let rl = RequestLimit::from_ms(0, 1_000);
-    let mut rc = RequestCounter::default();
+  async fn one_value_limit_has_correct_behavior() {
+    async fn test(rc: &mut RequestCounter, rl: &RequestLimit, duration: Duration) {
+      let now = Instant::now();
+      rc.update_params(rl).await.unwrap();
+      dbg!(now.elapsed(), duration);
+      assert!(now.elapsed() >= duration);
+    }
+
+    let _100 = Duration::from_millis(100);
+    let rl = RequestLimit::new(1, _100).unwrap();
+    let mut rc = RequestCounter::new().unwrap();
     assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
-    assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
-    assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
-    assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
-    assert_eq!(rc.counter, 0);
-    rc.update_params(&rl).await;
-    assert_eq!(rc.counter, 0);
-    assert!(rc.instant.elapsed() < Duration::from_millis(1000));
+    test(&mut rc, &rl, <_>::default()).await;
+    assert_eq!(rc.counter, 2);
+    test(&mut rc, &rl, _100 - Duration::from_millis(1)).await;
+    assert_eq!(rc.counter, 1);
+    test(&mut rc, &rl, <_>::default()).await;
+    assert_eq!(rc.counter, 2);
+    test(&mut rc, &rl, _100 - Duration::from_millis(1)).await;
+    assert_eq!(rc.counter, 1);
+    test(&mut rc, &rl, <_>::default()).await;
+    assert_eq!(rc.counter, 2);
+    test(&mut rc, &rl, _100 - Duration::from_millis(1)).await;
+    assert_eq!(rc.counter, 1);
+    test(&mut rc, &rl, <_>::default()).await;
+    assert_eq!(rc.counter, 2);
+    test(&mut rc, &rl, _100 - Duration::from_millis(1)).await;
+    assert_eq!(rc.counter, 1);
   }
 }

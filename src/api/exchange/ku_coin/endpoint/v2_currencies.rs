@@ -1,10 +1,9 @@
 use crate::{
-  api::exchange::ku_coin::{endpoint::GenericDataResponse, KuCoin},
+  api::exchange::ku_coin::{GenericDataResponse, KuCoin},
   network::HttpMethod,
   types::{MaxAddressHashStr, MaxAssetAbbr, MaxAssetName, MaxNumberStr},
 };
 use arrayvec::ArrayVec;
-use core::fmt::Write;
 
 type Res = GenericDataResponse<V2CurrenciesRes>;
 
@@ -15,15 +14,18 @@ _create_json_endpoint! {
 
   |raw: Res| -> Res { Ok(raw) }
 
-  v2_currencies(asset: &str) -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, api.urls.v2_currencies.url());
-      tp._http_params._url.write_fmt(format_args!("/{asset}"))?;
-      V2CurrenciesReq
+  V2CurrenciesParams(asset: &'rpd str) -> crate::Result<()> {
+    |hp| {
+      hp._method = HttpMethod::_Get;
+      hp._url_parts.set_path(format_args!("/api/v2/currencies/{asset}"))?;
     }
   }
 
-  Ok
+  v2_currencies() {
+    || {
+      V2CurrenciesReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]

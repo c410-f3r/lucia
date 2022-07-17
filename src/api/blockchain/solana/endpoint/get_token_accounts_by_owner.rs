@@ -1,9 +1,6 @@
 use crate::api::blockchain::solana::{
-  endpoint::{
-    CommitmenOptDataSliceOptEncodingMand, JsonRpcRequestParamsWithTwoMandAndOneOpt,
-    JsonRpcResponseResultWithContext, MintOrProgramId,
-  },
-  Account, Solana, SolanaAddressHashStr,
+  Account, CommitmenOptDataSliceOptEncodingMand, JsonRpcRequestParamsWithTwoMandAndOneOpt,
+  JsonRpcResponseResultWithContext, MintOrProgramId, Solana, SolanaAddressHashStr,
 };
 use arrayvec::ArrayVec;
 

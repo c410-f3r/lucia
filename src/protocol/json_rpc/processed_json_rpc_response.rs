@@ -5,10 +5,14 @@ use core::{
   hash::{Hash, Hasher},
 };
 
+/// Originated from [crate::protocol::JsonRpcResponse].
 #[derive(Debug)]
 pub struct ProcessedJsonRpcResponse<R> {
+  /// Same as the original
   pub id: Id,
+  /// Same as the original
   pub method: Option<ArrayString<MAX_JSON_RPC_METHOD_LEN>>,
+  /// Transformed result
   pub result: R,
 }
 

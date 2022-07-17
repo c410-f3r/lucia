@@ -9,15 +9,18 @@ _create_json_endpoint! {
 
   |raw: Vec<UsersRes>| -> Vec<UsersRes> { Ok(raw) }
 
-  users() -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      tp._http_params._url.try_push_str("/users")?;
-      UsersReq
+  UsersParams() -> crate::Result<()> {
+    |cp| {
+      cp._method = HttpMethod::_Get;
+      cp._url_parts.set_path(format_args!("/users"))?;
     }
   }
 
-  Ok
+  users() {
+    || {
+      UsersReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]

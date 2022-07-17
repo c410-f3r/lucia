@@ -10,21 +10,28 @@ use serde::{
   Deserialize, Deserializer, Serialize, Serializer,
 };
 
+/// Replied from a given [crate::protocol::JsonRpcRequest].
+///
+/// The `jsonrpc` field is not included because `2.0` is always expected.
 #[derive(Debug)]
 pub struct JsonRpcResponse<R> {
+  /// The same value specified in the request.
   pub id: Id,
+  /// Optional parameter returns by the counterpart.
   pub method: Option<ArrayString<MAX_JSON_RPC_METHOD_LEN>>,
+  /// Contains the `result` or the `error` field.
   pub result: crate::Result<R>,
 }
 
 impl<R> JsonRpcResponse<R> {
   #[inline]
-  pub(crate) fn _into_processed<REQ, PRR>(
+  pub(crate) fn _into_processed<CP, F, PRR, REQ, RPD>(
     self,
-    cb: impl FnOnce(R) -> PRR,
+    cb: F,
   ) -> crate::Result<ProcessedJsonRpcResponse<PRR>>
   where
-    REQ: Request<RawResponse = Self, ProcessedResponse = ProcessedJsonRpcResponse<PRR>>,
+    F: FnOnce(R) -> PRR,
+    REQ: Request<CP, RPD, RawResponse = Self, ProcessedResponse = ProcessedJsonRpcResponse<PRR>>,
   {
     Ok(ProcessedJsonRpcResponse { id: self.id, method: self.method, result: cb(self.result?) })
   }

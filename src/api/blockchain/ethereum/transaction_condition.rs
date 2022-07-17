@@ -1,5 +1,5 @@
 /// Represents condition on minimum block number or block timestamp.
-#[derive(Clone, Copy, Debug, Eq, Hash, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
 #[serde(deny_unknown_fields)]
 pub enum TransactionCondition {
   /// Valid at this minimum block number.

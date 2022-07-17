@@ -1,28 +1,36 @@
-use core::time::Duration;
+use core::{num::NonZeroU16, time::Duration};
 
 /// Determines how many times a series of requests can be performed within a certain duration
 #[derive(Clone, Copy, Debug)]
 pub struct RequestLimit {
-  limit: u16,
-  ms: Duration,
+  duration: Duration,
+  limit: NonZeroU16,
 }
 
 impl RequestLimit {
-  /// New instance based on millis-seconds.
+  /// New instance based on millis-seconds. If `duration` is zero then this structure will
+  /// basically be a no-op.
+  ///
+  /// Limits must start at 1 so will always ever be at least one request.
   #[inline]
-  pub const fn from_ms(limit: u16, ms: u64) -> Self {
-    Self { ms: Duration::from_millis(ms), limit }
+  pub fn new(limit: u16, duration: Duration) -> crate::Result<Self> {
+    Ok(Self { duration, limit: limit.try_into()? })
   }
 
   /// The interval range that can contain a maximum number of [Self::limit] requests
   #[inline]
   pub const fn duration(&self) -> &Duration {
-    &self.ms
+    &self.duration
   }
 
   /// Upper bound or maximum possible number of requests
   #[inline]
-  pub const fn limit(&self) -> u16 {
-    self.limit
+  pub fn limit(&self) -> u16 {
+    self.limit.into()
   }
+}
+
+#[test]
+fn limit_can_not_be_zero() {
+  assert!(RequestLimit::new(0, <_>::default()).is_err())
 }

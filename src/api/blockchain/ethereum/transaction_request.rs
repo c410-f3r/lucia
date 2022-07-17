@@ -3,7 +3,7 @@ use ethabi::Address;
 use ethereum_types::{U256, U64};
 
 /// Send Transaction Parameters
-#[derive(Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct TransactionRequest {
   /// Sender address
   pub from: Address,

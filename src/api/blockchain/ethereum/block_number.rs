@@ -3,7 +3,7 @@ use core::fmt::Write;
 use serde::{ser::Error, Serialize, Serializer};
 
 /// Block Number
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Copy, Debug)]
 pub enum BlockNumber {
   /// Earliest block (genesis)
   Earliest,

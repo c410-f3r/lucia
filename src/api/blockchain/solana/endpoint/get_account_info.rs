@@ -1,7 +1,6 @@
 use crate::{
   api::blockchain::solana::{
-    endpoint::{CommitmenOptDataSliceOptEncodingMand, JsonRpcResponseResultWithContext},
-    Account, Solana,
+    Account, CommitmenOptDataSliceOptEncodingMand, JsonRpcResponseResultWithContext, Solana,
   },
   utils::{into_rslt, OneMandAndOneOpt},
 };

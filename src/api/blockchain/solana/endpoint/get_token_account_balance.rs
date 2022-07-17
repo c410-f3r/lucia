@@ -1,8 +1,6 @@
 use crate::{
   api::blockchain::solana::{
-    endpoint::{Commitment, JsonRpcResponseResultWithContext},
-    program::spl_token::AccountBalance,
-    Solana,
+    program::spl_token::AccountBalance, Commitment, JsonRpcResponseResultWithContext, Solana,
   },
   utils::OneMandAndOneOpt,
 };

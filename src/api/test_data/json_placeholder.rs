@@ -1,24 +1,25 @@
-pub mod endpoint;
-#[cfg(all(test, feature = "_integration-tests"))]
+//! Fake data for testing and prototyping.
+//!
+//! ```rust,no_run
+//! # async fn fun() -> lucia::Result<()> {
+//! use lucia::{
+//!   api::test_data::json_placeholder::AlbumsParams,
+//!   network::{HttpParams, Transport},
+//!   Pair,
+//! };
+//! let (mut rm, mut trans) = Pair::new((), HttpParams::from_origin("ORIGIN")?).into_parts();
+//! let req = rm.albums();
+//! let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, AlbumsParams::new()).await?;
+//! Ok(())
+//! # };
+//! ```
+
+#![cfg(feature = "json-placeholder")]
+
+mod endpoint;
 mod integration_tests;
 
-use crate::{api::Api, types::MaxUrl};
+pub use endpoint::*;
 
 #[derive(Debug)]
-pub struct JsonPlaceholder {
-  pub origin: MaxUrl,
-}
-
-impl Api for JsonPlaceholder {
-  type Aux = ();
-
-  #[inline]
-  fn new(origin: &str, _: Self::Aux) -> crate::Result<Self> {
-    Ok(Self { origin: origin.try_into()? })
-  }
-
-  #[inline]
-  fn origin(&self) -> &MaxUrl {
-    &self.origin
-  }
-}
+pub struct JsonPlaceholder;

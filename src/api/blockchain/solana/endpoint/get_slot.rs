@@ -1,4 +1,4 @@
-use crate::api::blockchain::solana::{endpoint::Commitment, Solana};
+use crate::api::blockchain::solana::{Commitment, Solana};
 
 _create_json_rpc_endpoint! {
   Solana;
