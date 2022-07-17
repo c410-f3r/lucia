@@ -1,6 +1,6 @@
 use crate::{
   api::blockchain::solana::{
-    endpoint::CommitmentOptEncodingOpt, Solana, TransactionEncoding, TransactionOutput,
+    CommitmentOptEncodingOpt, Solana, TransactionEncoding, TransactionOutput,
   },
   utils::OneMandAndOneOpt,
 };

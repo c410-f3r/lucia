@@ -6,7 +6,7 @@ use serde::{
 };
 
 /// Raw bytes wrapper
-#[derive(Debug, Default, Eq, Hash, PartialEq)]
+#[derive(Debug, Default, Eq, PartialEq)]
 pub struct Bytes(pub Vec<u8>);
 
 impl<'de> Deserialize<'de> for Bytes {

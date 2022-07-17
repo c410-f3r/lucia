@@ -2,7 +2,7 @@ use crate::api::blockchain::ethereum::{AccessList, TransactionCondition};
 use ethereum_types::{U256, U64};
 
 /// Contract Call/Query Options
-#[derive(Default, Debug, Eq, PartialEq)]
+#[derive(Default, Debug)]
 pub struct Options {
   /// Access list
   pub access_list: Option<AccessList>,

@@ -1,7 +1,8 @@
 use alloc::vec::Vec;
 use serde::{Serialize, Serializer};
 
-#[derive(Default, Debug, Eq, PartialEq)]
+/// Value or Array
+#[derive(Debug)]
 pub struct ValueOrArray<T>(pub(crate) Vec<T>);
 
 impl<T> Serialize for ValueOrArray<T>

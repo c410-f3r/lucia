@@ -1,5 +1,5 @@
 use crate::{
-  api::game::age_of_empires_ii::{endpoint::UnitRes, AgeOfEmpiresII},
+  api::game::age_of_empires_ii::{AgeOfEmpiresII, UnitRes},
   network::HttpMethod,
 };
 use alloc::vec::Vec;
@@ -13,10 +13,15 @@ _create_json_endpoint! {
 
   |raw: Res| -> Res { Ok(raw) }
 
+  UnitsParams() -> crate::Result<()> {
+    |hp| {
+      hp._method = HttpMethod::_Get;
+      hp._url_parts.set_path(format_args!("/api/v1/units"))?;
+    }
+  }
+
   units() {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      let _rslt = tp._http_params._url.try_push_str("/api/v1/units");
+    || {
       UnitsReq
     }
   }

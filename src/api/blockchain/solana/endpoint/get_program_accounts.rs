@@ -1,7 +1,6 @@
 use crate::{
   api::blockchain::solana::{
-    endpoint::{Commitment, DataSlice},
-    Account, AccountEncoding, Filter, Solana, SolanaAddressHashStr,
+    Account, AccountEncoding, Commitment, DataSlice, Filter, Solana, SolanaAddressHashStr,
   },
   utils::OneMandAndOneOpt,
 };
@@ -22,7 +21,7 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetProgramAccountsReqParams<'bytes, 'filter> {
   #[serde(skip_serializing_if = "Option::is_none")]
@@ -37,7 +36,7 @@ pub struct GetProgramAccountsReqParams<'bytes, 'filter> {
   pub min_context_slot: Option<i32>,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetProgramAccountsRes {
   pub account: Account,

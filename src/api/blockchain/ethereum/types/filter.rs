@@ -3,7 +3,7 @@ use alloc::vec::Vec;
 use ethereum_types::{H160, H256};
 
 /// Filter
-#[derive(Default, Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Default, Debug, serde::Serialize)]
 pub struct Filter {
   /// Address
   #[serde(skip_serializing_if = "Option::is_none")]

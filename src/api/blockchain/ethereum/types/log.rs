@@ -3,7 +3,7 @@ use alloc::{string::String, vec::Vec};
 use ethereum_types::{H160, H256, U256, U64};
 
 /// A log produced by a transaction.
-#[derive(Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Log {
   /// H160
   pub address: H160,
@@ -64,7 +64,7 @@ mod tests {
     let log = Log {
       address: Address::from_low_u64_be(1),
       topics: vec![],
-      data: Default::default(),
+      data: <_>::default(),
       block_hash: Some(H256::from_low_u64_be(2)),
       block_number: Some(1.into()),
       transaction_hash: Some(H256::from_low_u64_be(3)),
@@ -82,7 +82,7 @@ mod tests {
     let log = Log {
       address: H160::from_low_u64_be(1),
       topics: vec![],
-      data: Default::default(),
+      data: <_>::default(),
       block_hash: Some(H256::from_low_u64_be(2)),
       block_number: Some(1.into()),
       transaction_hash: Some(H256::from_low_u64_be(3)),
@@ -100,7 +100,7 @@ mod tests {
     let log = Log {
       address: Address::from_low_u64_be(1),
       topics: vec![],
-      data: Default::default(),
+      data: <_>::default(),
       block_hash: Some(H256::from_low_u64_be(2)),
       block_number: Some(1.into()),
       transaction_hash: Some(H256::from_low_u64_be(3)),
@@ -118,7 +118,7 @@ mod tests {
     let log = Log {
       address: Address::from_low_u64_be(1),
       topics: vec![],
-      data: Default::default(),
+      data: <_>::default(),
       block_hash: Some(H256::from_low_u64_be(2)),
       block_number: Some(1.into()),
       transaction_hash: Some(H256::from_low_u64_be(3)),
@@ -136,7 +136,7 @@ mod tests {
     let log = Log {
       address: Address::from_low_u64_be(1),
       topics: vec![],
-      data: Default::default(),
+      data: <_>::default(),
       block_hash: Some(H256::from_low_u64_be(2)),
       block_number: Some(1.into()),
       transaction_hash: Some(H256::from_low_u64_be(3)),

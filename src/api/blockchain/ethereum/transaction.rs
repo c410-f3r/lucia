@@ -3,7 +3,7 @@ use ethabi::Address;
 use ethereum_types::{H256, U256, U64};
 
 /// Description of a Transaction, pending or in the chain.
-#[derive(Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Transaction {
   /// Hash
   pub hash: H256,

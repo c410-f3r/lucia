@@ -9,15 +9,18 @@ _create_json_endpoint! {
 
   |raw: Vec<CommentsRes>| -> Vec<CommentsRes> { Ok(raw) }
 
-  comments() -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      tp._http_params._url.try_push_str("/comments")?;
-      CommentsReq
+  CommentsParams() -> crate::Result<()> {
+    |cp| {
+      cp._method = HttpMethod::_Get;
+      cp._url_parts.set_path(format_args!("/comments"))?;
     }
   }
 
-  Ok
+  comments() {
+    || {
+      CommentsReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]

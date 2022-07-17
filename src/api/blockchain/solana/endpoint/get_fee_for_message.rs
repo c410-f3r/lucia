@@ -1,7 +1,6 @@
 use crate::{
   api::blockchain::solana::{
-    endpoint::{Commitment, JsonRpcResponseResultWithContext},
-    MessageInput, Solana,
+    Commitment, CommitmentMand, JsonRpcResponseResultWithContext, MessageInput, Solana,
   },
   utils::{into_rslt, OneMandAndOneOpt},
 };
@@ -11,7 +10,7 @@ _create_json_rpc_endpoint! {
   Solana;
 
   "getFeeForMessage" => GetFeeForMessageReq<;;>(
-    OneMandAndOneOpt<String, Commitment>
+    OneMandAndOneOpt<String, CommitmentMand>
   )
 
   |raw: JsonRpcResponseResultWithContext<Option<u64>>| -> JsonRpcResponseResultWithContext<crate::Result<u64>> {
@@ -29,7 +28,7 @@ _create_json_rpc_endpoint! {
     bincode::serialize_into(&mut *buffer, message)?;
     let string = base64::encode(&buffer);
     buffer.clear();
-    GetFeeForMessageReq(OneMandAndOneOpt(string, commitment))
+    GetFeeForMessageReq(OneMandAndOneOpt(string, commitment.map(|elem| CommitmentMand { commitment: elem } )))
   }
 
   Ok

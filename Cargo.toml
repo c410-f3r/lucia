@@ -1,7 +1,6 @@
 [dependencies]
 arrayvec = { default-features = false, features = ["serde"], version = "0.7" }
 async-trait = { default-features = false, version = "0.1" }
-bytes = { default-features = false, version = "1.0" }
 cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "1.0" }
 serde = { default-features = false, features = ["derive"], version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
@@ -13,9 +12,13 @@ serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 ethabi = { default-features = false, features = ["full-serde"], optional = true, version = "17.0" }
 ethereum-types = { default-features = false, features = ["serialize"], optional = true, version = "0.13" }
 
+# KuCoin
+
+hmac = { default-features = false, optional = true, version = "0.12" }
+sha2 = { default-features = false, optional = true, version = "0.10" }
+
 # Solana
 
-base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
 bincode = { default-features = false, optional = true, version = "1.0" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
@@ -24,6 +27,8 @@ solana-program = { default-features = false, optional = true, version = "1.0" }
 ###### Etc ######
 
 async-std = { default-features = false, features = ["default"], optional = true, version = "1.0" }
+base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
+crypto-common = { default-features = false, optional = true, version = "0.1" }
 hex = { default-features = false, optional = true, version = "0.4" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tracing = { default-features = false, features = ["attributes"], optional = true, version = "0.1" }
@@ -45,9 +50,6 @@ tokio-tungstenite = { default-features = false, features = ["connect", "__rustls
 tungstenite = { default-features = false, optional = true, version = "0.17" }
 
 [dev-dependencies]
-async-std = { default-features = false, features = ["attributes", "default"], version = "1.0" }
-surf = { default-features = false, features = ["h1-client-rustls"], version = "2.0" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
 [features]
@@ -56,42 +58,30 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 age-of-empires-ii = []
 covid-19 = []
-ethereum = [
-  "dep:ethabi",
-  "dep:ethereum-types",
-  "hex",
-]
+ethereum = ["dep:ethabi", "dep:ethereum-types", "dep:hex"]
 json-placeholder = []
-ku-coin = []
-solana = [
-  "dep:base64",
-  "dep:bincode",
-  "dep:bs58",
-  "dep:ed25519-dalek",
-]
+ku-coin = ["base64", "dep:crypto-common", "dep:hmac", "dep:sha2"]
+nager-date = []
+solana = ["base64", "dep:bincode", "dep:bs58", "dep:ed25519-dalek"]
 
 # Etc
 
+base64 = ["dep:base64"]
 async-std = ["dep:async-std"]
 default = []
 std = ["arrayvec/std", "cl-aux/std", "serde/std"]
-tokio = ["std", "dep:tokio", "tokio/time"]
+tokio = ["std", "dep:tokio", "tokio?/time"]
 tracing = ["dep:tracing"]
 
-_integration-tests = ["reqwest?/rustls-tls"]
+_dev = ["async-std?/attributes", "async-std?/default", "surf?/h1-client-rustls", "tokio?/macros", "tokio?/rt-multi-thread"]
+_integration-tests = ["_dev", "reqwest?/rustls-tls"]
 _surf-hack = ["surf?/h1-client-no-tls"]
 
 # Transport implementation
 
 reqwest = ["dep:reqwest", "std", "tokio"]
 surf = ["async-std", "dep:surf"]
-tokio-tungstenite = [
-  "dep:futures",
-  "dep:tokio-tungstenite",
-  "dep:tokio",
-  "dep:tungstenite",
-  "std"
-]
+tokio-tungstenite = ["dep:futures", "std", "dep:tokio-tungstenite", "dep:tokio", "dep:tungstenite"]
 
 [package]
 categories = ["asynchronous", "data-structures", "network-programming"]
@@ -102,6 +92,7 @@ license = "MIT"
 name = "lucia"
 readme = "README.md"
 repository = "https://github.com/c410-f3r/lucia"
+rust-version = "1.62"
 version = "0.1.0"
 
 [package.metadata.docs.rs]

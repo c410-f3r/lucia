@@ -1,5 +1,5 @@
 use crate::{
-  api::blockchain::solana::{endpoint::Commitment, Solana},
+  api::blockchain::solana::{Commitment, Solana},
   utils::OneMandAndOneOpt,
 };
 

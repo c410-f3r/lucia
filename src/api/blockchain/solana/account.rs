@@ -10,14 +10,14 @@ use alloc::string::String;
   // Data format is specified by the blockchain
   allow(clippy::large_enum_variant, variant_size_differences)
 ]
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum AccountData {
   Binary(String, AccountEncoding),
   Json(AccountDataJson),
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
   pub data: AccountData,
@@ -27,7 +27,7 @@ pub struct Account {
   pub rent_epoch: Epoch,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct AccountDataJson {
   pub parsed: AccountDataJsonParsed,
@@ -35,7 +35,7 @@ pub struct AccountDataJson {
   pub space: u64,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase", untagged)]
 pub enum AccountDataJsonParsed {
   SplTokenAccount(GenericAccount),
@@ -44,7 +44,7 @@ pub enum AccountDataJsonParsed {
   Unknown,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum AccountEncoding {
   Base58,

@@ -1,7 +1,5 @@
 use crate::{
-  api::blockchain::solana::{
-    endpoint::Commitment, Solana, SolanaTransactionHashStr, TransactionInput,
-  },
+  api::blockchain::solana::{Commitment, Solana, SolanaTransactionHashStr, TransactionInput},
   utils::OneMandAndOneOpt,
 };
 use alloc::{string::String, vec::Vec};
@@ -38,14 +36,14 @@ _create_json_rpc_endpoint! {
   Ok
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SendTransactionEncoding {
   Base58,
   Base64,
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Serialize)]
+#[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SendTransactionParameters {
   pub skip_preflight: bool,

@@ -1,29 +1,33 @@
 use crate::{
-  network::TransportParams,
   protocol::{JsonRequest, JsonRpcRequest},
   types::Id,
 };
-use core::fmt::Debug;
+use core::{fmt::Debug, marker::PhantomData};
 
-/// Responsible for creating request structures.
+/// Responsible for creating request structures and orchestrating how requests will be issued
+/// to a counterpart.
+///
+/// # Types
+///
+/// * `A`: **A**PI
+/// * `CP`: **C**ommon **P**arameters
 #[derive(Debug)]
-pub struct RequestBuilder<A> {
-  pub(crate) _api: A,
+pub struct RequestManager<A, CP> {
+  pub(crate) _cp: CP,
   pub(crate) _id: Id,
-  pub(crate) _tp: TransportParams,
+  _phantom: PhantomData<A>,
 }
 
-impl<A> RequestBuilder<A> {
+impl<A, CP> RequestManager<A, CP> {
   /// Creates an instance with valid initial inner values.
+  ///
+  /// # Parameters
+  ///
+  /// * `cp`: Common parameters that can involve network or custom user parameters. Used and
+  ///         modified across all related operations.
   #[inline]
-  pub fn new(_api: A) -> Self {
-    Self { _api, _id: 1, _tp: TransportParams::dummy() }
-  }
-
-  /// Mutable reference generally used by [crate::network::Transport] calls.
-  #[inline]
-  pub fn tp_mut(&mut self) -> &mut TransportParams {
-    &mut self._tp
+  pub const fn new(cp: CP) -> Self {
+    Self { _id: 1, _cp: cp, _phantom: PhantomData }
   }
 
   #[inline]

@@ -11,7 +11,7 @@ _create_json_rpc_endpoint! {
   get_version() { GetVersionReq }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub struct GetVersionRes {
   pub solana_core: ArrayString<16>,

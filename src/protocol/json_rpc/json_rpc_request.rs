@@ -6,10 +6,16 @@ use core::{
 };
 use serde::ser::{Serialize, SerializeStruct, Serializer};
 
+/// A rpc call is represented by sending a [JsonRpcRequest] object to a counterpart.
+///
+/// The `jsonrpc` field is not included because it will always be `2.0`.
 #[derive(Debug)]
 pub struct JsonRpcRequest<P> {
+  /// An identifier established by the Client
   pub id: Id,
+  /// A String containing the name of the method to be invoked
   pub method: &'static str,
+  /// A Structured value that holds the parameter values to be used during the invocation of the method
   pub params: P,
 }
 

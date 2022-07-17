@@ -1,6 +1,6 @@
 use crate::api::blockchain::solana::{program::spl_token::AccountBalance, SolanaAddressHashStr};
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Account {
   pub mint: SolanaAddressHashStr,

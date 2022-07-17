@@ -1,7 +1,10 @@
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+use crate::api::blockchain::solana::SolanaAddressHashStr;
+
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MintAccount {
   pub decimals: u8,
+  pub freeze_authority: Option<SolanaAddressHashStr>,
   pub is_initialized: bool,
-  pub supply: u64,
+  pub mint_authority: Option<SolanaAddressHashStr>,
 }

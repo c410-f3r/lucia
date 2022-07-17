@@ -1,6 +1,5 @@
 use crate::api::blockchain::solana::{
-  deserialize_array_from_base58,
-  endpoint::{Commitment, CommitmentMand, JsonRpcResponseResultWithContext},
+  deserialize_array_from_base58, Commitment, CommitmentMand, JsonRpcResponseResultWithContext,
   Solana, SolanaBlockhash,
 };
 
@@ -17,7 +16,7 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, Eq, PartialEq, serde::Deserialize)]
+#[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetLatestBlockhashRes {
   #[serde(deserialize_with = "deserialize_array_from_base58")]

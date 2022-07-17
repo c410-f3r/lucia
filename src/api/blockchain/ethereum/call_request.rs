@@ -7,7 +7,7 @@ use ethereum_types::{U256, U64};
 /// When using this for `eth_estimateGas`, all the fields
 /// are optional. However, for usage in `eth_call` the
 /// `to` field must be provided.
-#[derive(Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, Default, serde::Deserialize, serde::Serialize)]
 pub struct CallRequest {
   /// Sender address (None for arbitrary address)
   #[serde(skip_serializing_if = "Option::is_none")]

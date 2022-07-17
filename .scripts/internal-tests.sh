@@ -6,7 +6,7 @@ rt='rust-tools --template you-rust'
 
 export CARGO_TARGET_DIR="$($rt target-dir)"
 export RUST_BACKTRACE=1
-export RUSTFLAGS="$($rt rust-flags '' -Dmissing_docs,-Dunused_crate_dependencies)"
+export RUSTFLAGS="$($rt rust-flags '' -Dunused_crate_dependencies)"
 
 $rt rustfmt
 $rt clippy -Aclippy::pub_use

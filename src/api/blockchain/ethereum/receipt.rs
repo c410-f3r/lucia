@@ -4,7 +4,7 @@ use ethabi::Address;
 use ethereum_types::{Bloom, H256, U256, U64};
 
 /// "Receipt" of an executed transaction: details of its execution.
-#[derive(Debug, Default, Eq, PartialEq, serde::Deserialize, serde::Serialize)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
 pub struct Receipt {
   /// Transaction hash.
   #[serde(rename = "transactionHash")]

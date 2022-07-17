@@ -1,5 +1,5 @@
 use crate::{
-  api::exchange::ku_coin::{endpoint::GenericDataResponse, KuCoin},
+  api::exchange::ku_coin::{GenericDataResponse, KuCoin},
   network::HttpMethod,
   types::{MaxAddressHashStr, MaxAssetAbbr, MaxAssetName, MaxNumberStr},
 };
@@ -14,9 +14,15 @@ _create_json_endpoint! {
 
   |raw: Res| -> Res { Ok(raw) }
 
+  V1CurrenciesParams() -> crate::Result<()> {
+    |hp| {
+      hp._method = HttpMethod::_Get;
+      hp._url_parts.set_path(format_args!("/api/v1/currencies"))?;
+    }
+  }
+
   v1_currencies() {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, api.urls.v1_currencies.url());
+    || {
       V1CurrenciesReq
     }
   }

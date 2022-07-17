@@ -1,8 +1,6 @@
 use crate::{api::game::age_of_empires_ii::AgeOfEmpiresII, network::HttpMethod};
 use alloc::vec::Vec;
 use arrayvec::ArrayString;
-use core::fmt::Write;
-
 type Res = UnitRes;
 
 _create_json_endpoint! {
@@ -12,15 +10,18 @@ _create_json_endpoint! {
 
   |raw: Res| -> Res { Ok(raw) }
 
-  unit(id: u64) -> crate::Result<:> {
-    |api, tp| {
-      tp._http_params._set(HttpMethod::Get, None, &api.origin);
-      tp._http_params._url.write_fmt(format_args!("/api/v1/unit/{id}"))?;
-      UnitReq
+  UnitParams(id: u64) -> crate::Result<()> {
+    |hp| {
+      hp._method = HttpMethod::_Get;
+      hp._url_parts.set_path(format_args!("/api/v1/unit/{id}"))?;
     }
   }
 
-  Ok
+  unit() {
+    || {
+      UnitReq
+    }
+  }
 }
 
 #[derive(Debug, serde::Deserialize)]
