@@ -1,7 +1,5 @@
-use crate::{network::Transport, RequestManager, RequestParams};
+use crate::{dnsn::Serialize, network::Transport, RequestManager, RequestParamsModifier};
 use alloc::{boxed::Box, vec::Vec};
-use core::fmt::Debug;
-use serde::Serialize;
 
 /// Does absolutely nothing. Good for demonstration purposes.
 ///
@@ -9,40 +7,49 @@ use serde::Serialize;
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
 ///   network::Transport,
-///   Pair,
+///   CommonParams, Pair, RequestManager
 /// };
-/// let (mut rm, mut trans) = Pair::<(), _, _>::new((), ()).into_parts();
+/// let (mut rm, mut trans) = Pair::new(
+///   RequestManager::new((), CommonParams::default(), ()), ()
+/// ).into_parts();
 /// let req = ();
 /// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
-/// Ok(())
-/// # }
+/// # Ok(()) }
 /// ```
 #[async_trait::async_trait]
-impl<A, CP> Transport<A, CP> for ()
+impl<A, CP, DRSR> Transport<A, CP, DRSR> for ()
 where
   A: Send,
   CP: Send,
+  DRSR: Send,
 {
+  type Metadata = ();
+
   #[inline]
-  async fn send<R, RPD>(&mut self, _: &mut RequestManager<A, CP>, _: R, _: RPD) -> crate::Result<()>
+  async fn send<REQ, REQP>(
+    &mut self,
+    _: &mut RequestManager<A, CP, DRSR>,
+    _: &REQ,
+    _: REQP,
+  ) -> crate::Result<()>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
     Ok(())
   }
 
   #[inline]
-  async fn send_and_retrieve<R, RPD>(
+  async fn send_and_retrieve<REQ, REQP>(
     &mut self,
-    _: &mut RequestManager<A, CP>,
-    _: R,
-    _: RPD,
-  ) -> crate::Result<Vec<u8>>
+    _: &mut RequestManager<A, CP, DRSR>,
+    _: &REQ,
+    _: REQP,
+  ) -> crate::Result<(Self::Metadata, Vec<u8>)>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    Ok(Vec::new())
+    Ok(((), Vec::new()))
   }
 }

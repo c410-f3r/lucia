@@ -1,24 +1,26 @@
 use crate::api::blockchain::solana::{
-  short_vec, SolanaAddressHash, SolanaBlockhash, SolanaSignatureHash, MAX_BINARY_DATA_LEN,
+  SolanaAddressHash, SolanaBlockhash, SolanaSignatureHash, MAX_BINARY_DATA_LEN,
   MAX_TRANSACTION_ACCOUNTS_NUM,
 };
 use alloc::{vec, vec::Vec};
 use arrayvec::ArrayVec;
 
 /// Compiled [InstructionInput]
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct CompiledInstructionInput {
   pub program_id_index: u8,
-  #[serde(with = "short_vec")]
+  #[cfg_attr(feature = "serde", serde(with = "crate::api::blockchain::solana::short_vec"))]
   pub accounts: ArrayVec<u8, MAX_TRANSACTION_ACCOUNTS_NUM>,
-  #[serde(with = "short_vec")]
+  #[cfg_attr(feature = "serde", serde(with = "crate::api::blockchain::solana::short_vec"))]
   pub data: ArrayVec<u8, MAX_BINARY_DATA_LEN>,
 }
 
 /// Used when performing requests
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct InstructionInput {
   pub accounts: ArrayVec<InstructionAccountInput, MAX_TRANSACTION_ACCOUNTS_NUM>,
   pub data: ArrayVec<u8, MAX_BINARY_DATA_LEN>,
@@ -49,8 +51,9 @@ impl TryFrom<solana_program::instruction::Instruction> for InstructionInput {
   }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct InstructionAccountInput {
   pub pubkey: SolanaAddressHash,
   pub is_signer: bool,
@@ -69,14 +72,15 @@ impl From<solana_program::instruction::AccountMeta> for InstructionAccountInput 
   }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct MessageInput {
   pub header: MessageHeaderInput,
-  #[serde(with = "short_vec")]
+  #[cfg_attr(feature = "serde", serde(with = "crate::api::blockchain::solana::short_vec"))]
   pub account_keys: Vec<SolanaAddressHash>,
   pub recent_blockhash: SolanaBlockhash,
-  #[serde(with = "short_vec")]
+  #[cfg_attr(feature = "serde", serde(with = "crate::api::blockchain::solana::short_vec"))]
   pub instructions: Vec<CompiledInstructionInput>,
 }
 
@@ -207,18 +211,20 @@ impl MessageInput {
   }
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct MessageHeaderInput {
   pub num_required_signatures: u8,
   pub num_readonly_signed_accounts: u8,
   pub num_readonly_unsigned_accounts: u8,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct TransactionInput {
-  #[serde(with = "short_vec")]
+  #[cfg_attr(feature = "serde", serde(with = "crate::api::blockchain::solana::short_vec"))]
   pub signatures: Vec<SolanaSignatureHash>,
   pub message: MessageInput,
 }

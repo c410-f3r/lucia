@@ -11,25 +11,41 @@ export RUSTFLAGS="$($rt rust-flags '' -Dunused_crate_dependencies)"
 $rt rustfmt
 $rt clippy -Aclippy::pub_use
 
-# API
+$rt check-generic .
 
-$rt check-with-features . age-of-empires-ii
-$rt check-with-features . covid-19
-$rt check-with-features . ethereum
-$rt check-with-features . json-placeholder
-$rt check-with-features . ku-coin
-$rt check-with-features . solana
+cargo doc --all-features
+cargo test --all-features --doc
 
-# Transport
+FEATURES=(
+  # API
+  age-of-empires-ii
+  colour-lovers
+  ethereum
+  json-placeholder
+  ku-coin
+  m-media-covid-19
+  nager-date
+  solana
 
-$rt check-with-features . reqwest
-$rt check-with-features . surf,_surf-hack
-$rt check-with-features . tokio-tungstenite
+  # Deserialization/Serialization
+  miniserde
+  serde
+  serde_json
+  serde-xml-rs
 
-# Etc
+# ETC
+  async-std
+  std
+  tokio
+  tracing
 
-$rt check-with-features . async-std
-$rt check-with-features . default
-$rt check-with-features . std
-$rt check-with-features . tokio
-$rt check-with-features . tracing
+  # Tranport
+  reqwest
+  "surf,_surf-hack"
+  tokio-tungstenite
+)
+
+for feature in "${FEATURES[@]}"
+do
+	$rt check-with-features . $feature
+done

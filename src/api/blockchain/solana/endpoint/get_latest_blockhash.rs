@@ -1,12 +1,11 @@
 use crate::api::blockchain::solana::{
-  deserialize_array_from_base58, Commitment, CommitmentMand, JsonRpcResponseResultWithContext,
-  Solana, SolanaBlockhash,
+  Commitment, CommitmentMand, JsonRpcResponseResultWithContext, Solana, SolanaBlockhash,
 };
 
 _create_json_rpc_endpoint! {
   Solana;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "getLatestBlockhash" => GetLatestBlockhashReq<;;>([Option<CommitmentMand>; 1])
 
   |raw: JsonRpcResponseResultWithContext<GetLatestBlockhashRes>| -> JsonRpcResponseResultWithContext<GetLatestBlockhashRes> { raw }
@@ -16,10 +15,14 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct GetLatestBlockhashRes {
-  #[serde(deserialize_with = "deserialize_array_from_base58")]
+  #[cfg_attr(
+    feature = "serde",
+    serde(deserialize_with = "crate::utils::deserialize_array_from_base58")
+  )]
   pub blockhash: SolanaBlockhash,
   pub last_valid_block_height: u64,
 }

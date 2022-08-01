@@ -1,21 +1,29 @@
 //! KuCoin is a global cryptocurrency exchange for numerous digital assets and cryptocurrencies.
 //!
+//! <https://docs.kucoin.com>
+//!
 //! ```rust,no_run
 //! # async fn fun() -> lucia::Result<()> {
 //! use lucia::{
 //!   api::exchange::ku_coin::V1CurrenciesParams,
-//!   network::{HttpParams, Transport},
-//!   Pair,
+//!   network::{http::ReqParams, Transport},
+//!   CommonParams, Pair, RequestManager
 //! };
-//! let (mut rm, mut trans) = Pair::new((), HttpParams::from_origin("ORIGIN")?).into_parts();
+//! let (mut rm, mut trans) = Pair::new(
+//!   RequestManager::new(
+//!     <_>::default(),
+//!     CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()),
+//!     ()
+//!   ),
+//!   ()
+//! ).into_parts();
 //! let req = rm.v1_currencies();
-//! let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, V1CurrenciesParams::new()).await?;
-//! Ok(())
-//! # };
+//! let _res = trans.send_and_retrieve(&mut rm, &req, V1CurrenciesParams::new()).await?;
+//! # Ok(()) }
 //! ```
-#![cfg(feature = "ku-coin")]
 
 mod endpoint;
+#[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
 
 pub use endpoint::*;
@@ -26,22 +34,25 @@ use crate::{
 };
 use arrayvec::{ArrayString, ArrayVec};
 
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct KuCoin;
 
 #[cfg(feature = "tokio-tungstenite")]
 impl KuCoin {
-  pub async fn tokio_tungstenite(
+  pub async fn tokio_tungstenite<DRSR>(
     bullet_server: &V1BulletServerRes,
+    der_ser: DRSR,
     token: &str,
   ) -> crate::Result<
     crate::Pair<
-      Self,
-      crate::CommonParams<crate::network::WsParams, ()>,
+      crate::RequestManager<Self, crate::CommonParams<crate::network::ws::ReqParams, ()>, DRSR>,
       crate::network::TokioTungstenite,
     >,
-  > {
-    use crate::{network::WsParams, CommonParams, Pair};
+  >
+  where
+    DRSR: Send,
+  {
+    use crate::{CommonParams, Pair};
     use core::fmt::Write;
     use tokio_tungstenite::connect_async;
 
@@ -52,8 +63,15 @@ impl KuCoin {
       connect_id = _timestamp()?
     ))?;
     Ok(Pair::new(
+      crate::RequestManager::new(
+        Self,
+        CommonParams::new(
+          crate::network::ws::ReqParams { _url_parts: crate::utils::UrlParts::from_url(url)? },
+          (),
+        ),
+        der_ser,
+      ),
       connect_async(url.as_str()).await?.0,
-      CommonParams::new(WsParams { _url_parts: crate::utils::UrlParts::from_url(url)? }, ()),
     ))
   }
 }
@@ -66,14 +84,16 @@ pub struct KuCoinUrls {
   pub v2_currencies: MaxUrlParts,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub struct GenericDataResponse<T> {
   pub code: ArrayString<8>,
   pub data: T,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V1BulletServerRes {
   pub encrypt: bool,
   pub endpoint: MaxUrl,
@@ -82,8 +102,9 @@ pub struct V1BulletServerRes {
   pub protocol: ArrayString<12>,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V1BulletRes {
   pub instance_servers: ArrayVec<V1BulletServerRes, 4>,
   pub token: ArrayString<200>,

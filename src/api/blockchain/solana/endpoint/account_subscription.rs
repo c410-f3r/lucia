@@ -18,7 +18,7 @@ _create_json_rpc_endpoint! {
 _create_json_rpc_endpoint! {
   Solana;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "accountUnsubscribe" => AccountUnsubscribeReq<;;>([u64; 1])
 
   |raw: bool| -> bool { raw }

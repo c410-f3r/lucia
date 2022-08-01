@@ -4,7 +4,7 @@ use alloc::vec::Vec;
 _create_json_rpc_endpoint! {
   Ethereum;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "eth_getLogs" => EthGetLogsReq<'filter;;>(&'filter Filter)
 
   |raw: Option<Vec<Log>>| -> Option<Vec<Log>> { raw }

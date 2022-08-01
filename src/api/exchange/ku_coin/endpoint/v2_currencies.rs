@@ -1,23 +1,25 @@
 use crate::{
   api::exchange::ku_coin::{GenericDataResponse, KuCoin},
-  network::HttpMethod,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
   types::{MaxAddressHashStr, MaxAssetAbbr, MaxAssetName, MaxNumberStr},
 };
+use alloc::boxed::Box;
 use arrayvec::ArrayVec;
 
-type Res = GenericDataResponse<V2CurrenciesRes>;
+type Res = GenericDataResponse<Box<V2CurrenciesRes>>;
 
-_create_json_endpoint! {
-  KuCoin;
+_create_endpoint! {
+  KuCoin => JsonResponse|JsonRequest|_json_request;
 
   V2CurrenciesReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
-  V2CurrenciesParams(asset: &'rpd str) -> crate::Result<()> {
+  V2CurrenciesParams(asset: &'reqp str) -> crate::Result<()> {
     |hp| {
-      hp._method = HttpMethod::_Get;
-      hp._url_parts.set_path(format_args!("/api/v2/currencies/{asset}"))?;
+      hp.tp._method = Method::Get;
+      hp.tp._url_parts.set_path(format_args!("/api/v2/currencies/{asset}"))?;
     }
   }
 
@@ -28,8 +30,9 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V2CurrenciesRes {
   pub chains: ArrayVec<V2CurrenciesChainRes, 4>,
   pub currency: MaxAssetAbbr,
@@ -42,8 +45,9 @@ pub struct V2CurrenciesRes {
   pub is_debit_enabled: bool,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V2CurrenciesChainRes {
   pub chain_name: Option<MaxAssetName>,
   pub confirms: u16,

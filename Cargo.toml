@@ -1,16 +1,22 @@
 [dependencies]
-arrayvec = { default-features = false, features = ["serde"], version = "0.7" }
+arrayvec = { default-features = false, version = "0.7" }
 async-trait = { default-features = false, version = "0.1" }
-cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "1.0" }
-serde = { default-features = false, features = ["derive"], version = "1.0" }
-serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
+cl-aux = { default-features = false, features = ["alloc", "arrayvec"], version = "1.0" }
 
 ###### API ######
 
+# Deserializer/Serializer
+
+miniserde = { default-features = false, optional = true, version = "0.1" }
+serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
+serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
+serde-xml-rs = { default-features = false, optional = true, version = "0.5" }
+
 # Ethereum
 
-ethabi = { default-features = false, features = ["full-serde"], optional = true, version = "17.0" }
-ethereum-types = { default-features = false, features = ["serialize"], optional = true, version = "0.13" }
+ethabi = { default-features = false, optional = true, version = "17.0" }
+ethereum-types = { default-features = false, optional = true, version = "0.13" }
+primitive-types = { default-features = false, optional = true, version = "0.11" }
 
 # KuCoin
 
@@ -20,7 +26,6 @@ sha2 = { default-features = false, optional = true, version = "0.10" }
 # Solana
 
 bincode = { default-features = false, optional = true, version = "1.0" }
-bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 solana-program = { default-features = false, optional = true, version = "1.0" }
 
@@ -28,6 +33,7 @@ solana-program = { default-features = false, optional = true, version = "1.0" }
 
 async-std = { default-features = false, features = ["default"], optional = true, version = "1.0" }
 base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
+bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
 crypto-common = { default-features = false, optional = true, version = "0.1" }
 hex = { default-features = false, optional = true, version = "0.4" }
 tokio = { default-features = false, optional = true, version = "1.0" }
@@ -37,7 +43,7 @@ tracing = { default-features = false, features = ["attributes"], optional = true
 
 # Reqwest
 
-reqwest = { default-features = false, features = ["json"], optional = true, version = "0.11" }
+reqwest = { default-features = false, optional = true, version = "0.11" }
 
 # Surf
 
@@ -54,22 +60,31 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 [features]
 
+# Deserializer/Serializer
+
+miniserde = ["dep:miniserde", "std"]
+serde = ["arrayvec/serde", "cl-aux/serde", "ethabi?/full-serde", "dep:serde"]
+serde_json = ["serde", "dep:serde_json", "std"]
+serde-xml-rs = ["serde", "dep:serde-xml-rs", "std"]
+
 # API
 
 age-of-empires-ii = []
-covid-19 = []
-ethereum = ["dep:ethabi", "dep:ethereum-types", "dep:hex"]
+colour-lovers = []
+ethereum = ["dep:ethabi", "dep:ethereum-types", "dep:hex", "dep:primitive-types"]
 json-placeholder = []
 ku-coin = ["base64", "dep:crypto-common", "dep:hmac", "dep:sha2"]
+m-media-covid-19 = []
 nager-date = []
-solana = ["base64", "dep:bincode", "dep:bs58", "dep:ed25519-dalek"]
+solana = ["base64", "dep:bincode", "bs58", "dep:ed25519-dalek"]
 
 # Etc
 
-base64 = ["dep:base64"]
 async-std = ["dep:async-std"]
+base64 = ["dep:base64"]
+bs58 = ["dep:bs58"]
 default = []
-std = ["arrayvec/std", "cl-aux/std", "serde/std"]
+std = ["arrayvec/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
 tokio = ["std", "dep:tokio", "tokio?/time"]
 tracing = ["dep:tracing"]
 
@@ -79,9 +94,9 @@ _surf-hack = ["surf?/h1-client-no-tls"]
 
 # Transport implementation
 
-reqwest = ["dep:reqwest", "std", "tokio"]
+reqwest = ["dep:reqwest", "tokio"]
 surf = ["async-std", "dep:surf"]
-tokio-tungstenite = ["dep:futures", "std", "dep:tokio-tungstenite", "dep:tokio", "dep:tungstenite"]
+tokio-tungstenite = ["dep:futures", "dep:tokio-tungstenite", "dep:tungstenite", "tokio"]
 
 [package]
 categories = ["asynchronous", "data-structures", "network-programming"]

@@ -3,7 +3,9 @@ use alloc::{string::String, vec::Vec};
 use ethereum_types::{H160, H256, U256, U64};
 
 /// A log produced by a transaction.
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct Log {
   /// H160
   pub address: H160,
@@ -12,25 +14,18 @@ pub struct Log {
   /// Data
   pub data: Bytes,
   /// Block Hash
-  #[serde(rename = "blockHash")]
   pub block_hash: Option<H256>,
   /// Block Number
-  #[serde(rename = "blockNumber")]
   pub block_number: Option<U64>,
   /// Transaction Hash
-  #[serde(rename = "transactionHash")]
   pub transaction_hash: Option<H256>,
   /// Transaction Index
-  #[serde(rename = "transactionIndex")]
   pub transaction_index: Option<U64>,
   /// Log Index in Block
-  #[serde(rename = "logIndex")]
   pub log_index: Option<U256>,
   /// Log Index in Transaction
-  #[serde(rename = "transactionLogIndex")]
   pub transaction_log_index: Option<U256>,
   /// Log Type
-  #[serde(rename = "logType")]
   pub log_type: Option<String>,
   /// Removed
   pub removed: Option<bool>,

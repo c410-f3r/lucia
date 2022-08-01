@@ -1,3 +1,4 @@
 //! Physical, mental and social fields associated with well-being.
 
-pub mod covid_19;
+#[cfg(feature = "m-media-covid-19")]
+pub mod m_media_covid_19;

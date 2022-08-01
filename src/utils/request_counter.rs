@@ -112,23 +112,23 @@ mod tests {
     async fn test(rc: &mut RequestCounter, rl: &RequestLimit) {
       let now = Instant::now();
       rc.update_params(rl).await.unwrap();
-      assert!(now.elapsed() <= Duration::from_millis(10));
+      assert!(now.elapsed() <= Duration::from_millis(2));
     }
 
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
     test(&mut rc, &rl).await;
-    sleep(Duration::from_millis(100)).await;
+    sleep(Duration::from_millis(200)).await;
   }
 
   #[tokio::test]
@@ -159,7 +159,6 @@ mod tests {
     async fn test(rc: &mut RequestCounter, rl: &RequestLimit, duration: Duration) {
       let now = Instant::now();
       rc.update_params(rl).await.unwrap();
-      dbg!(now.elapsed(), duration);
       assert!(now.elapsed() >= duration);
     }
 

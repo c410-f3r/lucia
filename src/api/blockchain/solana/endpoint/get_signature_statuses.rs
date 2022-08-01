@@ -10,7 +10,7 @@ use cl_aux::ArrayWrapper;
 _create_json_rpc_endpoint! {
   Solana;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "getSignatureStatuses" => GetSignatureStatusesReq<;const N: usize;S AsRef<str> = &'static str>(
     OneMandAndOneOpt<
       ArrayWrapper<S, N>,
@@ -35,14 +35,16 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct GetSignatureStatusesCfg {
   pub search_transaction_history: bool,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct GetSignatureStatusesRes {
   pub confirmation_status: Commitment,
   pub confirmations: Option<usize>,

@@ -11,9 +11,10 @@ use crate::{
     BlockId, CallRequest, EthCallReq, EthEstimateGasReq, EthGetLogsReq, EthSendTransactionReq,
     Ethereum, FilterBuilder, Log, TransactionRequest,
   },
+  data_format::{JsonRpcRequest, JsonRpcResponse, ProcessedJsonRpcResponse},
+  dnsn::{Deserialize, Serialize},
   network::Transport,
-  protocol::{JsonRpcRequest, JsonRpcResponse, ProcessedJsonRpcResponse},
-  Pair, Request,
+  Pair, Request, RequestManager,
 };
 use alloc::vec::Vec;
 use detokenize::*;
@@ -26,36 +27,42 @@ use tokenize::*;
 
 /// Ethereum Contract Interface
 #[derive(Debug)]
-pub struct Contract<CP, T>
+pub struct Contract<CP, DRSR, T>
 where
   CP: Send,
-  T: Transport<Ethereum, CP>,
+  DRSR: Send,
+  T: Transport<Ethereum, CP, DRSR>,
 {
   abi: ethabi::Contract,
   address: Address,
-  ethereum: Pair<Ethereum, CP, T>,
+  ethereum: Pair<RequestManager<Ethereum, CP, DRSR>, T>,
 }
 
-impl<CP, T> Contract<CP, T>
+impl<CP, DRSR, T> Contract<CP, DRSR, T>
 where
   CP: Send,
-  T: Send + Transport<Ethereum, CP>,
+  DRSR: Send,
+  T: Send + Transport<Ethereum, CP, DRSR>,
 {
   /// Creates new Contract Interface given blockchain address and ABI
   #[inline]
-  pub fn new(abi: ethabi::Contract, address: Address, eth: Pair<Ethereum, CP, T>) -> Self {
-    Contract { address, ethereum: eth, abi }
+  pub fn new(
+    abi: ethabi::Contract,
+    address: Address,
+    ethereum: Pair<RequestManager<Ethereum, CP, DRSR>, T>,
+  ) -> Self {
+    Self { abi, address, ethereum }
   }
 
   /// Creates new Contract Interface given blockchain address and JSON containing ABI
+  #[cfg(feature = "serde")]
   #[inline]
   pub fn from_json(
     address: Address,
-    eth: Pair<Ethereum, CP, T>,
+    ethereum: Pair<RequestManager<Ethereum, CP, DRSR>, T>,
     json: &[u8],
   ) -> ethabi::Result<Self> {
-    let abi = ethabi::Contract::load(json)?;
-    Ok(Self::new(abi, address, eth))
+    Ok(Self::new(ethabi::Contract::load(json)?, address, ethereum))
   }
 
   /// Get the underlying contract ABI.
@@ -82,11 +89,13 @@ where
   where
     FP: Tokenize,
     for<'tr> JsonRpcRequest<EthSendTransactionReq<'tr>>: Request<
-      CP,
-      (),
-      ProcessedResponse = ProcessedJsonRpcResponse<Option<H256>>,
-      RawResponse = JsonRpcResponse<Option<H256>>,
-    >,
+        CP,
+        (),
+        T::Metadata,
+        ProcessedResponse = ProcessedJsonRpcResponse<Option<H256>>,
+        RawResponse = JsonRpcResponse<Option<H256>>,
+      > + Serialize<DRSR>,
+    JsonRpcResponse<Option<H256>>: for<'de> Deserialize<'de, DRSR>,
   {
     let data = self.abi.function(func)?.encode_input(&func_params.into_tokens())?;
     let Options {
@@ -95,7 +104,7 @@ where
       value,
       nonce,
       condition,
-      transaction_type,
+      ty: transaction_type,
       access_list,
       max_fee_per_gas,
       max_priority_fee_per_gas,
@@ -109,7 +118,7 @@ where
       nonce,
       data: Some(crate::api::blockchain::ethereum::Bytes(data)),
       condition,
-      transaction_type,
+      ty: transaction_type,
       access_list,
       max_fee_per_gas,
       max_priority_fee_per_gas,
@@ -131,11 +140,13 @@ where
   where
     FP: Tokenize,
     for<'cr> JsonRpcRequest<EthEstimateGasReq<'cr>>: Request<
-      CP,
-      (),
-      ProcessedResponse = ProcessedJsonRpcResponse<U256>,
-      RawResponse = JsonRpcResponse<U256>,
-    >,
+        CP,
+        (),
+        T::Metadata,
+        ProcessedResponse = ProcessedJsonRpcResponse<U256>,
+        RawResponse = JsonRpcResponse<U256>,
+      > + Serialize<DRSR>,
+    JsonRpcResponse<U256>: for<'de> Deserialize<'de, DRSR>,
   {
     let data = self.abi.function(func)?.encode_input(&func_params.into_tokens())?;
     let call_request = CallRequest {
@@ -145,7 +156,7 @@ where
       gas_price: options.gas_price,
       value: options.value,
       data: Some(crate::api::blockchain::ethereum::Bytes(data)),
-      transaction_type: options.transaction_type,
+      ty: options.ty,
       access_list: options.access_list,
       max_fee_per_gas: options.max_fee_per_gas,
       max_priority_fee_per_gas: options.max_priority_fee_per_gas,
@@ -170,11 +181,13 @@ where
     CC: Tokenize,
     R: Detokenize,
     for<'filter> JsonRpcRequest<EthGetLogsReq<'filter>>: Request<
-      CP,
-      (),
-      ProcessedResponse = ProcessedJsonRpcResponse<Option<Vec<Log>>>,
-      RawResponse = JsonRpcResponse<Option<Vec<Log>>>,
-    >,
+        CP,
+        (),
+        T::Metadata,
+        ProcessedResponse = ProcessedJsonRpcResponse<Option<Vec<Log>>>,
+        RawResponse = JsonRpcResponse<Option<Vec<Log>>>,
+      > + Serialize<DRSR>,
+    JsonRpcResponse<Option<Vec<Log>>>: for<'de> Deserialize<'de, DRSR>,
   {
     fn to_topic<A: Tokenize>(x: A) -> ethabi::Topic<ethabi::Token> {
       let tokens = x.into_tokens();
@@ -227,11 +240,16 @@ where
     FP: Tokenize,
     R: Detokenize,
     for<'cr> JsonRpcRequest<EthCallReq<'cr>>: Request<
-      CP,
-      (),
-      ProcessedResponse = ProcessedJsonRpcResponse<Option<crate::api::blockchain::ethereum::Bytes>>,
-      RawResponse = JsonRpcResponse<Option<crate::api::blockchain::ethereum::Bytes>>,
-    >,
+        CP,
+        (),
+        T::Metadata,
+        ProcessedResponse = ProcessedJsonRpcResponse<
+          Option<crate::api::blockchain::ethereum::Bytes>,
+        >,
+        RawResponse = JsonRpcResponse<Option<crate::api::blockchain::ethereum::Bytes>>,
+      > + Serialize<DRSR>,
+    JsonRpcResponse<Option<crate::api::blockchain::ethereum::Bytes>>:
+      for<'de> Deserialize<'de, DRSR>,
   {
     let function = self.abi.function(func)?;
     let bytes = function.encode_input(&func_params.into_tokens())?;
@@ -243,7 +261,7 @@ where
       gas_price: options.gas_price,
       value: options.value,
       data: Some(crate::api::blockchain::ethereum::Bytes(bytes)),
-      transaction_type: options.transaction_type,
+      ty: options.ty,
       access_list: options.access_list,
       max_fee_per_gas: options.max_fee_per_gas,
       max_priority_fee_per_gas: options.max_priority_fee_per_gas,
@@ -259,16 +277,17 @@ where
   }
 }
 
-#[cfg(all(feature = "_dev", test))]
+#[cfg(all(feature = "serde_json", test))]
 mod tests {
   use crate::{
     api::blockchain::ethereum::{
       contract::{Contract, Detokenize, Options},
-      BlockId, BlockNumber, CallRequest,
+      BlockId, BlockNumber, CallRequest, Ethereum,
     },
+    data_format::{JsonRpcRequest, JsonRpcResponse},
+    dnsn::SerdeJson,
     network::Test,
-    protocol::{JsonRpcRequest, JsonRpcResponse},
-    Pair,
+    CommonParams, Pair, RequestManager,
   };
   use alloc::{
     borrow::{Cow, ToOwned},
@@ -449,8 +468,11 @@ mod tests {
     cr
   }
 
-  fn contract(trans: &mut Test) -> Contract<(), &mut Test> {
-    let pair = Pair::new(trans, ());
+  fn contract(trans: &mut Test<str>) -> Contract<CommonParams<(), ()>, SerdeJson, &mut Test<str>> {
+    let pair = Pair::new(
+      RequestManager::new(Ethereum, CommonParams::default(), SerdeJson::default()),
+      trans,
+    );
     Contract::from_json(Address::from_low_u64_be(1), pair, include_bytes!("./resources/token.json"))
       .unwrap()
   }

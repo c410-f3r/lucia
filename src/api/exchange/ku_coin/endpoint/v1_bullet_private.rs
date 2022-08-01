@@ -1,21 +1,23 @@
 use crate::{
   api::exchange::ku_coin::{GenericDataResponse, KuCoin, V1BulletRes},
-  network::HttpMethod,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
 };
+use alloc::boxed::Box;
 
-type Res = GenericDataResponse<V1BulletRes>;
+type Res = GenericDataResponse<Box<V1BulletRes>>;
 
-_create_json_endpoint! {
-  KuCoin;
+_create_endpoint! {
+  KuCoin => JsonResponse|JsonRequest|_json_request;
 
   V1BulletPrivateReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
   V1BulletPrivateParams() -> crate::Result<()> {
     |hp| {
-      hp._method = HttpMethod::_Post;
-      hp._url_parts.set_path(format_args!("/api/v1/bullet-private"))?;
+      hp.tp._method = Method::Post;
+      hp.tp._url_parts.set_path(format_args!("/api/v1/bullet-private"))?;
     }
   }
 

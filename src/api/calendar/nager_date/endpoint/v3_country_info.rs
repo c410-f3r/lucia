@@ -1,20 +1,24 @@
-use crate::{api::calendar::nager_date::NagerDate, network::HttpMethod};
-use alloc::vec::Vec;
+use crate::{
+  api::calendar::nager_date::NagerDate,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
+};
+use alloc::{boxed::Box, vec::Vec};
 use arrayvec::ArrayString;
 
-type Res = V3CountryInfoRes;
+type Res = Box<V3CountryInfoRes>;
 
-_create_json_endpoint! {
-  NagerDate;
+_create_endpoint! {
+  NagerDate => JsonResponse|JsonRequest|_json_request;
 
   V3CountryInfoReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
-  V3CountryInfoParams(country: &'rpd str) -> crate::Result<()> {
+  V3CountryInfoParams(country: &'reqp str) -> crate::Result<()> {
     |_hp| {
-      _hp._method = HttpMethod::_Get;
-      _hp._url_parts.set_path(format_args!("/api/v3/CountryInfo/{}", country))?;
+      _hp.tp._method = Method::Get;
+      _hp.tp._url_parts.set_path(format_args!("/api/v3/CountryInfo/{}", country))?;
     }
   }
 
@@ -25,8 +29,9 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V3CountryInfoRes {
   pub common_name: ArrayString<12>,
   pub official_name: ArrayString<26>,

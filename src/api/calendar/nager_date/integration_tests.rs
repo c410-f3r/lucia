@@ -1,11 +1,11 @@
-#![cfg(all(test, feature = "_integration-tests"))]
-
 use crate::{
   api::calendar::nager_date::{
     V3AvailableCountriesParams, V3CountryInfoParams, V3LongWeekendParams,
     V3NextPublicHolidaysParams, V3NextPublicHolidaysWorldwideParams, V3PublicHolidaysParams,
   },
-  network::{HttpParams, Transport},
+  dnsn::SerdeJson,
+  network::{http::ReqParams, Transport},
+  CommonParams,
 };
 
 _create_http_test!(http(), v3_available_countries, |rm, trans| async {
@@ -52,6 +52,9 @@ _create_http_test!(http(), v3_public_holidays, |rm, trans| async {
     .unwrap();
 });
 
-fn http() -> HttpParams {
-  HttpParams::from_origin("https://date.nager.at").unwrap()
+fn http() -> (CommonParams<ReqParams, ()>, SerdeJson) {
+  (
+    CommonParams::new(ReqParams::from_origin("https://date.nager.at").unwrap(), ()),
+    SerdeJson::default(),
+  )
 }

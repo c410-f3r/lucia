@@ -7,7 +7,7 @@ use ethereum_types::U256;
 _create_json_rpc_endpoint! {
   Ethereum;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "eth_estimateGas" => EthEstimateGasReq<'call_request;;>(OneMandAndOneOpt<&'call_request CallRequest, BlockNumber>)
 
   |raw: U256| -> U256 { raw }

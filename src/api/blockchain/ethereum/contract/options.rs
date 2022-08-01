@@ -2,7 +2,7 @@ use crate::api::blockchain::ethereum::{AccessList, TransactionCondition};
 use ethereum_types::{U256, U64};
 
 /// Contract Call/Query Options
-#[derive(Default, Debug)]
+#[derive(Debug, Default)]
 pub struct Options {
   /// Access list
   pub access_list: Option<AccessList>,
@@ -19,7 +19,7 @@ pub struct Options {
   /// Fixed transaction nonce
   pub nonce: Option<U256>,
   /// Transaction type, Some(1) for AccessList transaction, None for Legacy
-  pub transaction_type: Option<U64>,
+  pub ty: Option<U64>,
   /// Value to transfer
   pub value: Option<U256>,
 }

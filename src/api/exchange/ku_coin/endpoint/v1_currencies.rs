@@ -1,23 +1,24 @@
 use crate::{
   api::exchange::ku_coin::{GenericDataResponse, KuCoin},
-  network::HttpMethod,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
   types::{MaxAddressHashStr, MaxAssetAbbr, MaxAssetName, MaxNumberStr},
 };
 use alloc::{string::String, vec::Vec};
 
 type Res = GenericDataResponse<Vec<V1CurrenciesRes>>;
 
-_create_json_endpoint! {
-  KuCoin;
+_create_endpoint! {
+  KuCoin => JsonResponse|JsonRequest|_json_request;
 
   V1CurrenciesReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
   V1CurrenciesParams() -> crate::Result<()> {
     |hp| {
-      hp._method = HttpMethod::_Get;
-      hp._url_parts.set_path(format_args!("/api/v1/currencies"))?;
+      hp.tp._method = Method::Get;
+      hp.tp._url_parts.set_path(format_args!("/api/v1/currencies"))?;
     }
   }
 
@@ -28,8 +29,9 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V1CurrenciesRes {
   pub confirms: Option<u16>,
   pub contract_address: Option<MaxAddressHashStr>,

@@ -11,9 +11,14 @@ _create_json_rpc_endpoint! {
     OneMandAndOneOpt<S, BlockNumber>
   )
 
-  |raw: U256| -> U256 { raw }
+  |raw: Wrapper| -> U256 { raw.0 }
 
   eth_get_balance(addr: S, bn: Option<BlockNumber>) {
     EthGetBalanceReqParams(OneMandAndOneOpt(addr, bn))
   }
 }
+
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug)]
+pub struct Wrapper(U256);

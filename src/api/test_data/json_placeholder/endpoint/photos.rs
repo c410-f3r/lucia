@@ -1,18 +1,26 @@
-use crate::{api::test_data::json_placeholder::JsonPlaceholder, network::HttpMethod};
-use alloc::vec::Vec;
+use crate::{
+  api::test_data::json_placeholder::{endpoint::params_management, JsonPlaceholder, ResBox},
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
+  utils::DebugDisplay,
+};
 use arrayvec::ArrayString;
 
-_create_json_endpoint! {
-  JsonPlaceholder;
+_create_endpoint! {
+  JsonPlaceholder => JsonResponse|JsonRequest|_json_request;
 
   PhotosReq<;;>
 
-  |raw: Vec<PhotosRes>| -> Vec<PhotosRes> { Ok(raw) }
+  |raw: ResBox, _resp| -> ResBox { Ok(raw) }
 
-  PhotosParams() -> crate::Result<()> {
+  PhotosParams(
+    method: Method,
+    id_opt: Option<u32>,
+    nested_opt: Option<&'reqp str>,
+    query: &'reqp [(&'reqp str, &'reqp dyn DebugDisplay)]
+  ) -> crate::Result<()> {
     |cp| {
-      cp._method = HttpMethod::_Get;
-      cp._url_parts.set_path(format_args!("/photos"))?;
+      params_management("photos", cp, method, id_opt, nested_opt, query)?;
     }
   }
 
@@ -23,9 +31,10 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PhotosRes {
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct PhotoRes {
   pub album_id: u32,
   pub id: u32,
   pub title: ArrayString<86>,

@@ -11,8 +11,9 @@ _create_json_rpc_endpoint! {
   get_version() { GetVersionReq }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "kebab-case")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "kebab-case"))]
+#[derive(Debug)]
 pub struct GetVersionRes {
   pub solana_core: ArrayString<16>,
   pub feature_set: u64,

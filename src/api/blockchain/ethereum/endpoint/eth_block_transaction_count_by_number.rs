@@ -4,7 +4,7 @@ use ethereum_types::U256;
 _create_json_rpc_endpoint! {
   Ethereum;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "eth_getBlockTransactionCountByNumber" => EthBlockTransactionCountByNumberReq<;;>([BlockNumber; 1])
 
   |raw: Option<U256>| -> Option<U256> { raw }

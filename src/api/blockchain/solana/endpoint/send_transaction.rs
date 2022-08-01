@@ -3,7 +3,6 @@ use crate::{
   utils::OneMandAndOneOpt,
 };
 use alloc::{string::String, vec::Vec};
-use core::fmt::Debug;
 
 _create_json_rpc_endpoint! {
   Solana;
@@ -36,15 +35,17 @@ _create_json_rpc_endpoint! {
   Ok
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub enum SendTransactionEncoding {
   Base58,
   Base64,
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct SendTransactionParameters {
   pub skip_preflight: bool,
   pub preflight_commitment: Option<Commitment>,

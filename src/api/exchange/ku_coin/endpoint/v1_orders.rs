@@ -1,22 +1,23 @@
 use crate::{
   api::exchange::ku_coin::{GenericDataResponse, KuCoin},
-  network::HttpMethod,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
 };
 use alloc::string::String;
 
 type Res = GenericDataResponse<V1OrdersRes>;
 
-_create_json_endpoint! {
-  KuCoin;
+_create_endpoint! {
+  KuCoin => JsonResponse|JsonRequest|_json_request;
 
   V1OrdersReq<;;>(V1OrdersReqParams)
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
   V1OrdersParams() -> crate::Result<()> {
     |hp| {
-      hp._method = HttpMethod::_Get;
-      hp._url_parts.set_path(format_args!("/api/v1/orders"))?;
+      hp.tp._method = Method::Get;
+      hp.tp._url_parts.set_path(format_args!("/api/v1/orders"))?;
     }
   }
 
@@ -27,18 +28,20 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V1OrdersReqParams {
-  client_oid: String,
-  side: String,
-  symbol: String,
-  #[serde(rename = "type")]
-  ty: String,
-  remark: String,
-  stp: String,
+  pub client_oid: String,
+  pub side: String,
+  pub symbol: String,
+  #[cfg_attr(feature = "serde", serde(rename = "type"))]
+  pub ty: String,
+  pub remark: String,
+  pub stp: String,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V1OrdersRes {}
