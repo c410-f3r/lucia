@@ -1,7 +1,8 @@
 use crate::types::MaxNumberStr;
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct AccountBalance {
   pub amount: MaxNumberStr,
   pub decimals: u8,

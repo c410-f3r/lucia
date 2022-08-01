@@ -1,25 +1,6 @@
 #[macro_use]
 mod impls;
 
-/// `ArrayVec` is ubiquitous in this project so it is natural to provide a constructor
-/// similar to `vec![]`.
-#[macro_export]
-macro_rules! arrayvec {
-  ($($x:expr),* $(,)?) => {(|| {
-    #[allow(unused_mut)]
-    let mut vec = arrayvec::ArrayVec::new();
-    $( vec.try_push($x)?; )*
-    $crate::Result::Ok(vec)
-  })()};
-  ($x:expr; $n:expr) => {(|| {
-    let mut vec = arrayvec::ArrayVec::<_, $n>::new();
-    for _ in 0..$n {
-      $( vec.try_push($x)?; )*
-    }
-    $crate::Result::Ok(vec)
-  })()}
-}
-
 macro_rules! _create_blockchain_constants {
   (
     address_hash: $address_hash:ident = $_1:literal,
@@ -61,21 +42,22 @@ macro_rules! _create_blockchain_constants {
 }
 
 macro_rules! _create_generic_test {
-  ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr) => {
+  ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr $(, $(#[$attrs:meta])+)?) => {
+    $($(#[$attrs])+)?
     #[$executor::test]
     async fn $test() {
-      fn parts_cb_infer<'pair, A, CP, O, T>(
-        rm: &'pair mut $crate::RequestManager<A, CP>,
+      fn parts_cb_infer<'pair, A, CP, DRSR, O, T>(
+        rm: &'pair mut $crate::RequestManager<A, CP, DRSR>,
         trans: &'pair mut T,
-        cb: impl FnOnce(&'pair mut $crate::RequestManager<A, CP>, &'pair mut T) -> O,
+        cb: impl FnOnce(&'pair mut $crate::RequestManager<A, CP, DRSR>, &'pair mut T) -> O,
       ) -> O {
         cb(rm, trans)
       }
-      fn rslt_cb_infer<'pair, A, CP, O, R, T>(
-        rm: &'pair mut $crate::RequestManager<A, CP>,
+      fn rslt_cb_infer<'pair, A, CP, DRSR, O, R, T>(
+        rm: &'pair mut $crate::RequestManager<A, CP, DRSR>,
         trans: &'pair mut T,
         rslt: R,
-        cb: impl FnOnce(&'pair mut $crate::RequestManager<A, CP>, &'pair mut T, R) -> O,
+        cb: impl FnOnce(&'pair mut $crate::RequestManager<A, CP, DRSR>, &'pair mut T, R) -> O,
       ) -> O {
         cb(rm, trans, rslt)
       }
@@ -89,7 +71,7 @@ macro_rules! _create_generic_test {
 }
 
 macro_rules! _create_http_test {
-  ($cp:expr, $test:ident, $cb:expr) => {
+  ($cp_drsr:expr, $test:ident, $cb:expr $(, $(#[$attrs:meta])+)?) => {
     mod $test {
       use super::*;
 
@@ -97,18 +79,32 @@ macro_rules! _create_http_test {
       _create_generic_test! {
         tokio,
         reqwest,
-        crate::Pair::new(reqwest::Client::default(), $cp),
+        {
+          let (cp, drsr) = $cp_drsr;
+          crate::Pair::new(
+            crate::RequestManager::new(<_>::default(), cp, drsr),
+            reqwest::Client::default(),
+          )
+        },
         $cb,
         |_, _, _| async {}
+        $(, $(#[$attrs])+)?
       }
 
       #[cfg(feature = "surf")]
       _create_generic_test! {
         async_std,
         surf,
-        crate::Pair::new(surf::Client::default(), $cp),
+        {
+          let (cp, drsr) = $cp_drsr;
+          crate::Pair::new(
+            crate::RequestManager::new(<_>::default(), cp, drsr),
+            surf::Client::default(),
+          )
+        },
         $cb,
         |_, _, _| async {}
+        $(, $(#[$attrs])+)?
       }
     }
   };
@@ -144,21 +140,23 @@ macro_rules! _create_set_of_request_throttling {
 }
 
 macro_rules! _create_tokio_tungstenite_test {
-  ($cp:expr, $sub:ident, ($($unsub:ident),+), $cb:expr) => {
+  ($cp_drsr:expr, $sub:ident, ($($unsub:ident),+), $cb:expr $(, $(#[$attrs:meta])+)?) => {
     #[cfg(feature = "tokio-tungstenite")]
     _create_generic_test! {
       tokio,
       $sub,
-      crate::Pair::new(
-        crate::network::tokio_tungstenite(&$cp).await.unwrap(),
-        $cp
-      ),
+      {
+        let (cp, drsr) = $cp_drsr;
+        let trans = crate::network::tokio_tungstenite(&cp.tp).await.unwrap();
+        crate::Pair::new(crate::RequestManager::new(<_>::default(), cp, drsr), trans)
+      },
       $cb,
       |rm, trans, subs| async move {
         let mut iter = subs.into_iter();
         let ids = [$( rm.$unsub(iter.next().unwrap()), )+];
-        let _ = trans.send(rm, ids, ()).await.unwrap();
+        let _ = trans.send(rm, &ids, ()).await.unwrap();
       }
+      $(, $(#[$attrs])+)?
     }
   };
 }
@@ -167,6 +165,120 @@ macro_rules! _debug {
   ($($tt:tt)+) => {
     #[cfg(feature = "tracing")]
     tracing::debug!($($tt)+);
+  };
+}
+
+macro_rules! generic_data_format_doc {
+  ($ty:literal) => {
+    concat!(
+      "Internal wrapper used in every generic ",
+      $ty,
+      " to manage different internal implementations."
+    )
+  };
+}
+
+/// Implements `Serialize` for several collections
+///
+/// Must be in sync with `requests.rs`.
+macro_rules! _impl_se_collections {
+  (
+    for $drsr:ty => $bound:path;
+
+    $( array: |$array_self:ident, $array_bytes:ident, $array_drsr:ident| $array_block:block )?
+    $( arrayvec: |$arrayvec_self:ident, $arrayvec_bytes:ident, $arrayvec_drsr:ident| $arrayvec_block:block )?
+    slice: |$slice_self:ident, $slice_bytes:ident, $slice_drsr:ident| $slice_block:block
+    slice_ref: |$slice_ref_self:ident, $slice_ref_bytes:ident, $slice_ref_drsr:ident| $slice_ref_block:block
+    vec: |$vec_self:ident, $vec_bytes:ident, $vec_drsr:ident| $vec_block:block
+  ) => {
+    $(
+      impl<T, const N: usize> crate::dnsn::Serialize<$drsr> for [T; N]
+      where
+        T: $bound,
+      {
+        #[inline]
+        fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+        where
+          B: crate::utils::ByteBuffer,
+        {
+          let $array_self = self;
+          let $array_bytes = bytes;
+          let $array_drsr = drsr;
+          $array_block;
+          Ok(())
+        }
+      }
+    )?
+
+    $(
+      impl<T, const N: usize> crate::dnsn::Serialize<$drsr> for arrayvec::ArrayVec<T, N>
+      where
+        T: $bound,
+      {
+        #[inline]
+        fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+        where
+          B: crate::utils::ByteBuffer,
+        {
+          let $arrayvec_self = self;
+          let $arrayvec_bytes = bytes;
+          let $arrayvec_drsr = drsr;
+          $arrayvec_block;
+          Ok(())
+        }
+      }
+    )?
+
+    impl<T> crate::dnsn::Serialize<$drsr> for [T]
+    where
+      T: $bound,
+    {
+      #[inline]
+      fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+      where
+        B: crate::utils::ByteBuffer,
+      {
+        let $slice_self = self;
+        let $slice_bytes = bytes;
+        let $slice_drsr = drsr;
+        $slice_block;
+        Ok(())
+      }
+    }
+
+    impl<T> crate::dnsn::Serialize<$drsr> for &'_ [T]
+    where
+      T: $bound,
+    {
+      #[inline]
+      fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+      where
+        B: crate::utils::ByteBuffer,
+      {
+        let $slice_ref_self = self;
+        let $slice_ref_bytes = bytes;
+        let $slice_ref_drsr = drsr;
+        $slice_ref_block;
+        Ok(())
+      }
+    }
+
+    impl<T> crate::dnsn::Serialize<$drsr> for Vec<T>
+    where
+      T: $bound,
+    {
+      #[inline]
+      fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+      where
+        B: crate::utils::ByteBuffer,
+      {
+        let $vec_self = self;
+        let $vec_bytes = bytes;
+        let $vec_drsr = drsr;
+        $vec_block;
+        Ok(())
+      }
+    }
   };
 }
 

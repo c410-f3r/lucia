@@ -1,22 +1,23 @@
 use crate::{
   api::calendar::nager_date::{NagerDate, V3PublicHoliday},
-  network::HttpMethod,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
 };
 use alloc::vec::Vec;
 
-type Res = Vec<V3PublicHoliday>;
+type Res = Vec<V3NextPublicHoliday>;
 
-_create_json_endpoint! {
-  NagerDate;
+_create_endpoint! {
+  NagerDate => JsonResponse|JsonRequest|_json_request;
 
   V3NextPublicHolidaysReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
-  V3NextPublicHolidaysParams(country_code: &'rpd str) -> crate::Result<()> {
+  V3NextPublicHolidaysParams(country_code: &'reqp str) -> crate::Result<()> {
     |_hp| {
-      _hp._method = HttpMethod::_Get;
-      _hp._url_parts.set_path(format_args!("/api/v3/NextPublicHolidays/{country_code}"))?;
+      _hp.tp._method = Method::Get;
+      _hp.tp._url_parts.set_path(format_args!("/api/v3/NextPublicHolidays/{country_code}"))?;
     }
   }
 
@@ -26,3 +27,8 @@ _create_json_endpoint! {
     }
   }
 }
+
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(transparent))]
+#[derive(Debug)]
+pub struct V3NextPublicHoliday(V3PublicHoliday);

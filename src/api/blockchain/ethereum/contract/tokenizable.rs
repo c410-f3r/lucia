@@ -202,12 +202,15 @@ impl Tokenizable for Vec<u8> {
 }
 
 macro_rules! impl_unsigned_custom {
-  ($uint:ident, $name:expr) => {
+  ($uint:ident, $name:expr, $cb:expr) => {
     impl Tokenizable for $uint {
       #[inline]
       fn from_token(token: Token) -> crate::Result<Self> {
         match token {
-          Token::Int(data) | Token::Uint(data) => Ok(TryInto::try_into(data).unwrap()),
+          Token::Int(data) | Token::Uint(data) => {
+            let cb: fn(U256) -> crate::Result<Self> = $cb;
+            cb(data)
+          }
           other => Err(crate::Error::TokensInvalidOutputType(format!(
             "Expected `{}`, got {:?}",
             $name, other
@@ -223,8 +226,8 @@ macro_rules! impl_unsigned_custom {
   };
 }
 
-impl_unsigned_custom!(U256, "U256");
-impl_unsigned_custom!(U128, "U128");
+impl_unsigned_custom!(U256, "U256", |data| Ok(data.into()));
+impl_unsigned_custom!(U128, "U128", |data| Ok(data.try_into()?));
 
 macro_rules! impl_unsigned_native {
   ($int:ident, $token:ident) => {
@@ -245,17 +248,7 @@ macro_rules! impl_unsigned_native {
 
       #[inline]
       fn into_token(self) -> Token {
-        // this should get optimized away by the compiler for unsigned integers
-        #[allow(unused_comparisons)]
-        let data = if self < 0 {
-          // NOTE: Rust does sign extension when converting from a
-          // signed integer to an unsigned integer, so:
-          // `-1u8 as u128 == u128::max_value()`
-          U256::from(self) | U256([0, 0, u64::max_value(), u64::max_value()])
-        } else {
-          self.into()
-        };
-        Token::$token(data)
+        Token::$token(self.into())
       }
     }
   };

@@ -11,7 +11,7 @@ type Res = JsonRpcResponseResultWithContext<Vec<Account>>;
 _create_json_rpc_endpoint! {
   Solana;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "getMultipleAccounts" => GetMultipleAccountsReq<'addrs;;S AsRef<str> = &'static str : 'addrs>(
     OneMandAndOneOpt<&'addrs [S], GetMultipleAccountsReqOptParams>
   )
@@ -23,15 +23,16 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct GetMultipleAccountsReqOptParams {
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub commitment: Option<Commitment>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub data_slice: Option<DataSlice>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub encoding: Option<AccountEncoding>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub min_context_slot: Option<i32>,
 }

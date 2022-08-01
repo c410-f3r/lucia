@@ -4,7 +4,7 @@ use ethereum_types::H256;
 _create_json_rpc_endpoint! {
   Ethereum;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "eth_sendTransaction" => EthSendTransactionReq<'tr;;>([&'tr TransactionRequest; 1])
 
   |raw: Option<H256>| -> Option<H256> { raw }

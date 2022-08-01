@@ -3,7 +3,7 @@ use alloc::{vec, vec::Vec};
 use ethereum_types::{H160, H256};
 
 /// Filter Builder
-#[derive(Default, Debug)]
+#[derive(Debug, Default)]
 pub struct FilterBuilder {
   filter: Filter,
 }

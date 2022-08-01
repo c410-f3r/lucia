@@ -10,8 +10,9 @@ use arrayvec::ArrayVec;
   // Users can Box if desired
   clippy::large_enum_variant
 )]
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase", untagged)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
+#[derive(Debug)]
 pub enum GenericTransaction {
   Base64(String, TransactionEncoding),
   Json(TransactionJson<SolanaAddressHashStr, CompiledInstructionJson>),
@@ -19,10 +20,11 @@ pub enum GenericTransaction {
 }
 
 #[allow(
-  // 28 bytes is not a big difference
+    // Probably little will be gained boxing a variant of 28 bytes
   variant_size_differences
 )]
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub enum InstructionError {
   /// Deprecated! Use CustomError instead!
   /// The program instruction returned an error
@@ -193,7 +195,8 @@ pub enum InstructionError {
 }
 
 /// Reasons a transaction might be rejected.
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub enum TransactionError {
   /// An account is already being processed in another transaction in a way
   /// that does not support parallelism
@@ -269,8 +272,9 @@ pub enum TransactionError {
   WouldExceedMaxAccountDataCostLimit,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct TransactionMeta {
   pub err: Option<TransactionError>,
   pub fee: u64,
@@ -282,8 +286,9 @@ pub struct TransactionMeta {
   pub pre_token_balances: Option<Vec<TransactionTokenBalance>>,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct TransactionOutput {
   pub block_time: Option<i64>,
   pub meta: Option<TransactionMeta>,
@@ -291,8 +296,9 @@ pub struct TransactionOutput {
   pub transaction: GenericTransaction,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct TransactionTokenBalance {
   pub account_index: u8,
   pub mint: SolanaAddressHashStr,

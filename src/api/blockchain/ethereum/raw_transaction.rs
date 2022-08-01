@@ -1,7 +1,8 @@
 use crate::api::blockchain::ethereum::{Bytes, Transaction};
 
 /// Raw bytes of a signed, but not yet sent transaction
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Debug)]
 pub struct RawTransaction {
   /// Signed transaction as raw bytes
   pub raw: Bytes,

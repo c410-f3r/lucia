@@ -1,11 +1,16 @@
 use crate::{
-  network::{HttpMethod, HttpParamsMut, Transport},
-  RequestManager, RequestParams,
+  dnsn::Serialize,
+  network::{
+    http::{AllReqParamsMut, Method},
+    Transport,
+  },
+  RequestManager, RequestParamsModifier,
 };
 use alloc::vec::Vec;
-use core::fmt::Debug;
-use reqwest::{Client, Response};
-use serde::Serialize;
+use reqwest::{
+  header::{HeaderValue, CONTENT_TYPE, USER_AGENT},
+  Client, RequestBuilder,
+};
 
 /// Handy constructor to avoid having to explicitly import `reqwest`.
 #[inline]
@@ -16,76 +21,95 @@ pub fn reqwest() -> Client {
 /// ```rust,no_run
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
-///   network::{reqwest, HttpParams, Transport},
-///   Pair,
+///   network::{http::ReqParams, reqwest, Transport},
+///   CommonParams, Pair, RequestManager
 /// };
-/// let (mut rm, mut trans) = Pair::<(), _, _>::new(
-///   reqwest(),
-///   HttpParams::from_origin("ORIGIN")?
+/// let (mut rm, mut trans) = Pair::new(
+///   RequestManager::new((), CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()), ()),
+///   (),
 /// ).into_parts();
 /// let req = ();
 /// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
-/// Ok(())
-/// # }
+/// # Ok(()) }
 /// ```
 #[async_trait::async_trait]
-impl<A, CP> Transport<A, CP> for Client
+impl<A, CP, DRSR> Transport<A, CP, DRSR> for Client
 where
   A: Send,
   CP: Send,
-  for<'rm> &'rm mut CP: Into<HttpParamsMut<'rm>>,
+  DRSR: Send,
+  for<'any> &'any mut CP: Into<AllReqParamsMut<'any>>,
 {
+  type Metadata = crate::network::http::Response;
+
   #[inline]
-  async fn send<R, RPD>(
+  async fn send<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
-    req: R,
-    rpd: RPD,
-  ) -> crate::Result<()>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    reqp: REQP,
+  ) -> crate::Result<Self::Metadata>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    R::modify_all_params(&mut rm._cp, rpd)?;
-    let _ = reqwest_send(self, req, (&mut rm._cp).into()).await;
-    Ok(())
+    REQ::modify_all_params(&mut rm.cp, reqp)?;
+    let res = reqwest_response((&mut rm.cp).into(), self, &mut rm.drsr, req).await?;
+    Ok((&res).try_into()?)
   }
 
   #[inline]
-  async fn send_and_retrieve<R, RPD>(
+  async fn send_and_retrieve<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
-    req: R,
-    rpd: RPD,
-  ) -> crate::Result<Vec<u8>>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    reqp: REQP,
+  ) -> crate::Result<(Self::Metadata, Vec<u8>)>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    R::modify_all_params(&mut rm._cp, rpd)?;
-    Ok(reqwest_send(self, req, (&mut rm._cp).into()).await?.bytes().await?.to_vec())
+    REQ::modify_all_params(&mut rm.cp, reqp)?;
+    let res = reqwest_response((&mut rm.cp).into(), self, &mut rm.drsr, req).await?;
+    Ok(((&res).try_into()?, res.bytes().await?.into()))
   }
 }
 
 #[inline]
-async fn reqwest_send<T>(
+async fn reqwest_response<DRSR, T>(
+  mut all_params: AllReqParamsMut<'_>,
   client: &Client,
+  drsr: &mut DRSR,
   req: T,
-  mut params: HttpParamsMut<'_>,
-) -> crate::Result<Response>
+) -> crate::Result<reqwest::Response>
 where
-  T: Debug + Send + Serialize + Sync,
+  T: Send + Serialize<DRSR> + Sync,
 {
-  if let Some(ref mut rt) = params._rt {
+  if let Some(ref mut rt) = all_params._rt {
     rt.rc.update_params(&rt.rl).await?;
   }
-  let mut req = match params._method {
-    HttpMethod::_Get => client.get(params._url_parts.url()),
-    HttpMethod::_Post => client.post(params._url_parts.url()).json(&req),
+  let mut manage_data = |mut rb: RequestBuilder| {
+    if let Some(data_format) = all_params._rp._mime_type {
+      rb = rb.header(CONTENT_TYPE, HeaderValue::from_static(data_format._as_str()));
+    }
+    let mut vec = Vec::with_capacity(128);
+    req.to_bytes(&mut vec, drsr)?;
+    rb = rb.body(vec);
+    crate::Result::Ok(rb)
   };
-  for header in params._headers.iter() {
-    req = req.header(header._key.as_str(), header._value.as_str());
+  let mut rb = match all_params._rp._method {
+    Method::Delete => client.delete(all_params._rp._url_parts.url()),
+    Method::Get => client.get(all_params._rp._url_parts.url()),
+    Method::Patch => manage_data(client.patch(all_params._rp._url_parts.url()))?,
+    Method::Post => manage_data(client.post(all_params._rp._url_parts.url()))?,
+    Method::Put => manage_data(client.put(all_params._rp._url_parts.url()))?,
+  };
+  for header in all_params._rp._headers.iter() {
+    rb = rb.header(header._key.as_str(), header._value.as_str());
   }
-  params._reset();
-  Ok(req.send().await?)
+  if let Some(elem) = all_params._rp._user_agent {
+    rb = rb.header(USER_AGENT, HeaderValue::from_static(elem._as_str()));
+  }
+  all_params._reset();
+  Ok(rb.send().await?)
 }

@@ -7,7 +7,7 @@ Simply put, the only necessary thing to create an endpoint is implementing the `
 Take a look at https://github.com/public-apis/public-apis to see which category your API fits better. If the `src/api` directory doesn't contain such category, then create one and also put it in the `README.md` file as well as the API name in alphabetical order.
 
 ```bash
-cd src/api/game
+cd src/api/gaming
 touch my_new_gaming_api.rs;
 ```
 
@@ -37,7 +37,7 @@ last-api = []
 ```
 
 ```rust
-// src/api/game.rs
+// src/api/gaming.rs
 
 #[cfg(feature = "first-api")]
 pub mod first_api;
@@ -60,7 +60,7 @@ Integration tests or end-to-end testing can be performed using an internet conne
 APIs are numerous and generally built based on third-parties specifications so it makes sense to perform external calls.
 
 ```bash
-cd src/api/game/my_new_gaming_api
+cd src/api/gaming/my_new_gaming_api
 touch integration_tests.rs;
 ```
 

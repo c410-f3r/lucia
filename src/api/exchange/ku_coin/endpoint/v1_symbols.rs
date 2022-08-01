@@ -1,23 +1,24 @@
 use crate::{
   api::exchange::ku_coin::{GenericDataResponse, KuCoin},
-  network::HttpMethod,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
   types::{MaxAssetAbbr, MaxNumberStr, MaxPairAbbr},
 };
 use alloc::vec::Vec;
 
 type Res = GenericDataResponse<Vec<V1SymbolsRes>>;
 
-_create_json_endpoint! {
-  KuCoin;
+_create_endpoint! {
+  KuCoin => JsonResponse|JsonRequest|_json_request;
 
   V1SymbolsReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
   V1SymbolsParams() -> crate::Result<()> {
     |hp| {
-      hp._method = HttpMethod::_Get;
-      hp._url_parts.set_path(format_args!("/api/v1/symbols"))?;
+      hp.tp._method = Method::Get;
+      hp.tp._url_parts.set_path(format_args!("/api/v1/symbols"))?;
     }
   }
 
@@ -28,8 +29,9 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V1SymbolsRes {
   pub symbol: MaxPairAbbr,
   pub name: MaxPairAbbr,

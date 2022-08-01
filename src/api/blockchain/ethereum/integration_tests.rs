@@ -1,8 +1,8 @@
-#![cfg(all(test, feature = "_integration-tests"))]
-
 use crate::{
   api::blockchain::ethereum::BlockNumber,
-  network::{HttpParams, Transport},
+  dnsn::SerdeJson,
+  network::{http::ReqParams, Transport},
+  CommonParams,
 };
 
 _create_http_test!(http(), eth_block_number, |rm, trans| async {
@@ -11,7 +11,7 @@ _create_http_test!(http(), eth_block_number, |rm, trans| async {
 });
 
 _create_http_test!(http(), eth_block_transaction_count_by_number, |rm, trans| async {
-  let req = rm.eth_block_transaction_count_by_number(BlockNumber::Number(13162668));
+  let req = rm.eth_block_transaction_count_by_number(BlockNumber::Number(15228994));
   let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
 });
 
@@ -21,6 +21,9 @@ _create_http_test!(http(), eth_get_balance, |rm, trans| async {
   let _ = trans.send_retrieve_and_decode_one(rm, &req, ()).await.unwrap();
 });
 
-fn http() -> HttpParams {
-  HttpParams::from_origin("https://cloudflare-eth.com").unwrap()
+fn http() -> (CommonParams<ReqParams, ()>, SerdeJson) {
+  (
+    CommonParams::new(ReqParams::from_origin("https://cloudflare-eth.com").unwrap(), ()),
+    SerdeJson::default(),
+  )
 }

@@ -17,7 +17,8 @@ pub use v3_public_holidays::*;
 use alloc::vec::Vec;
 use arrayvec::ArrayString;
 
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub enum PublicHolidayType {
   Authorities,
   Bank,
@@ -27,16 +28,17 @@ pub enum PublicHolidayType {
   School,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V3PublicHoliday {
   pub date: ArrayString<10>,
-  pub local_name: Option<ArrayString<51>>,
-  pub name: Option<ArrayString<34>>,
+  pub local_name: Option<ArrayString<72>>,
+  pub name: Option<ArrayString<72>>,
   pub country_code: Option<ArrayString<2>>,
   pub fixed: bool,
   pub global: bool,
-  pub counties: Option<Vec<ArrayString<5>>>,
+  pub counties: Option<Vec<ArrayString<8>>>,
   pub launch_year: Option<i32>,
   pub types: Option<Vec<PublicHolidayType>>,
 }

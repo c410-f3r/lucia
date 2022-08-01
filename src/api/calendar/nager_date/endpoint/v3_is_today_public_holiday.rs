@@ -1,17 +1,28 @@
-use crate::{api::calendar::nager_date::NagerDate, network::HttpMethod};
+use crate::{
+  api::calendar::nager_date::NagerDate,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::{Method, StatusCode},
+};
 
-_create_json_endpoint! {
-  NagerDate;
+_create_endpoint! {
+  NagerDate => JsonResponse|JsonRequest|_json_request;
 
   V3IsTodayPublicHolidayReq<;;>
 
-  |raw: ()| -> () { Ok(raw) }
+  |raw: (), resp| -> () {
+    if resp.into().status_code == StatusCode::Ok {
+      Ok(raw)
+    }
+    else {
+      Err(crate::Error::IncompatibleStatusCode(StatusCode::Ok, resp.into().status_code))
+    }
+  }
 
-  V3IsTodayPublicHolidayParams(country_code: &'rpd str, county_code: Option<&'rpd str>, offset: Option<i8>) -> crate::Result<()> {
+  V3IsTodayPublicHolidayParams(country_code: &'reqp str, county_code: Option<&'reqp str>, offset: Option<i8>) -> crate::Result<()> {
     |_hp| {
-      _hp._method = HttpMethod::_Get;
-      _hp._url_parts.set_path(format_args!("/api/v3/IsTodayPublicHoliday/{country_code}"))?;
-      let _ = _hp._url_parts.query_writer()
+      _hp.tp._method = Method::Get;
+      _hp.tp._url_parts.set_path(format_args!("/api/v3/IsTodayPublicHoliday/{country_code}"))?;
+      let _ = _hp.tp._url_parts.query_writer()
         .write_opt("countyCode", county_code)?
         .write_opt("offset", offset)?;
     }

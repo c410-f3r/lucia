@@ -1,7 +1,8 @@
 use crate::api::blockchain::solana::{program::spl_token::AccountBalance, SolanaAddressHashStr};
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct TransferCheckedInstruction {
   pub authority: SolanaAddressHashStr,
   pub destination: SolanaAddressHashStr,

@@ -1,8 +1,9 @@
 use crate::api::blockchain::solana::AccountEncoding;
 
 /// Block commitment
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub enum Commitment {
   // Middle ground
   Confirmed,
@@ -12,48 +13,54 @@ pub enum Commitment {
   Processed,
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct CommitmentMand {
   pub commitment: Commitment,
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct CommitmenOptDataSliceOptEncodingMand {
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub commitment: Option<Commitment>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub data_slice: Option<DataSlice>,
   pub encoding: AccountEncoding,
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct CommitmentOptEncoding {
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub commitment: Option<Commitment>,
   pub encoding: AccountEncoding,
 }
 
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct CommitmentOptEncodingOpt<E> {
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub commitment: Option<Commitment>,
-  #[serde(skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub encoding: Option<E>,
 }
 
-#[derive(Debug, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct DataSlice {
   pub length: usize,
   pub offset: usize,
 }
 
 // Used by `getTokenAccountsByDelegate` and `getTokenAccountsByOwner` endpoint
-#[derive(Debug, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub enum MintOrProgramId<S>
 where
   S: AsRef<str>,
@@ -62,26 +69,34 @@ where
   ProgramId(S),
 }
 
-#[derive(Debug, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct JsonRpcRequestParamsWithThreeOpt<AO, BO, CO>(
-  #[serde(skip_serializing_if = "Option::is_none")] pub(crate) Option<AO>,
-  #[serde(skip_serializing_if = "Option::is_none")] pub(crate) Option<BO>,
-  #[serde(skip_serializing_if = "Option::is_none")] pub(crate) Option<CO>,
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+  pub(crate)  Option<AO>,
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+  pub(crate)  Option<BO>,
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+  pub(crate)  Option<CO>,
 );
 
-#[derive(Debug, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[derive(Debug)]
 pub struct JsonRpcRequestParamsWithTwoMandAndOneOpt<AM, BM, CO>(
   pub(crate) AM,
   pub(crate) BM,
-  #[serde(skip_serializing_if = "Option::is_none")] pub(crate) Option<CO>,
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+  pub(crate)  Option<CO>,
 );
 
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub struct JsonRpcResponseResultContext {
   pub slot: u64,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub struct JsonRpcResponseResultWithContext<V> {
   pub context: JsonRpcResponseResultContext,
   pub value: V,

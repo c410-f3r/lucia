@@ -1,18 +1,26 @@
-use crate::{api::test_data::json_placeholder::JsonPlaceholder, network::HttpMethod};
-use alloc::vec::Vec;
+use crate::{
+  api::test_data::json_placeholder::{endpoint::params_management, JsonPlaceholder, ResBox},
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
+  utils::DebugDisplay,
+};
 use arrayvec::ArrayString;
 
-_create_json_endpoint! {
-  JsonPlaceholder;
+_create_endpoint! {
+  JsonPlaceholder => JsonResponse|JsonRequest|_json_request;
 
   UsersReq<;;>
 
-  |raw: Vec<UsersRes>| -> Vec<UsersRes> { Ok(raw) }
+  |raw: ResBox, _resp| -> ResBox { Ok(raw) }
 
-  UsersParams() -> crate::Result<()> {
+  UsersParams(
+    method: Method,
+    id_opt: Option<u32>,
+    nested_opt: Option<&'reqp str>,
+    query: &'reqp [(&'reqp str, &'reqp dyn DebugDisplay)]
+  ) -> crate::Result<()> {
     |cp| {
-      cp._method = HttpMethod::_Get;
-      cp._url_parts.set_path(format_args!("/users"))?;
+      params_management("users", cp, method, id_opt, nested_opt, query)?;
     }
   }
 
@@ -23,9 +31,10 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct UsersRes {
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
+pub struct UserRes {
   pub id: u32,
   pub name: ArrayString<24>,
   pub username: ArrayString<16>,
@@ -36,8 +45,9 @@ pub struct UsersRes {
   pub company: UsersCompanyRes,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct UsersAddressRes {
   pub street: ArrayString<17>,
   pub suite: ArrayString<10>,
@@ -46,15 +56,17 @@ pub struct UsersAddressRes {
   pub geo: UsersAddressGeoRes,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct UsersAddressGeoRes {
   pub lat: ArrayString<9>,
   pub lng: ArrayString<9>,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct UsersCompanyRes {
   pub name: ArrayString<18>,
   pub catch_phrase: ArrayString<40>,

@@ -3,62 +3,63 @@ use ethabi::Address;
 use ethereum_types::{H256, U256, U64};
 
 /// Description of a Transaction, pending or in the chain.
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct Transaction {
   /// Hash
   pub hash: H256,
   /// Nonce
   pub nonce: U256,
   /// Block hash. None when pending.
-  #[serde(rename = "blockHash")]
   pub block_hash: Option<H256>,
   /// Block number. None when pending.
-  #[serde(rename = "blockNumber")]
   pub block_number: Option<U64>,
   /// Transaction Index. None when pending.
-  #[serde(rename = "transactionIndex")]
   pub transaction_index: Option<U64>,
   /// Sender
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
   pub from: Option<Address>,
   /// Recipient (None when contract creation)
   pub to: Option<Address>,
   /// Transfered value
   pub value: U256,
   /// Gas Price
-  #[serde(rename = "gasPrice")]
   pub gas_price: Option<U256>,
   /// Gas amount
   pub gas: U256,
   /// Input data
   pub input: Bytes,
   /// ECDSA recovery id
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
   pub v: Option<U64>,
   /// ECDSA signature r, 32 bytes
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
   pub r: Option<U256>,
   /// ECDSA signature s, 32 bytes
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
   pub s: Option<U256>,
   /// Raw transaction data
-  #[serde(default, skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
   pub raw: Option<Bytes>,
   /// Transaction type, Some(1) for AccessList transaction, None for Legacy
-  #[serde(rename = "type", default, skip_serializing_if = "Option::is_none")]
-  pub transaction_type: Option<U64>,
+  #[cfg_attr(
+    feature = "serde",
+    serde(default, rename = "type", skip_serializing_if = "Option::is_none")
+  )]
+  pub ty: Option<U64>,
   /// Access list
-  #[serde(rename = "accessList", default, skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(default, skip_serializing_if = "Option::is_none"))]
   pub access_list: Option<AccessList>,
   /// Max fee per gas
-  #[serde(rename = "maxFeePerGas", skip_serializing_if = "Option::is_none")]
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub max_fee_per_gas: Option<U256>,
-  /// miner bribe
-  #[serde(rename = "maxPriorityFeePerGas", skip_serializing_if = "Option::is_none")]
+  /// Miner bribe
+  #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
   pub max_priority_fee_per_gas: Option<U256>,
 }
 
-#[cfg(test)]
+#[cfg(all(feature = "serde_json", test))]
 mod tests {
   use crate::api::blockchain::ethereum::{RawTransaction, Receipt};
 

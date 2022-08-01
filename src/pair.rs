@@ -1,47 +1,42 @@
-use crate::RequestManager;
-
-/// A convenient wrapper around [RequestManager] and any given `T: Transport`.
+/// A convenient wrapper around [crate::RequestManager] and any given `T: Transport`.
 ///
 /// If desired, you can create your own set of APIs or transports by directly calling
 /// their constructors.
 ///
 /// # Types
 ///
-/// * `A`: **A**PI
-/// * `CP`: **C**ommon **P**arameters
+/// * `RM`: **R**equest **M**anager
 /// * `T`: **T**ransport
 #[derive(Debug)]
-pub struct Pair<A, CP, T>
+pub struct Pair<RM, T>
 where
-  A: Send,
-  CP: Send,
+  RM: Send,
 {
-  /// See [RequestManager].
-  pub rm: RequestManager<A, CP>,
+  /// Can be anything that manages requests like [crate::RequestManager].
+  pub rm: RM,
   /// See [crate::network::Transport].
   pub trans: T,
 }
 
-impl<A, CP, T> Pair<A, CP, T>
+impl<RM, T> Pair<RM, T>
 where
-  A: Send,
-  CP: Send,
+  RM: Send,
 {
-  /// Shortcut that automatically instantiates [RequestManager].
+  /// Constructor shortcut.
   #[inline]
-  pub const fn new(trans: T, cp: CP) -> Self {
-    Self { rm: RequestManager::new(cp), trans }
+  pub const fn new(rm: RM, trans: T) -> Self {
+    Self { rm, trans }
   }
 
   /// Owned version of [Self::parts_mut].
   #[inline]
-  pub fn into_parts(self) -> (RequestManager<A, CP>, T) {
+  pub fn into_parts(self) -> (RM, T) {
     (self.rm, self.trans)
   }
 
   /// Another shortcut to easy development.
   #[inline]
-  pub fn parts_mut(&mut self) -> (&mut RequestManager<A, CP>, &mut T) {
+  pub fn parts_mut(&mut self) -> (&mut RM, &mut T) {
     (&mut self.rm, &mut self.trans)
   }
 }

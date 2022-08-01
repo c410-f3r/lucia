@@ -2,23 +2,26 @@
   // Determined by the Solana devs
   variant_size_differences
 )]
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub enum Filter<'bytes> {
   DataSize(usize),
-  #[serde(borrow)]
+  #[cfg_attr(feature = "serde", serde(borrow))]
   Memcmp(Memcmp<'bytes>),
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[derive(Debug)]
 pub struct Memcmp<'bytes> {
-  #[serde(borrow)]
+  #[cfg_attr(feature = "serde", serde(borrow))]
   pub bytes: MemcmpEncodedBytes<'bytes>,
   pub offset: usize,
 }
 
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase", untagged)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
+#[derive(Debug)]
 pub enum MemcmpEncodedBytes<'bytes> {
   Base58(&'bytes str),
   Base64(&'bytes str),

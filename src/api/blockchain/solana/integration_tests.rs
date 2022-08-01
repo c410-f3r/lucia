@@ -1,5 +1,3 @@
-#![cfg(all(test, feature = "_integration-tests"))]
-
 use crate::{
   api::blockchain::solana::{
     AccountEncoding, CommitmenOptDataSliceOptEncodingMand, Commitment, CommitmentOptEncoding,
@@ -7,7 +5,9 @@ use crate::{
     InstructionJsonParsedInfo, Memcmp, MemcmpEncodedBytes, MessageInput, MintOrProgramId, Solana,
     SolanaAddressHash, TransactionEncoding, TransactionInput,
   },
-  network::{HttpParams, Transport, WsParams},
+  dnsn::SerdeJson,
+  network::{http, ws, Transport},
+  CommonParams,
 };
 use alloc::vec::Vec;
 use ed25519_dalek::Keypair;
@@ -233,8 +233,11 @@ fn alice_keypair() -> [u8; 64] {
   array
 }
 
-fn http() -> HttpParams {
-  HttpParams::from_origin("http://localhost:8899").unwrap()
+fn http() -> (CommonParams<http::ReqParams, ()>, SerdeJson) {
+  (
+    CommonParams::new(http::ReqParams::from_origin("http://localhost:8899").unwrap(), ()),
+    SerdeJson::default(),
+  )
 }
 
 fn generic_tx_parsed_instruction<'tx>(
@@ -260,6 +263,9 @@ fn transfer_message(blockhash: [u8; 32], from_public_key: [u8; 32]) -> MessageIn
   MessageInput::with_params(&[transfer], Some(from_public_key), blockhash).unwrap()
 }
 
-fn ws() -> WsParams {
-  WsParams::from_origin("ws://localhost:8900").unwrap()
+fn ws() -> (CommonParams<ws::ReqParams, ()>, SerdeJson) {
+  (
+    CommonParams::new(ws::ReqParams::from_origin("ws://localhost:8900").unwrap(), ()),
+    SerdeJson::default(),
+  )
 }

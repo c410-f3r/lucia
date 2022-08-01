@@ -1,5 +1,7 @@
-use crate::types::Id;
-use alloc::{borrow::Cow, string::String};
+use crate::{data_format::JsonRpcResponseError, network::http::StatusCode, types::Id};
+#[cfg(feature = "ethereum")]
+use alloc::string::String;
+use alloc::{borrow::Cow, boxed::Box};
 use core::fmt::{Debug, Display, Formatter};
 
 /// All possible errors are grouped here
@@ -25,17 +27,29 @@ pub enum Error {
   EthAbi(ethabi::Error),
   /// See [core::fmt::Error]
   Fmt(core::fmt::Error),
+  /// See [alloc::string::FromUtf8Error].
+  FromUtf8Error(alloc::string::FromUtf8Error),
   /// See [hex::FromHexError]
   #[cfg(feature = "hex")]
   Hex(hex::FromHexError),
   #[cfg(feature = "ku-coin")]
   /// See [crypto_common::InvalidLength].
   InvalidLength(crypto_common::InvalidLength),
+  #[cfg(feature = "miniserde")]
+  /// See [miniserde::Error].
+  Miniserde(miniserde::Error),
+  /// See [primitive_types::Error].
+  #[cfg(feature = "ethereum")]
+  PrimitiveTypes(primitive_types::Error),
   /// See [reqwest::Error]
   #[cfg(feature = "reqwest")]
   Reqwest(reqwest::Error),
   /// See [serde_json::Error]
+  #[cfg(feature = "serde_json")]
   SerdeJson(serde_json::Error),
+  /// See [serde_json::Error]
+  #[cfg(feature = "serde-xml-rs")]
+  SerdeXmlRs(serde_xml_rs::Error),
   /// See [surf::Error]
   #[cfg(feature = "surf")]
   Surf(surf::Error),
@@ -58,9 +72,12 @@ pub enum Error {
   TokensInvalidOutputType(String),
 
   // Solana
-  /// Returned data from counterpart is everything a spl-token account
+  /// Returned data from counterpart is everything but a spl-token account
   #[cfg(feature = "solana")]
   SolanaAccountIsNotSplToken,
+  /// Returned data from counterpart is everything but a spl-token account mint
+  #[cfg(feature = "solana")]
+  SolanaAccountIsNotSplTokenMint,
   /// Usually means that no signing public key is available in the list of all public keys
   #[cfg(feature = "solana")]
   SolanaInexistentOrOutOfBoundsSignatureIndex(usize, Option<usize>),
@@ -77,6 +94,8 @@ pub enum Error {
   DifferentSequenceDeserialization(usize),
   /// For third-party dependencies that throws strings errors
   Generic(Cow<'static, str>),
+  /// Request was expecting a different HTTP status code.
+  IncompatibleStatusCode(StatusCode, StatusCode),
   /// The hardware returned an incorrect time value
   IncorrectHardwareTime,
   /// `no_std` has no knowledge of time. Try enabling the `std` feature
@@ -86,13 +105,15 @@ pub enum Error {
   /// Index is greater than the maximum capacity
   JsonRpcResponseIsNotPresentInAnySentRequest(Id),
   /// JSON-RPC response error
-  JsonRpcResultErr(String),
+  JsonRpcResultErr(Box<JsonRpcResponseError>),
   /// "Different JSON-RPC ids
-  JsonRpcSentIdDiffersFromReceviedId(Id, Id),
+  JsonRpcSentIdDiffersFromReceivedId(Id, Id),
   /// A variant used to transform `Option`s into `Result`s
   NoInnerValue(&'static str),
   /// No stored test response to return a result from a request
   TestTransportNoResponse,
+  /// It is not possible to convert a `u16` into a HTTP status code
+  UnknownHttpStatusCode(u16),
 }
 
 #[cfg(feature = "solana")]
@@ -140,6 +161,13 @@ impl From<core::fmt::Error> for Error {
   }
 }
 
+impl From<alloc::string::FromUtf8Error> for Error {
+  #[inline]
+  fn from(from: alloc::string::FromUtf8Error) -> Self {
+    Self::FromUtf8Error(from)
+  }
+}
+
 #[cfg(feature = "solana")]
 impl From<ed25519_dalek::SignatureError> for Error {
   #[inline]
@@ -164,6 +192,22 @@ impl From<crypto_common::InvalidLength> for Error {
   }
 }
 
+#[cfg(feature = "miniserde")]
+impl From<miniserde::Error> for Error {
+  #[inline]
+  fn from(from: miniserde::Error) -> Self {
+    Self::Miniserde(from)
+  }
+}
+
+#[cfg(feature = "ethereum")]
+impl From<primitive_types::Error> for Error {
+  #[inline]
+  fn from(from: primitive_types::Error) -> Self {
+    Self::PrimitiveTypes(from)
+  }
+}
+
 #[cfg(feature = "reqwest")]
 impl From<reqwest::Error> for Error {
   #[inline]
@@ -172,10 +216,19 @@ impl From<reqwest::Error> for Error {
   }
 }
 
+#[cfg(feature = "serde_json")]
 impl From<serde_json::Error> for Error {
   #[inline]
   fn from(from: serde_json::Error) -> Self {
     Self::SerdeJson(from)
+  }
+}
+
+#[cfg(feature = "serde-xml-rs")]
+impl From<serde_xml_rs::Error> for Error {
+  #[inline]
+  fn from(from: serde_xml_rs::Error) -> Self {
+    Self::SerdeXmlRs(from)
   }
 }
 
@@ -198,7 +251,7 @@ impl From<core::num::TryFromIntError> for Error {
 impl From<tungstenite::Error> for Error {
   #[inline]
   fn from(from: tungstenite::Error) -> Self {
-    Self::Tungstenite(Box::new(from))
+    Self::Tungstenite(from.into())
   }
 }
 

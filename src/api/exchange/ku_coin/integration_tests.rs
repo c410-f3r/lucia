@@ -1,10 +1,10 @@
-#![cfg(all(test, feature = "_integration-tests"))]
-
 use crate::{
   api::exchange::ku_coin::{
     V1BulletPublicParams, V1CurrenciesParams, V1SymbolsParams, V2CurrenciesParams,
   },
-  network::{HttpParams, Transport},
+  dnsn::SerdeJson,
+  network::{http::ReqParams, Transport},
+  CommonParams,
 };
 
 _create_http_test!(http(), v1_bullet_public, |rm, trans| async {
@@ -28,6 +28,9 @@ _create_http_test!(http(), v1_symbols, |rm, trans| async {
   let _ = trans.send_retrieve_and_decode_one(rm, &req, V1SymbolsParams::new()).await.unwrap();
 });
 
-fn http() -> HttpParams {
-  HttpParams::from_origin("https://openapi-sandbox.kucoin.com").unwrap()
+fn http() -> (CommonParams<ReqParams, ()>, SerdeJson) {
+  (
+    CommonParams::new(ReqParams::from_origin("https://openapi-sandbox.kucoin.com").unwrap(), ()),
+    SerdeJson::default(),
+  )
 }

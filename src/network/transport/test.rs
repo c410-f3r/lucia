@@ -3,10 +3,16 @@
   clippy::indexing_slicing
 )]
 
-use crate::{network::Transport, RequestManager, RequestParams};
-use alloc::{borrow::Cow, boxed::Box, collections::VecDeque, vec::Vec};
+use crate::{
+  dnsn::Serialize, network::Transport, utils::FromBytes, RequestManager, RequestParamsModifier,
+};
+use alloc::{
+  borrow::{Cow, ToOwned},
+  boxed::Box,
+  collections::VecDeque,
+  vec::Vec,
+};
 use core::fmt::Debug;
-use serde::Serialize;
 
 /// Used to assert issued requests as well as returned responses in a local environment. Intended
 /// mostly for testing.
@@ -17,22 +23,36 @@ use serde::Serialize;
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
 ///   network::{Test, Transport},
-///   Pair,
+///   CommonParams, Pair, RequestManager
 /// };
-/// let (mut rm, mut trans) = Pair::<(), _, _>::new(Test::default(), ()).into_parts();
+/// let (mut rm, mut trans) = Pair::new(
+///   RequestManager::new(
+///     (),
+///     CommonParams::default(),
+///     (),
+///   ),
+///   Test::<str>::default()
+/// ).into_parts();
 /// let req = ();
 /// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
-/// Ok(())
-/// # }
+/// # Ok(()) }
 /// ```
-#[derive(Debug, Default)]
-pub struct Test {
+#[derive(Debug)]
+pub struct Test<B>
+where
+  B: ToOwned + 'static + ?Sized,
+  <B as ToOwned>::Owned: Debug + FromBytes,
+{
   asserted: usize,
-  requests: Vec<Cow<'static, str>>,
-  responses: VecDeque<Cow<'static, str>>,
+  requests: Vec<Cow<'static, B>>,
+  responses: VecDeque<Cow<'static, B>>,
 }
 
-impl Test {
+impl<B> Test<B>
+where
+  B: AsRef<[u8]> + Debug + PartialEq + ToOwned + 'static + ?Sized,
+  <B as ToOwned>::Owned: Debug + FromBytes,
+{
   /// Ensures that no included request hasn't processed.
   #[inline]
   pub fn assert_does_not_have_non_asserted_requests(&self) {
@@ -41,67 +61,85 @@ impl Test {
 
   /// Verifies if `req` is present in the inner request storage.
   #[inline]
-  pub fn assert_request(&mut self, req: &str) {
+  pub fn assert_request(&mut self, req: &B) {
     let stored = &self.requests[self.asserted];
     self.asserted = self.asserted.wrapping_add(1);
-    assert_eq!(req, stored);
+    assert_eq!(req, stored.as_ref());
   }
 
   /// Stores `res` into the inner response storage
   #[inline]
-  pub fn push_response(&mut self, res: Cow<'static, str>) {
+  pub fn push_response(&mut self, res: Cow<'static, B>) {
     self.responses.push_back(res);
   }
 
   #[inline]
-  fn pop_response(&mut self) -> crate::Result<Cow<'static, str>> {
+  fn pop_response(&mut self) -> crate::Result<Cow<'static, B>> {
     self.responses.pop_front().ok_or(crate::Error::TestTransportNoResponse)
   }
 
   #[inline]
-  fn store_req<T>(&mut self, req: T) -> crate::Result<()>
+  fn store_req<DRSR, T>(&mut self, drsr: &mut DRSR, req: &T) -> crate::Result<()>
   where
-    T: Debug + Send + Serialize,
+    T: Send + Serialize<DRSR>,
   {
-    let serialized = serde_json::to_string(&req)?;
-    self.requests.push(serialized.into());
+    let mut vec = Vec::new();
+    req.to_bytes(&mut vec, drsr)?;
+    self.requests.push(Cow::Owned(FromBytes::from_bytes(&vec)?));
     Ok(())
   }
 }
 
 #[async_trait::async_trait]
-impl<A, CP> Transport<A, CP> for Test
+impl<A, B, CP, DRSR> Transport<A, CP, DRSR> for Test<B>
 where
   A: Send,
+  B: AsRef<[u8]> + Debug + PartialEq + ToOwned + Send + Sync + 'static + ?Sized,
   CP: Send,
+  DRSR: Send,
+  <B as ToOwned>::Owned: Debug + FromBytes + Send,
 {
+  type Metadata = ();
+
   #[inline]
-  async fn send<R, RPD>(
+  async fn send<REQ, REQP>(
     &mut self,
-    _: &mut RequestManager<A, CP>,
-    req: R,
-    _: RPD,
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    _: REQP,
   ) -> crate::Result<()>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    self.store_req(req)
+    self.store_req(&mut rm.drsr, req)
   }
 
   #[inline]
-  async fn send_and_retrieve<R, RPD>(
+  async fn send_and_retrieve<REQ, REQP>(
     &mut self,
-    _: &mut RequestManager<A, CP>,
-    req: R,
-    _: RPD,
-  ) -> crate::Result<Vec<u8>>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    _: REQP,
+  ) -> crate::Result<(Self::Metadata, Vec<u8>)>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    self.store_req(req)?;
+    self.store_req(&mut rm.drsr, req)?;
     let response = self.pop_response()?;
-    Ok(response.as_bytes().to_vec())
+    let bytes: &[u8] = response.as_ref().as_ref();
+    Ok(((), bytes.into()))
+  }
+}
+
+impl<B> Default for Test<B>
+where
+  B: ToOwned + 'static + ?Sized,
+  <B as ToOwned>::Owned: Debug + FromBytes,
+{
+  #[inline]
+  fn default() -> Self {
+    Self { asserted: 0, requests: Vec::new(), responses: VecDeque::new() }
   }
 }

@@ -16,16 +16,15 @@ pub use self::tokio_tungstenite::*;
 pub use test::*;
 
 use crate::{
+  dnsn::{Deserialize, Serialize},
   utils::{decode_many, decode_one},
-  Request, RequestManager, RequestParams, Requests,
+  Request, RequestManager, RequestParamsModifier, Requests,
 };
 use alloc::{boxed::Box, vec::Vec};
-use core::fmt::Debug;
-use serde::{Deserialize, Serialize};
 
 /// Any means of transferring data between two parties.
 ///
-/// Internally in every method all custom/protocol related parameters are temporally used to
+/// Internally in every method all custom related parameters are temporally used to
 /// tell how the given request should be issued.
 ///
 /// Please, see the [crate::Request] implementation of the desired request to know
@@ -36,134 +35,147 @@ use serde::{Deserialize, Serialize};
 /// The Covid-19 API provided by `M Media` has an endpoint called `cases` that accepts
 /// different HTTP query parameters to modify returned data.
 ///
-#[cfg_attr(feature = "covid-19", doc = "```rust,no_run")]
-#[cfg_attr(not(feature = "covid-19"), doc = "```rust,ignore")]
-/// # use lucia::{api::health::covid_19::CasesParams, network::{HttpParams, Transport}, Pair};
-/// async fn request() -> lucia::Result<()> {
-///   let (mut rm, mut trans) = Pair::new(
-///     (),
-///     HttpParams::from_origin("https://covid-api.mmediagroup.fr").unwrap()
-///   )
-///   .into_parts();
-///   let req = rm.cases();
-///   let _res = trans
-///     .send_retrieve_and_decode_one(&mut rm, &req, CasesParams::new(Some("pt"), None, None))
-///     .await?;
-///   Ok(())
-/// }
+/// ```rust-no_run
+/// # #[cfg(feature = "m-media-covid-19")] async fn fun() -> lucia::Result<()> {
+/// use lucia::{
+///   api::health::m_media_covid_19::CasesParams,
+///   network::{http::ReqParams, Transport},
+///   CommonParams, Pair, RequestManager,
+/// };
+/// let (mut rm, mut trans) = Pair::new(
+///   RequestManager::new(
+///     <_>::default(),
+///     CommonParams::new((), ReqParams::from_origin("https://covid-api.mmediagroup.fr")?, ())
+///   ),
+///   (),
+/// ).into_parts();
+/// let req = rm.cases();
+/// let _res = trans
+///   .send_retrieve_and_decode_one(&mut rm, &req, CasesParams::new(Some("pt"), None, None))
+///   .await?;
+/// # Ok(()) }
 /// ```
 ///
 /// As seen from above, [lucia::api::health::covid_19::CasesParams<'_>] comes from
 /// <https://docs.rs/lucia/0.1.0/lucia/trait.Request.html#impl-Request-8>
+///
+/// # Types
+///
+/// * `A`: **A**PI
+/// * `CP`: **C**ommon **P**arameters
+/// * `DRSR`: **D**eserialize**R**/**S**erialize**R**
 #[async_trait::async_trait]
-pub trait Transport<A, CP>
+pub trait Transport<A, CP, DRSR>
 where
   A: Send,
   CP: Send,
+  DRSR: Send,
 {
+  /// Custom metadata attached to the transport. For example, HTTP has response headers as metadata.
+  type Metadata;
+
   /// Sends a request without trying to retrieve any counterpart data.
   ///
   /// See the trait documentation for more information.
-  async fn send<R, RPD>(
+  async fn send<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
-    req: R,
-    rpd: RPD,
-  ) -> crate::Result<()>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    reqp: REQP,
+  ) -> crate::Result<Self::Metadata>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send;
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send;
 
   /// Sends a request and then awaits its counterpart data response.
   ///
   /// See the trait documentation for more information.
-  async fn send_and_retrieve<R, RPD>(
+  async fn send_and_retrieve<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
-    req: R,
-    rpd: RPD,
-  ) -> crate::Result<Vec<u8>>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    reqp: REQP,
+  ) -> crate::Result<(Self::Metadata, Vec<u8>)>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send;
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send;
 
   /// Convenient method used for JSON-RPC 2.0 batch requests
   ///
   /// See [crate::Requests] for more information.
   #[inline]
-  async fn send_retrieve_and_decode_many<BUFFER, REQS, RPD>(
+  async fn send_retrieve_and_decode_many<BUFFER, REQS, REQP>(
     &mut self,
     buffer: &mut BUFFER,
-    rm: &mut RequestManager<A, CP>,
+    rm: &mut RequestManager<A, CP, DRSR>,
     reqs: &REQS,
-    rpd: RPD,
+    reqp: REQP,
   ) -> crate::Result<()>
   where
     BUFFER: Send,
-    REQS: Debug + Requests<BUFFER, CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQS: Requests<BUFFER, CP, DRSR, REQP, Self::Metadata> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    let bytes = &if let (0, Some(0)) = reqs.size_hint() {
-      Vec::new()
-    } else {
-      self.send_and_retrieve(rm, reqs, rpd).await?
-    };
-    decode_many(buffer, bytes, reqs)
+    let (resp, bytes) = self.send_and_retrieve(rm, reqs, reqp).await?;
+    decode_many(buffer, &bytes, &mut rm.drsr, reqs, &resp)
   }
 
   /// Similar to [Self::send_retrieve_and_decode_many] but expects a single data return from the
-  /// counterpart. Can be currently used by any protocol.
+  /// counterpart. Can be currently used by any data format.
   ///
   /// See [crate::Request] for more information.
   #[inline]
-  async fn send_retrieve_and_decode_one<REQ, RPD>(
+  async fn send_retrieve_and_decode_one<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
+    rm: &mut RequestManager<A, CP, DRSR>,
     req: &REQ,
-    rpd: RPD,
+    reqp: REQP,
   ) -> crate::Result<REQ::ProcessedResponse>
   where
-    REQ: Debug + Request<CP, RPD> + Send + Serialize + Sync,
-    REQ::RawResponse: Debug + for<'de> Deserialize<'de>,
-    RPD: Send,
+    REQ: Request<CP, REQP, Self::Metadata> + Send + Serialize<DRSR> + Sync,
+    REQ::RawResponse: for<'de> Deserialize<'de, DRSR>,
+    REQP: Send,
   {
-    let bytes = self.send_and_retrieve(rm, req, rpd).await?;
-    decode_one(&bytes, req)
+    let (resp, bytes) = self.send_and_retrieve(rm, req, reqp).await?;
+    decode_one(&bytes, &mut rm.drsr, req, &resp)
   }
 }
 
 #[async_trait::async_trait]
-impl<A, CP, U> Transport<A, CP> for &mut U
+impl<A, CP, DRSR, U> Transport<A, CP, DRSR> for &mut U
 where
   A: Send,
   CP: Send,
-  U: Send + Transport<A, CP>,
+  DRSR: Send,
+  U: Send + Transport<A, CP, DRSR>,
 {
+  type Metadata = U::Metadata;
+
   #[inline]
-  async fn send<R, RPD>(
+  async fn send<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
-    req: R,
-    rpd: RPD,
-  ) -> crate::Result<()>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    reqp: REQP,
+  ) -> crate::Result<Self::Metadata>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    (*self).send(rm, req, rpd).await
+    (*self).send(rm, req, reqp).await
   }
 
   #[inline]
-  async fn send_and_retrieve<R, RPD>(
+  async fn send_and_retrieve<REQ, REQP>(
     &mut self,
-    rm: &mut RequestManager<A, CP>,
-    req: R,
-    rpd: RPD,
-  ) -> crate::Result<Vec<u8>>
+    rm: &mut RequestManager<A, CP, DRSR>,
+    req: &REQ,
+    reqp: REQP,
+  ) -> crate::Result<(Self::Metadata, Vec<u8>)>
   where
-    R: Debug + RequestParams<CP, RPD> + Send + Serialize + Sync,
-    RPD: Send,
+    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
+    REQP: Send,
   {
-    (*self).send_and_retrieve(rm, req, rpd).await
+    (*self).send_and_retrieve(rm, req, reqp).await
   }
 }

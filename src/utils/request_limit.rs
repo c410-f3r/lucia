@@ -8,13 +8,22 @@ pub struct RequestLimit {
 }
 
 impl RequestLimit {
-  /// New instance based on millis-seconds. If `duration` is zero then this structure will
-  /// basically be a no-op.
+  /// If `duration` is zero then this structure will basically be a no-op.
   ///
-  /// Limits must start at 1 so will always ever be at least one request.
+  /// Limits must start at 1 to always be at least one request.
   #[inline]
   pub fn new(limit: u16, duration: Duration) -> crate::Result<Self> {
     Ok(Self { duration, limit: limit.try_into()? })
+  }
+
+  /// Useful for tests.
+  #[allow(
+    // u16::MAX is greater than 0
+    clippy::unwrap_used
+  )]
+  #[inline]
+  pub fn unlimited() -> Self {
+    Self { duration: Duration::from_secs(0), limit: NonZeroU16::new(u16::MAX).unwrap() }
   }
 
   /// The interval range that can contain a maximum number of [Self::limit] requests

@@ -1,8 +1,5 @@
-use crate::{
-  api::blockchain::solana::{
-    program::spl_token::GenericAccount, Epoch, SolanaAddressHashStr, SolanaProgramName,
-  },
-  utils::_deserialize_ignore_any,
+use crate::api::blockchain::solana::{
+  program::spl_token::GenericAccount, Epoch, SolanaAddressHashStr, SolanaProgramName,
 };
 use alloc::string::String;
 
@@ -10,15 +7,17 @@ use alloc::string::String;
   // Data format is specified by the blockchain
   allow(clippy::large_enum_variant, variant_size_differences)
 ]
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase", untagged)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
+#[derive(Debug)]
 pub enum AccountData {
   Binary(String, AccountEncoding),
   Json(AccountDataJson),
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct Account {
   pub data: AccountData,
   pub executable: bool,
@@ -27,29 +26,32 @@ pub struct Account {
   pub rent_epoch: Epoch,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct AccountDataJson {
   pub parsed: AccountDataJsonParsed,
   pub program: SolanaProgramName,
   pub space: u64,
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase", untagged)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
+#[derive(Debug)]
 pub enum AccountDataJsonParsed {
   SplTokenAccount(GenericAccount),
   /// Unknown program
-  #[serde(deserialize_with = "_deserialize_ignore_any")]
+  #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::utils::_deserialize_ignore_any"))]
   Unknown,
 }
 
-#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Clone, Copy, Debug)]
 pub enum AccountEncoding {
   Base58,
   Base64,
   JsonParsed,
-  #[serde(rename = "base64+zstd")]
+  #[cfg_attr(feature = "serde", serde(rename = "base64+zstd"))]
   Base64Zstd,
 }

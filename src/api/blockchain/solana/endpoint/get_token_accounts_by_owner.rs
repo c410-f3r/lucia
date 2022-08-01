@@ -7,7 +7,7 @@ use arrayvec::ArrayVec;
 _create_json_rpc_endpoint! {
   Solana;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "getTokenAccountsByOwner" => GetTokenAccountsByOwnerReq<;const N: usize;S AsRef<str> = &'static str>(
     JsonRpcRequestParamsWithTwoMandAndOneOpt<
     S,
@@ -31,7 +31,8 @@ _create_json_rpc_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
 pub struct GetTokenAccountsByOwnerRes {
   pub account: Account,
   pub pubkey: SolanaAddressHashStr,

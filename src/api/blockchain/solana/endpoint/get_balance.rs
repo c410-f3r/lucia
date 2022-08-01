@@ -6,7 +6,7 @@ use crate::{
 _create_json_rpc_endpoint! {
   Solana;
 
-  #[serde(transparent)]
+  #[cfg_attr(feature = "serde", serde(transparent))]
   "getBalance" => GetBalanceReq<;;S AsRef<str> = &'static str>(
     OneMandAndOneOpt<S, Commitment>
   )

@@ -1,9 +1,10 @@
 use crate::api::blockchain::solana::{program::spl_token::AccountBalance, SolanaAddressHashStr};
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct Account {
   pub mint: SolanaAddressHashStr,
-  #[serde(alias = "uiTokenAmount")]
+  #[cfg_attr(feature = "serde", serde(alias = "uiTokenAmount"))]
   pub token_amount: AccountBalance,
 }

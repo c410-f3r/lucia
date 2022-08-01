@@ -1,42 +1,37 @@
 //! Utility functions and structures
 
+pub(crate) mod seq_visitor;
+
+mod buffer;
+mod debug_display;
+mod from_bytes;
 mod generic_time;
 mod one_mand_and_one_opt;
 mod query_writer;
 mod request_counter;
 mod request_limit;
 mod request_throttling;
-mod seq_visitor;
 mod url_parts;
 
-use arrayvec::ArrayString;
-pub use generic_time::GenericTime;
-pub use one_mand_and_one_opt::OneMandAndOneOpt;
-pub use request_counter::RequestCounter;
-pub use request_limit::RequestLimit;
-pub use request_throttling::RequestThrottling;
-pub use url_parts::UrlParts;
+pub use buffer::*;
+pub use debug_display::*;
+pub use from_bytes::*;
+pub use generic_time::*;
+pub use one_mand_and_one_opt::*;
+pub use request_counter::*;
+pub use request_limit::*;
+pub use request_throttling::*;
+pub use url_parts::*;
 
-#[allow(unused_imports)]
 pub(crate) use query_writer::QueryWriter;
-pub(crate) use seq_visitor::SeqVisitor;
 pub(crate) use url_parts::UrlPartsArrayString;
 
 use crate::{
-  protocol::{JsonRpcNotification, JsonRpcResponse},
+  dnsn::{Deserialize, Serialize},
   Request, Requests,
 };
-use core::{any::type_name, fmt::Debug, time::Duration};
-use serde::{de::IgnoredAny, Deserialize, Deserializer, Serialize};
-
-/// Shortcut of `serde_json::from_slice::<JsonRpcNotification<_>>(bytes))`.
-#[inline]
-pub fn decode_json_rpc_notification<R>(bytes: &[u8]) -> crate::Result<JsonRpcNotification<R>>
-where
-  R: for<'de> Deserialize<'de>,
-{
-  Ok(serde_json::from_slice(bytes)?)
-}
+use arrayvec::ArrayString;
+use core::{any::type_name, time::Duration};
 
 /// Useful when a request returns an optional field that needs to be unwrapped in a
 /// [core::result::Result] context.
@@ -48,40 +43,70 @@ pub fn into_rslt<T>(opt: Option<T>) -> crate::Result<T> {
 
 /// Shortcut for the internal machinery that decodes many request responses
 #[inline]
-pub(crate) fn decode_many<BUFFER, CP, REQS, RPD>(
+pub(crate) fn decode_many<BUFFER, CP, DRSR, REQS, REQP, RESP>(
   buffer: &mut BUFFER,
   bytes: &[u8],
+  drsr: &mut DRSR,
   reqs: &REQS,
+  resp: &RESP,
 ) -> crate::Result<()>
 where
-  REQS: Debug + Requests<BUFFER, CP, RPD> + Serialize,
+  REQS: Requests<BUFFER, CP, DRSR, REQP, RESP> + Serialize<DRSR>,
 {
-  log(reqs, bytes);
-  reqs.manage_responses(buffer, bytes)
+  log(drsr, reqs, bytes);
+  reqs.manage_responses(buffer, bytes, drsr, resp)
 }
 
 /// Shortcut for the internal machinery that decode one request response
 #[inline]
-pub(crate) fn decode_one<CP, REQ, RPD>(
+pub(crate) fn decode_one<CP, DRSR, REQ, REQP, RESP>(
   bytes: &[u8],
+  drsr: &mut DRSR,
   req: &REQ,
+  resp: &RESP,
 ) -> crate::Result<REQ::ProcessedResponse>
 where
-  REQ: Debug + Request<CP, RPD> + Serialize,
-  REQ::RawResponse: Debug + for<'de> Deserialize<'de>,
+  REQ: Request<CP, REQP, RESP> + Serialize<DRSR>,
+  REQ::RawResponse: for<'de> Deserialize<'de, DRSR>,
 {
-  log(req, bytes);
-  let res: REQ::RawResponse = serde_json::from_slice(bytes)?;
-  REQ::process_response(res)
+  log(drsr, req, bytes);
+  let raw: REQ::RawResponse = REQ::RawResponse::from_bytes(bytes, drsr)?;
+  REQ::process(raw, resp)
 }
 
+#[cfg(all(feature = "bs58", feature = "serde"))]
+#[inline]
+pub(crate) fn deserialize_array_from_base58<'de, D, const N: usize>(
+  deserializer: D,
+) -> Result<[u8; N], D::Error>
+where
+  D: serde::Deserializer<'de>,
+{
+  use serde::de::Error;
+  let s: &str = serde::Deserialize::deserialize(deserializer)?;
+  let mut array = [0; N];
+  bs58::decode(s)
+    .into(&mut array)
+    .ok()
+    .and_then(|len| {
+      if len != N {
+        return None;
+      }
+      Some(())
+    })
+    .ok_or_else(|| D::Error::custom("Could not deserialize base58 hash string"))?;
+  Ok(array)
+}
+
+#[cfg(feature = "serde")]
 #[inline]
 pub(crate) fn _deserialize_ignore_any<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
-  D: Deserializer<'de>,
+  D: serde::Deserializer<'de>,
   T: Default,
 {
-  IgnoredAny::deserialize(deserializer).map(|_| T::default())
+  use serde::Deserialize;
+  serde::de::IgnoredAny::deserialize(deserializer).map(|_| T::default())
 }
 
 #[cfg(feature = "ku-coin")]
@@ -115,39 +140,20 @@ pub(crate) fn _init_tracing() {
 }
 
 #[inline]
-pub(crate) fn log<T>(_req: &T, _res: &[u8])
+pub(crate) fn log<DRSR, T>(_ds: &mut DRSR, _req: &T, _res: &[u8])
 where
-  T: Serialize,
+  T: Serialize<DRSR>,
 {
   #[cfg(not(feature = "tracing"))]
   {}
   #[cfg(feature = "tracing")]
   {
     _debug!("Request: {:?}", {
-      use alloc::{borrow::ToOwned, vec::Vec};
-      use serde::de::Error as _;
-      let map = |el: &str| el.to_owned();
-      let map_err = serde_json::Error::custom;
-      let and_then = |el: Vec<u8>| core::str::from_utf8(&el).map(map).map_err(map_err);
-      serde_json::to_vec(&_req).and_then(and_then)
+      let mut vec = alloc::vec::Vec::new();
+      _req.to_bytes(&mut vec, _ds).and_then(|_| Ok(alloc::string::String::from_utf8(vec)?))
     });
     _debug!("Response: {:?}", core::str::from_utf8(_res));
   }
-}
-
-#[inline]
-pub(crate) fn manage_json_rpc_response<CP, REQ, RES, RPD>(
-  req: &REQ,
-  res: &JsonRpcResponse<RES>,
-) -> crate::Result<()>
-where
-  REQ: Debug + Request<CP, RPD>,
-{
-  let id = req.id();
-  if id != res.id {
-    return Err(crate::Error::JsonRpcSentIdDiffersFromReceviedId(id, res.id));
-  }
-  Ok(())
 }
 
 pub(crate) async fn _sleep(duration: Duration) -> crate::Result<()> {

@@ -1,20 +1,24 @@
-use crate::{api::calendar::nager_date::NagerDate, network::HttpMethod};
+use crate::{
+  api::calendar::nager_date::NagerDate,
+  data_format::{JsonRequest, JsonResponse},
+  network::http::Method,
+};
 use alloc::vec::Vec;
 use arrayvec::ArrayString;
 
 type Res = Vec<V3LongWeekendRes>;
 
-_create_json_endpoint! {
-  NagerDate;
+_create_endpoint! {
+  NagerDate => JsonResponse|JsonRequest|_json_request;
 
   V3LongWeekendReq<;;>
 
-  |raw: Res| -> Res { Ok(raw) }
+  |raw: Res, _resp| -> Res { Ok(raw) }
 
-  V3LongWeekendParams(year: i16, country_code: &'rpd str) -> crate::Result<()> {
+  V3LongWeekendParams(year: i16, country_code: &'reqp str) -> crate::Result<()> {
     |_hp| {
-      _hp._method = HttpMethod::_Get;
-      _hp._url_parts.set_path(format_args!("/api/v3/LongWeekend/{year}/{country_code}"))?;
+      _hp.tp._method = Method::Get;
+      _hp.tp._url_parts.set_path(format_args!("/api/v3/LongWeekend/{year}/{country_code}"))?;
     }
   }
 
@@ -25,8 +29,9 @@ _create_json_endpoint! {
   }
 }
 
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
 pub struct V3LongWeekendRes {
   pub start_date: ArrayString<10>,
   pub end_date: ArrayString<10>,
