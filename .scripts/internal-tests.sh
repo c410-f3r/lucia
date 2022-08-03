@@ -12,28 +12,17 @@ $rt rustfmt
 $rt clippy -Aclippy::pub_use
 
 $rt check-generic .
-
 cargo doc --all-features
 cargo test --all-features --doc
 
-FEATURES=(
-  # API
-  age-of-empires-ii
-  colour-lovers
-  ethereum
-  json-placeholder
-  ku-coin
-  m-media-covid-19
-  nager-date
-  solana
-
+LUCIA=(
   # Deserialization/Serialization
   miniserde
   serde
   serde_json
   serde-xml-rs
 
-# ETC
+  # Etc
   async-std
   std
   tokio
@@ -45,7 +34,7 @@ FEATURES=(
   tokio-tungstenite
 )
 
-for feature in "${FEATURES[@]}"
+for feature in "${LUCIA[@]}"
 do
-	$rt check-with-features . $feature
+	$rt check-with-features lucia $feature
 done
