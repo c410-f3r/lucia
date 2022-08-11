@@ -1534,6 +1534,28 @@ dependencies = [
  "arrayvec 0.7.2",
  "async-std",
  "async-trait",
+ "cl-aux",
+ "futures",
+ "miniserde",
+ "reqwest",
+ "serde",
+ "serde-xml-rs",
+ "serde_json",
+ "surf",
+ "tokio",
+ "tokio-tungstenite",
+ "tracing",
+ "tracing-subscriber",
+ "tungstenite",
+]
+
+[[package]]
+name = "lucia-apis"
+version = "0.3.0"
+dependencies = [
+ "arrayvec 0.7.2",
+ "async-std",
+ "async-trait",
  "base64 0.13.0",
  "bincode",
  "bs58",
@@ -1542,23 +1564,20 @@ dependencies = [
  "ed25519-dalek",
  "ethabi",
  "ethereum-types",
- "futures",
  "hex",
  "hmac 0.12.1",
- "miniserde",
+ "lucia",
+ "lucia-apis",
  "primitive-types",
  "reqwest",
  "serde",
- "serde-xml-rs",
  "serde_json",
  "sha2 0.10.2",
  "solana-program",
  "surf",
  "tokio",
  "tokio-tungstenite",
- "tracing",
  "tracing-subscriber",
- "tungstenite",
 ]
 
 [[package]]
