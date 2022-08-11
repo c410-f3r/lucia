@@ -1,0 +1,76 @@
+[dependencies]
+arrayvec = { default-features = false, version = "0.7" }
+async-trait = { default-features = false, version = "0.1" }
+cl-aux = { default-features = false, features = ["alloc", "arrayvec"], version = "1.0" }
+lucia = { default-features = false, path = "../lucia" }
+
+# Ethereum
+
+ethabi = { default-features = false, optional = true, version = "17.0" }
+ethereum-types = { default-features = false, optional = true, version = "0.13" }
+primitive-types = { default-features = false, optional = true, version = "0.11" }
+
+# KuCoin
+
+hmac = { default-features = false, optional = true, version = "0.12" }
+sha2 = { default-features = false, optional = true, version = "0.10" }
+
+# Solana
+
+bincode = { default-features = false, optional = true, version = "1.0" }
+ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
+solana-program = { default-features = false, optional = true, version = "1.0" }
+
+# Etc
+
+base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
+bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
+crypto-common = { default-features = false, optional = true, version = "0.1" }
+hex = { default-features = false, optional = true, version = "0.4" }
+serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
+
+[dev-dependencies]
+async-std = { default-features = false, features = ["attributes", "default"], version = "1.0" }
+lucia = { default-features = false, features = ["serde_json", "surf", "reqwest"], path = "../lucia" }
+lucia-apis = { features = ["serde"], path = "." }
+reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
+serde = { default-features = false, features = ["alloc"], version = "1.0" }
+serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
+surf = { default-features = false, features = ["h1-client-rustls"], version = "2.0" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], version = "0.17" }
+tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
+
+[features]
+
+# API
+
+age-of-empires-ii = []
+colour-lovers = []
+ethereum = ["dep:ethabi", "dep:ethereum-types", "dep:hex", "dep:primitive-types"]
+json-placeholder = []
+ku-coin = ["base64", "dep:crypto-common", "dep:hmac", "dep:sha2"]
+m-media-covid-19 = []
+nager-date = []
+solana = ["base64", "dep:bincode", "bs58", "dep:ed25519-dalek"]
+
+# Etc
+default = []
+_integration-tests = []
+serde = ["arrayvec/serde", "cl-aux/serde", "ethabi?/full-serde", "dep:serde"]
+std = []
+
+[package]
+categories = ["asynchronous", "data-structures", "encoding", "network-programming", "no-std"]
+description = "A set of API collections based on the lucia framework"
+edition = "2021"
+keywords = ["api", "client", "io", "network", "serialization"]
+license = "MIT"
+name = "lucia-apis"
+readme = "README.md"
+repository = "https://github.com/c410-f3r/lucia"
+rust-version = "1.63"
+version = "0.3.0"
+
+[package.metadata.docs.rs]
+all-features = true

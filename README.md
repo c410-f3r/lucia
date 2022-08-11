@@ -4,13 +4,17 @@
 [![crates.io](https://img.shields.io/crates/v/lucia.svg)](https://crates.io/crates/lucia)
 [![Documentation](https://docs.rs/lucia/badge.svg)](https://docs.rs/lucia)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
-[![Rustc](https://img.shields.io/badge/rustc-1.62-lightgray")](https://blog.rust-lang.org/2022/06/30/Rust-1.62.0.html)
+[![Rustc](https://img.shields.io/badge/rustc-1.63-lightgray")](https://blog.rust-lang.org/2022/08/11/Rust-1.63.0.html)
 
 A flexible client API framework as well as a set of API collections written in Rust.
 
 ```rust,no_run
 async fn example() -> lucia::Result<()> {
-  use lucia::{network::Transport, CommonParams, Pair, RequestManager};
+  use lucia::{
+    misc::{CommonParams, Pair},
+    network::Transport,
+    req_res::RequestManager
+  };
 
   let (mut rm, mut trans) = Pair::new(
     RequestManager::new(
