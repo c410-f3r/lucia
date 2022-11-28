@@ -14,7 +14,7 @@ serde-xml-rs = { default-features = false, optional = true, version = "0.5" }
 
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
-lucia-macros =  { default-features = false, optional = true, path = "../lucia-macros" }
+lucia-macros =  { default-features = false, optional = true, path = "../lucia-macros", version = "0.1" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tracing = { default-features = false, optional = true, version = "0.1" }
 
