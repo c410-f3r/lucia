@@ -69,7 +69,7 @@ name = "lucia"
 readme = "README.md"
 repository = "https://github.com/c410-f3r/lucia"
 rust-version = "1.65"
-version = "0.3.0"
+version = "0.4.0"
 
 [package.metadata.docs.rs]
 all-features = true
