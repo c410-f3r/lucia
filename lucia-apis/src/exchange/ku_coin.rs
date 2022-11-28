@@ -4,113 +4,74 @@
 //!
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
-//! use lucia::{
-//!   misc::{CommonParams, Pair},
-//!   network::{http::ReqParams, Transport},
-//! };
-//! use lucia_apis::{
-//!   exchange::ku_coin::V1CurrenciesParams,
-//!   misc::RequestManagerWrapper,
-//! };
+//! use lucia::{dnsn::SerdeJson, network::HttpParams};
+//! use lucia_apis::{exchange::ku_coin::KuCoin, misc::PackagesAux};
 //!
-//! let (mut rm, mut trans) = Pair::new(
-//!   RequestManagerWrapper::new(
-//!     <_>::default(),
-//!     CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()),
-//!     ()
-//!   ),
-//!   ()
-//! ).into_parts();
-//! let req = rm.v1_currencies();
-//! let _res = trans.send_and_retrieve(&mut rm, &req, V1CurrenciesParams::new()).await?;
+//! let mut pkgs_aux = PackagesAux::from_minimum(KuCoin, SerdeJson, HttpParams::from_url("URL")?);
+//! let _ = pkgs_aux.v1_currencies().build();
 //! # Ok(()) }
 //! ```
 
-mod endpoint;
 #[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
+mod pkg;
 
-pub use endpoint::*;
+use crate::misc::PackagesAux;
+use arrayvec::ArrayString;
+use lucia::{misc::GenericTime, network::HttpParams};
+pub use pkg::*;
 
-use crate::misc::_MaxUrl;
-use arrayvec::{ArrayString, ArrayVec};
-use lucia::misc::{GenericTime, UrlPartsString};
+pub(crate) type KuCoinHttpPackagesAux<DRSR> = PackagesAux<KuCoin, DRSR, HttpParams>;
 
-#[derive(Debug, Default)]
+#[derive(Debug)]
+#[doc = _generic_dummy_api_doc!()]
 pub struct KuCoin;
 
 #[cfg(feature = "tokio-tungstenite")]
 impl KuCoin {
+  /// Returns a ready-to-use pair containing "tokio_tungstenite" as the transport for WebSocket
+  /// connections.
+  ///
+  /// If private, then a token should be provided. Otherwise the connection will be assumed as
+  /// public.
   pub async fn tokio_tungstenite<DRSR>(
-    bullet_server: &V1BulletServerRes,
-    der_ser: DRSR,
-    token: &str,
+    bullet_server: &V1BulletInstanceServersResData,
+    drsr: DRSR,
+    token_opt: Option<&str>,
   ) -> crate::Result<
-    lucia::Pair<
-      lucia::RequestManager<Self, lucia::CommonParams<lucia::network::ws::ReqParams, ()>, DRSR>,
-      lucia::network::TokioTungstenite,
+    lucia::misc::Pair<
+      PackagesAux<Self, DRSR, lucia::network::WsParams>,
+      lucia::network::transport::TokioTungstenite,
     >,
-  >
-  where
-    DRSR: Send,
-  {
+  > {
     use core::fmt::Write;
-    use lucia::{CommonParams, Pair};
+    use lucia::misc::Pair;
     use tokio_tungstenite::connect_async;
 
+    let endpoint = &*bullet_server.endpoint;
+    let id = _timestamp()?;
     let mut url = String::new();
-    url.write_fmt(format_args!(
-      "{endpoint}?token={token}&connectId={connect_id}&acceptUserMessage=true",
-      endpoint = &*bullet_server.endpoint,
-      connect_id = _timestamp()?
-    ))?;
-    let trans = connect_async(url.as_str()).await?.0;
+    let rslt = if let Some(token) = token_opt {
+      url.write_fmt(format_args!("{endpoint}?token={token}&connectId={id}&acceptUserMessage=true"))
+    } else {
+      url.write_fmt(format_args!("{endpoint}?connectId={id}&acceptUserMessage=true"))
+    };
+    rslt.map_err(lucia::Error::from)?;
     Ok(Pair::new(
-      lucia::RequestManager::new(
-        Self,
-        CommonParams::new(
-          lucia::network::ws::ReqParams { _url_parts: lucia::misc::UrlParts::from_url(url)? },
-          (),
-        ),
-        der_ser,
-      ),
-      trans,
+      PackagesAux::from_minimum(Self, drsr, lucia::network::WsParams::default()),
+      connect_async(url.as_str()).await.map_err(lucia::Error::from)?.0,
     ))
   }
 }
 
-#[derive(Debug)]
-pub struct KuCoinUrls {
-  pub v1_bullet_public: UrlPartsString,
-  pub v1_currencies: UrlPartsString,
-  pub v1_symbols: UrlPartsString,
-  pub v2_currencies: UrlPartsString,
-}
-
+/// Almost all responses are wrapped in "code" and "data".
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[derive(Debug)]
 pub struct GenericDataResponse<T> {
+  /// System code
   pub code: ArrayString<8>,
+  /// Actual data
   pub data: T,
-}
-
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
-pub struct V1BulletServerRes {
-  pub encrypt: bool,
-  pub endpoint: _MaxUrl,
-  pub ping_interval: u64,
-  pub ping_timeout: u64,
-  pub protocol: ArrayString<12>,
-}
-
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
-pub struct V1BulletRes {
-  pub instance_servers: ArrayVec<V1BulletServerRes, 4>,
-  pub token: ArrayString<200>,
 }
 
 pub(crate) fn _timestamp() -> crate::Result<i64> {

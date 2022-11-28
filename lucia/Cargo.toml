@@ -1,20 +1,22 @@
 [dependencies]
-arrayvec = { default-features = false, version = "0.7" }
 async-trait = { default-features = false, version = "0.1" }
-cl-aux = { default-features = false, features = ["alloc", "arrayvec"], version = "1.0" }
+cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 
 # Deserializer/Serializer
 
 miniserde = { default-features = false, optional = true, version = "0.1" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
+serde_yaml = { default-features = false, optional = true, version = "0.9" }
 serde-xml-rs = { default-features = false, optional = true, version = "0.5" }
 
 # Etc
 
+arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
+lucia-macros =  { default-features = false, optional = true, path = "../lucia-macros" }
 tokio = { default-features = false, optional = true, version = "1.0" }
-tracing = { default-features = false, features = ["attributes"], optional = true, version = "0.1" }
+tracing = { default-features = false, optional = true, version = "0.1" }
 
 # Network
 
@@ -35,26 +37,26 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 # Deserializer/Serializer
 
 miniserde = ["dep:miniserde", "std"]
-serde = ["arrayvec/serde", "cl-aux/serde", "dep:serde"]
+serde = ["arrayvec?/serde", "cl-aux/serde", "dep:serde"]
 serde_json = ["serde", "dep:serde_json", "std"]
+serde_yaml = ["serde", "dep:serde_yaml", "std"]
 serde-xml-rs = ["serde", "dep:serde-xml-rs", "std"]
 
 # Etc
 
+arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
 async-std = ["dep:async-std", "async-std?/default"]
 default = []
-_integration-tests = []
-std = ["arrayvec/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
-_surf-hack = ["surf?/h1-client-no-tls"] # What a shame
+macros = ["dep:lucia-macros"]
+std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
+_surf-hack = ["surf?/h1-client-no-tls"]
 tokio = ["std", "dep:tokio", "tokio?/time"]
 tracing = ["dep:tracing"]
 
 # Network
 
 reqwest = ["dep:reqwest"]
-
-surf = ["dep:surf", "surf?/default-client"]
-
+surf = ["dep:surf"]
 tokio-tungstenite = ["dep:futures", "dep:tokio", "tokio?/net", "dep:tokio-tungstenite", "dep:tungstenite"]
 
 [package]
@@ -66,7 +68,7 @@ license = "MIT"
 name = "lucia"
 readme = "README.md"
 repository = "https://github.com/c410-f3r/lucia"
-rust-version = "1.63"
+rust-version = "1.65"
 version = "0.3.0"
 
 [package.metadata.docs.rs]

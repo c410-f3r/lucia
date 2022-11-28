@@ -1,60 +1,51 @@
 use crate::{
-  dnsn::Serialize,
-  network::Transport,
-  req_res::{RequestManager, RequestParamsModifier},
+  misc::log_req,
+  network::{transport::Transport, TransportGroup},
+  package::{Package, PackagesAux},
 };
-use alloc::{boxed::Box, vec::Vec};
+use alloc::boxed::Box;
 
 /// Does absolutely nothing. Good for demonstration purposes.
 ///
 /// ```rust,no_run
 /// # async fn fun() -> lucia::Result<()> {
-/// use lucia::{
-///   misc::{CommonParams, Pair},
-///   network::Transport,
-///   req_res::RequestManager
-/// };
-/// let (mut rm, mut trans) = Pair::new(
-///   RequestManager::new((), CommonParams::default(), ()), ()
-/// ).into_parts();
-/// let req = ();
-/// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
+/// use lucia::{network::transport::Transport, package::PackagesAux};
+/// let _ =
+///   ().send_retrieve_and_decode_contained(&mut (), &mut PackagesAux::from_minimum((), (), ()))
+///     .await?;
 /// # Ok(()) }
 /// ```
 #[async_trait::async_trait]
-impl<A, CP, DRSR> Transport<A, CP, DRSR> for ()
+impl<DRSR> Transport<DRSR> for ()
 where
-  A: Send,
-  CP: Send,
-  DRSR: Send,
+  DRSR: Send + Sync,
 {
-  type ResponseParams = ();
+  const GROUP: TransportGroup = TransportGroup::Stub;
+  type Params = ();
 
   #[inline]
-  async fn send<REQ, REQP>(
+  async fn send<P>(
     &mut self,
-    _: &mut RequestManager<A, CP, DRSR>,
-    _: &REQ,
-    _: REQP,
-  ) -> Result<Self::ResponseParams, REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<(), P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, ()> + Send + Sync,
   {
+    log_req(pkg, pkgs_aux, self);
     Ok(())
   }
 
   #[inline]
-  async fn send_and_retrieve<REQ, REQP>(
+  async fn send_and_retrieve<P>(
     &mut self,
-    _: &mut RequestManager<A, CP, DRSR>,
-    _: &REQ,
-    _: REQP,
-  ) -> Result<(Self::ResponseParams, Vec<u8>), REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<usize, P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, ()> + Send + Sync,
   {
-    Ok(((), Vec::new()))
+    log_req(pkg, pkgs_aux, self);
+    Ok(0)
   }
 }

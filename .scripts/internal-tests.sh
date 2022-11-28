@@ -9,7 +9,7 @@ export RUST_BACKTRACE=1
 export RUSTFLAGS="$($rt rust-flags '' -Dunused_crate_dependencies)"
 
 $rt rustfmt
-$rt clippy -Aclippy::pub_use
+$rt clippy -Aclippy::pub_use,-Aclippy::shadow_reuse,-Aclippy::wildcard_in_or_patterns
 
 $rt check-generic .
 cargo doc --all-features
@@ -20,6 +20,7 @@ LUCIA=(
   miniserde
   serde
   serde_json
+  serde_yaml
   serde-xml-rs
 
   # Etc
@@ -37,8 +38,6 @@ LUCIA=(
 LUCIA_APIS=(
   # API
   age-of-empires-ii
-  colour-lovers
-  ethereum
   json-placeholder
   ku-coin
   m-media-covid-19

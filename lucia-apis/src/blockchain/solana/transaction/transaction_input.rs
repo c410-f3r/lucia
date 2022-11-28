@@ -1,9 +1,7 @@
 use crate::blockchain::solana::{
-  SolanaAddressHash, SolanaBlockhash, SolanaSignatureHash, MAX_BINARY_DATA_LEN,
-  MAX_TRANSACTION_ACCOUNTS_NUM,
+  SolanaAddressHash, SolanaBlockhash, SolanaSignatureHash, MAX_TRANSACTION_ACCOUNTS_NUM,
 };
 use alloc::{vec, vec::Vec};
-use arrayvec::ArrayVec;
 
 /// Compiled [InstructionInput]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
@@ -12,9 +10,9 @@ use arrayvec::ArrayVec;
 pub struct CompiledInstructionInput {
   pub program_id_index: u8,
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
-  pub accounts: ArrayVec<u8, MAX_TRANSACTION_ACCOUNTS_NUM>,
+  pub accounts: Vec<u8>,
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
-  pub data: ArrayVec<u8, MAX_BINARY_DATA_LEN>,
+  pub data: Vec<u8>,
 }
 
 /// Used when performing requests
@@ -22,8 +20,8 @@ pub struct CompiledInstructionInput {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct InstructionInput {
-  pub accounts: ArrayVec<InstructionAccountInput, MAX_TRANSACTION_ACCOUNTS_NUM>,
-  pub data: ArrayVec<u8, MAX_BINARY_DATA_LEN>,
+  pub accounts: Vec<InstructionAccountInput>,
+  pub data: Vec<u8>,
   pub program_id: SolanaAddressHash,
 }
 
@@ -34,20 +32,22 @@ impl TryFrom<solana_program::instruction::Instruction> for InstructionInput {
   #[inline]
   fn try_from(from: solana_program::instruction::Instruction) -> Result<Self, Self::Error> {
     Ok(Self {
-      accounts: {
-        let mut vec = ArrayVec::new();
-        for elem in from.accounts {
-          vec.try_push(elem.into())?;
-        }
-        vec
-      },
-      data: {
-        let mut vec = ArrayVec::new();
-        vec.try_extend_from_slice(&from.data)?;
-        vec
-      },
+      accounts: from.accounts.into_iter().map(|elem| elem.into()).collect(),
+      data: from.data,
       program_id: from.program_id.to_bytes(),
     })
+  }
+}
+
+#[cfg(feature = "solana-program")]
+impl From<InstructionInput> for solana_program::instruction::Instruction {
+  #[inline]
+  fn from(from: InstructionInput) -> Self {
+    Self {
+      accounts: from.accounts.into_iter().map(|elem| elem.into()).collect(),
+      data: from.data.into_iter().map(|elem| elem.into()).collect(),
+      program_id: from.program_id.into(),
+    }
   }
 }
 
@@ -60,15 +60,41 @@ pub struct InstructionAccountInput {
   pub is_writable: bool,
 }
 
+impl InstructionAccountInput {
+  pub fn none(pubkey: SolanaAddressHash) -> Self {
+    Self { pubkey, is_signer: false, is_writable: false }
+  }
+
+  pub fn sign(pubkey: SolanaAddressHash) -> Self {
+    Self { pubkey, is_signer: true, is_writable: false }
+  }
+
+  pub fn sign_and_write(pubkey: SolanaAddressHash) -> Self {
+    Self { pubkey, is_signer: true, is_writable: true }
+  }
+
+  pub fn write(pubkey: SolanaAddressHash) -> Self {
+    Self { pubkey, is_signer: false, is_writable: true }
+  }
+}
+
 #[cfg(feature = "solana-program")]
 impl From<solana_program::instruction::AccountMeta> for InstructionAccountInput {
   #[inline]
   fn from(from: solana_program::instruction::AccountMeta) -> Self {
     Self {
-      pubkey: from.pubkey.to_bytes(),
       is_signer: from.is_signer,
       is_writable: from.is_writable,
+      pubkey: from.pubkey.to_bytes(),
     }
+  }
+}
+
+#[cfg(feature = "solana-program")]
+impl From<InstructionAccountInput> for solana_program::instruction::AccountMeta {
+  #[inline]
+  fn from(from: InstructionAccountInput) -> Self {
+    Self { is_signer: from.is_signer, is_writable: from.is_writable, pubkey: from.pubkey.into() }
   }
 }
 
@@ -230,16 +256,16 @@ pub struct TransactionInput {
 }
 
 impl TransactionInput {
-  #[cfg(feature = "std")]
+  #[cfg(feature = "ed25519-dalek")]
   #[inline]
-  pub fn new<'keypair, B>(
-    mut buffer: &mut B,
+  pub fn new<'keypair, BB>(
+    mut buffer: &mut BB,
     blockhash: SolanaBlockhash,
     message: MessageInput,
     keypairs: impl Clone + IntoIterator<Item = &'keypair ed25519_dalek::Keypair>,
   ) -> crate::Result<Self>
   where
-    B: AsRef<[u8]> + std::io::Write,
+    BB: lucia::misc::ByteBuffer,
   {
     use ed25519_dalek::Signer;
     let mut this = Self { signatures: <_>::default(), message };
@@ -255,6 +281,7 @@ impl TransactionInput {
     let signing_keypair_positions = keypairs.clone().into_iter().map(|keypair| {
       signed_keys.iter().position(|signed_key| keypair.public.as_bytes() == signed_key)
     });
+    buffer.clear();
     bincode::serialize_into(&mut buffer, &this.message)?;
     for (opt, keypair) in signing_keypair_positions.zip(keypairs) {
       let signature = keypair.try_sign(buffer.as_ref())?.to_bytes();
@@ -269,6 +296,7 @@ impl TransactionInput {
       };
       *signature_mut = signature.into();
     }
+    buffer.clear();
     this.check_signatures()?;
     Ok(this)
   }

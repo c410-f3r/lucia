@@ -18,7 +18,6 @@ then
     --ledger /tmp/lucia-solana \
     --mint $FROM_NORMAL_ACCOUNT \
     --reset \
-    --ticks-per-slot 10 \
-    --url https://api.testnet.solana.com \
-    --warp-slot 137231931
+    --ticks-per-slot 8 \
+    --url https://api.testnet.solana.com
 fi

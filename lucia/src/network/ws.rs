@@ -1,30 +1,30 @@
-//! Any possible WebSocket parameter. Intended to be only used by WebSocket endpoints.
+use crate::network::transport::TransportParams;
 
-use crate::misc::{CommonParams, UrlPartsString};
-use core::marker::PhantomData;
-
-/// All possible WebSocket parameters that an API can use.
 #[derive(Debug)]
-pub struct ReqParams {
-  pub(crate) _url_parts: UrlPartsString,
+#[doc = generic_trans_params_doc!()]
+pub struct WsParams(WsReqParams, WsResParams);
+
+impl TransportParams for WsParams {
+  type ExternalRequestParams = WsReqParams;
+  type ExternalResponseParams = WsResParams;
+
+  #[inline]
+  fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
+    (self.0, self.1)
+  }
 }
 
-impl ReqParams {
-  /// For example, from `ws://localhost`.
+impl Default for WsParams {
   #[inline]
-  pub fn from_origin(origin: &str) -> crate::Result<Self> {
-    Ok(Self { _url_parts: UrlPartsString::from_origin(origin)? })
+  fn default() -> Self {
+    Self(WsReqParams, WsResParams)
   }
 }
 
 #[derive(Debug)]
-pub(crate) struct ReqParamsMut<'generic> {
-  phantom: PhantomData<&'generic ()>,
-}
+#[doc = generic_trans_req_params_doc!("WebSocket")]
+pub struct WsReqParams;
 
-impl<'rm> From<&'rm mut CommonParams<ReqParams, ()>> for ReqParamsMut<'rm> {
-  #[inline]
-  fn from(_: &'rm mut CommonParams<ReqParams, ()>) -> ReqParamsMut<'rm> {
-    Self { phantom: PhantomData }
-  }
-}
+#[derive(Debug)]
+#[doc = generic_trans_res_params_doc!("WebSocket")]
+pub struct WsResParams;

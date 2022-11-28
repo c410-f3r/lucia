@@ -5,8 +5,8 @@ use crate::blockchain::solana::program::spl_token::{Account, MintAccount};
   allow(clippy::large_enum_variant, variant_size_differences)
 ]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
 #[cfg_attr(feature = "serde", serde(content = "info", rename_all = "camelCase", tag = "type"))]
+#[derive(Debug)]
 pub enum GenericAccount {
   Account(Account),
   Mint(MintAccount),

@@ -4,40 +4,34 @@
 //!
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
-//! use lucia::{
-//!   misc::{CommonParams, Pair},
-//!   network::{http::ReqParams, Transport},
-//! };
-//! use lucia_apis::{
-//!   gaming::age_of_empires_ii::UnitsParams,
-//!   misc::RequestManagerWrapper,
-//! };
-//! let (mut rm, mut trans) = Pair::new(
-//!   RequestManagerWrapper::new(
-//!     <_>::default(),
-//!     CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()),
-//!     ()
-//!   ),
-//!   ()
-//! ).into_parts();
-//! let req = rm.units();
-//! let _res = trans.send_and_retrieve(&mut rm, &req, UnitsParams::new()).await?;
+//! use lucia::{dnsn::SerdeJson, network::HttpParams};
+//! use lucia_apis::{gaming::age_of_empires_ii::AgeOfEmpiresII, misc::PackagesAux};
+//!
+//! let mut pkgs_aux =
+//!   PackagesAux::from_minimum(AgeOfEmpiresII, SerdeJson, HttpParams::from_url("URL")?);
+//! let _ = pkgs_aux.units().build();
 //! # Ok(()) }
 //! ```
 
-mod endpoint;
 #[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
+mod pkg;
 
-pub use endpoint::*;
+use crate::misc::PackagesAux;
+use lucia::network::HttpParams;
+pub use pkg::*;
 
-#[derive(Debug, Default)]
+pub(crate) type AgeOfEmpiresIIHttpPackagesAux<DRSR> = PackagesAux<AgeOfEmpiresII, DRSR, HttpParams>;
+
+#[derive(Debug)]
+#[doc = _generic_dummy_api_doc!()]
 pub struct AgeOfEmpiresII;
 
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "PascalCase"))]
 #[derive(Debug)]
-pub struct CostRes {
+#[lucia_macros::pkg_doc]
+pub struct CostResData {
   pub wood: Option<u16>,
   pub food: Option<u16>,
   pub stone: Option<u16>,

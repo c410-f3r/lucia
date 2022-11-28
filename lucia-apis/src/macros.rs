@@ -22,10 +22,10 @@ macro_rules! try_with_solana_blockhashes {
           for _ in 0..n {
             let $local_blockhash = {
               let pair_mut = &mut $pair;
-              let (rm, trans) = pair_mut.parts_mut();
-              let req = rm.get_latest_blockhash(None);
-              let res = trans.send_retrieve_and_decode_one(rm, &req, ()).await?;
-              res.result.value.blockhash
+              let (pkgs_aux, trans) = pair_mut.parts_mut();
+              let pkg = &mut pkgs_aux.get_latest_blockhash().data(None, None).build();
+              let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await?;
+              res.result?.value.blockhash
             };
             if let Ok(elem) = $procedure {
               opt = Some((elem, Some($local_blockhash)));
@@ -37,10 +37,10 @@ macro_rules! try_with_solana_blockhashes {
           } else {
             let $local_blockhash = {
               let pair_mut = &mut $pair;
-              let (rm, trans) = pair_mut.parts_mut();
-              let req = rm.get_latest_blockhash(None);
-              let res = trans.send_retrieve_and_decode_one(rm, &req, ()).await?;
-              res.result.value.blockhash
+              let (pkgs_aux, trans) = pair_mut.parts_mut();
+              let pkg = &mut pkgs_aux.get_latest_blockhash().data(None, None).build();
+              let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await?;
+              res.result?.value.blockhash
             };
             let last = $procedure?;
             Ok((last, Some($local_blockhash)))
@@ -87,209 +87,50 @@ macro_rules! _create_blockchain_constants {
   };
 }
 
-macro_rules! _create_endpoint {
-  (
-    // API
-    $api:ty$([$api_ty:ident])? => $der:ident|$ser:ident|$ser_method:ident;
-
-    // Request
-    $(#[$mac:meta])*
-    $struct_name:ident<
-      $( $build_lt:lifetime ),*;
-      $( const $build_const:ident: $build_const_ty:ty ),*;
-      $( $build_ty:ident $(<$build_path_lt:lifetime>)? $($build_path:path)* $(= $build_default:ty)? ),*
-    >$(( $struct_elem:ty ))?
-
-    // Response
-    |$raw_response_ident:ident: $raw_response:ty, $tm_ident:ident| -> $processed_response:ty $raw_response_block:block
-
-    // Parameters
-    $params_struct:ident(
-      $($params_arg:ident: $params_arg_ty:ty),* $(,)?
-    ) -> crate::Result<()> {
-      |$params_cp:ident| $params_block:block
-    }
-
-    // Calling method
-    $( #[$build_doc:meta] )*
-    $build_fn:ident(
-      $($build_arg:ident: $build_arg_ty:ty),* $(,)?
-    ) $(-> crate::Result$req_open:tt)? $(: $req_close:tt)? {
-      || $build_block:block
-    }
-
-    // Optional calling method mapper
-    $($build_rslt:expr)?
-  ) => {
-    #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-    #[derive(Debug)]
-    #[doc = concat!(
-      "It is preferable to call [crate::misc::RequestManagerWrapper::",
-      stringify!($build_fn),
-      "] instead of building this structure directly."
-    )]
-    $(#[$mac])*
-    pub struct $struct_name<
-      $( $build_lt, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $(= $build_default)?, )*
-    >$( (
-      /// Payload data
-      pub $struct_elem
-    ) )?;
-
-    impl<
-      $( $build_lt )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* , )*
-    > lucia::misc::FromErrorTy for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    > {
-      type Error = crate::Error;
-    }
-
-    impl<
-      $( $build_lt, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)*, )*
-      CP,
-      DRSR,
-      REQP,
-      RESP,
-    > lucia::req_res::Request<CP, DRSR, REQP, RESP> for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    >
-    where
-      Self: lucia::req_res::RequestParamsModifier<CP, REQP>,
-      $der<$raw_response>: lucia::dnsn::Deserialize<DRSR>,
-      $ser<Self>: lucia::dnsn::Serialize<DRSR>,
-      for<'any> &'any RESP: Into<&'any lucia::network::http::Response>
-    {
-      type Data = $ser<Self>;
-      type ProcessedResponse = $processed_response;
-      type RawResponse = $der<$raw_response>;
-
-      #[inline]
-      fn data(&self) -> &Self::Data {
-        todo!()
-      }
-
-      #[inline]
-      fn process(raw: Self::RawResponse, resp: &RESP) -> Result<Self::ProcessedResponse, Self::Error> {
-        let fun = |$raw_response_ident: $raw_response, $tm_ident: &RESP| $raw_response_block;
-        fun(raw.data, resp)
-      }
-    }
-
-    /// If any, wraps the content provided in [Self::new].
-    #[derive(Debug)]
-    pub struct $params_struct<'reqp> {
-      $($params_arg: $params_arg_ty,)*
-      phantom: core::marker::PhantomData<&'reqp ()>
-    }
-
-    impl<'reqp> $params_struct<'reqp> {
-      /// Please see the official API's documentation to get more information about the input data
-      /// of this endpoint.
-      #[inline]
-      pub fn new(
-        $($params_arg: $params_arg_ty,)*
-      ) -> Self {
-        Self {
-          $($params_arg,)*
-          phantom: core::marker::PhantomData
-        }
-      }
-    }
-
-    impl<
-      'reqp,
-      $( $build_lt, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)*, )*
-      UP
-    > lucia::req_res::RequestParamsModifier<
-      lucia::misc::CommonParams<lucia::network::http::ReqParams, UP>,
-      $params_struct<'reqp>
-    > for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    > {
-      #[inline]
-      fn modify_all_params(
-        cp: &mut lucia::misc::CommonParams<lucia::network::http::ReqParams, UP>,
-        $params_struct { $($params_arg,)* .. }: $params_struct<'reqp>
-      ) -> Result<(), Self::Error> {
-        let $params_cp = cp;
-        $params_block;
-        Ok(())
-      }
-    }
-
-    impl<CP, DRSR, $($api_ty)?> crate::misc::RequestManagerWrapper<$api, CP, DRSR> {
-      /// Please see the official API's documentation to get more information about this endpoint.
-      #[inline]
-      pub fn $build_fn<
-        $( $build_lt, )*
-        $( const $build_const: $build_const_ty, )*
-        $( $build_ty: $(for<$build_path_lt>)? $($build_path +)*, )*
-      >(
-        &mut self,
-        $($build_arg: $build_arg_ty,)*
-      ) ->
-        $(crate::Result$req_open)?
-          $ser<$struct_name<
-            $( $build_lt, )*
-            $( $build_const, )*
-            $( $build_ty, )*
-          >>
-        $($req_close)?
-      {
-        let req = $build_block;
-        let rslt = self.$ser_method(req);
-        $( let rslt = $build_rslt(rslt); )?
-        rslt
-      }
-    }
-  };
-}
-
 macro_rules! _create_generic_test {
   ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr $(, $(#[$attrs:meta])+)?) => {
     $($(#[$attrs])+)?
     #[$executor::test]
     async fn $test() {
-      fn parts_cb_infer<'pair, A, CP, DRSR, O, T>(
-        rm: &'pair mut crate::misc::RequestManagerWrapper<A, CP, DRSR>,
+      fn parts_cb_infer<'pair, API, DRSR, O, T>(
+        pkgs_aux: &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
         trans: &'pair mut T,
-        cb: impl FnOnce(&'pair mut crate::misc::RequestManagerWrapper<A, CP, DRSR>, &'pair mut T) -> O,
-      ) -> O {
-        cb(rm, trans)
+        cb: impl FnOnce(
+          &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
+          &'pair mut T
+        ) -> O,
+      ) -> O
+      where
+        T: Transport<DRSR>
+      {
+        cb(pkgs_aux, trans)
       }
-      fn rslt_cb_infer<'pair, A, CP, DRSR, O, R, T>(
-        rm: &'pair mut crate::misc::RequestManagerWrapper<A, CP, DRSR>,
+      fn rslt_cb_infer<'pair, API, DRSR, O, R, T>(
+        pkgs_aux: &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
         trans: &'pair mut T,
         rslt: R,
-        cb: impl FnOnce(&'pair mut crate::misc::RequestManagerWrapper<A, CP, DRSR>, &'pair mut T, R) -> O,
-      ) -> O {
-        cb(rm, trans, rslt)
+        cb: impl FnOnce(
+          &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
+          &'pair mut T,
+          R
+        ) -> O,
+      ) -> O
+      where
+      T: Transport<DRSR>
+      {
+        cb(pkgs_aux, trans, rslt)
       }
       crate::misc::_init_tracing();
       let mut pair = $pair;
-      let (rm, trans) = pair.parts_mut();
-      let rslt = parts_cb_infer(rm, trans, $parts_cb).await;
-      rslt_cb_infer(rm, trans, rslt, $rslt_cb).await;
+      let (pkg, pkgs_aux) = pair.parts_mut();
+      let rslt = parts_cb_infer(pkg, pkgs_aux, $parts_cb).await;
+      rslt_cb_infer(pkg, pkgs_aux, rslt, $rslt_cb).await;
     }
   };
 }
 
 macro_rules! _create_http_test {
-  ($cp_drsr:expr, $test:ident, $cb:expr $(, $(#[$attrs:meta])+)?) => {
+  ($api:expr, $cp_drsr:expr, $test:ident, $cb:expr $(, $(#[$attrs:meta])+)?) => {
     mod $test {
       use super::*;
 
@@ -297,10 +138,10 @@ macro_rules! _create_http_test {
         tokio,
         reqwest,
         {
-          let (cp, drsr) = $cp_drsr;
+          let (drsr, ext_req_params) = $cp_drsr;
           lucia::misc::Pair::new(
-            crate::misc::RequestManagerWrapper::new(<_>::default(), cp, drsr),
-            reqwest::Client::default(),
+            crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
+            reqwest::Client::default()
           )
         },
         $cb,
@@ -312,10 +153,10 @@ macro_rules! _create_http_test {
         async_std,
         surf,
         {
-          let (cp, drsr) = $cp_drsr;
+          let (drsr, ext_req_params) = $cp_drsr;
           lucia::misc::Pair::new(
-            crate::misc::RequestManagerWrapper::new(<_>::default(), cp, drsr),
-            surf::Client::default(),
+            crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
+            surf::Client::default()
           )
         },
         $cb,
@@ -326,225 +167,40 @@ macro_rules! _create_http_test {
   };
 }
 
-macro_rules! _create_json_rpc_endpoint {
-  (
-    // API
-    $api:ty;
-
-    // Request
-    $(#[$mac:meta])*
-    $method_name:literal => $struct_name:ident<
-      $( $build_lt:lifetime $(: $build_lt_bound:lifetime)? ),*;
-      $( const $build_const:ident: $build_const_ty:ty ),*;
-      $( $build_ty:ident $(<$build_path_lt:lifetime>)? $($build_path:path)* $(= $build_default:ty)? $(: $build_lf:lifetime)? ),*
-    >$(( $struct_elem:ty ))?
-
-    // Response
-    |$raw_response_ident:ident: $raw_response:ty| -> $processed_response:ty $raw_response_block:block
-
-    // Calling method
-    $( #[$build_doc:meta] )*
-    $build_fn:ident(
-      $($build_arg:ident: $build_arg_ty:ty),* $(,)?
-    ) $(-> crate::Result$req_open:tt)? $(: $req_close:tt)? $build_params:block
-
-    // Optional calling method mapper
-    $($build_rslt:expr)?
-  ) => {
-    #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-    #[derive(Debug)]
-    #[doc = concat!(
-      "It is preferable to call [crate::misc::RequestManagerWrapper::",
-      stringify!($build_fn),
-      "] instead of building this structure directly."
-    )]
-    $(#[$mac])*
-    pub struct $struct_name<
-      $( $build_lt, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $(= $build_default)?, )*
-    >$( (
-      /// Payload data
-      pub $struct_elem
-    ) )?;
-
-    impl<
-      $( $build_lt $(: $build_lt_bound)?, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-    > lucia::misc::FromErrorTy for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    > {
-      type Error = crate::Error;
-    }
-
-    impl<
-      $( $build_lt $(: $build_lt_bound)?, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-      CP,
-      DRSR,
-      REQP,
-      RESP,
-    > lucia::req_res::Request<CP, DRSR, REQP, RESP> for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    >
-    where
-      lucia::data_formats::JsonRpcRequest<Self>: lucia::dnsn::Serialize<DRSR>,
-      lucia::data_formats::JsonRpcResponse<$raw_response>: lucia::dnsn::Deserialize<DRSR>,
-      Self: lucia::req_res::RequestParamsModifier<CP, REQP>,
-    {
-      type Data = lucia::data_formats::JsonRpcRequest<Self>;
-      type ProcessedResponse = lucia::data_formats::ProcessedJsonRpcResponse<$processed_response>;
-      type RawResponse = lucia::data_formats::JsonRpcResponse<$raw_response>;
-
-      #[inline]
-      fn data(&self) -> &Self::Data {
-        todo!()
-      }
-
-      #[inline]
-      fn process(rr: Self::RawResponse, _: &RESP) -> Result<Self::ProcessedResponse, Self::Error> {
-        Ok(rr.into_processed(|raw| {
-          let $raw_response_ident: $raw_response = raw;
-          $raw_response_block
-        })?)
-      }
-    }
-
-    impl<
-      $( $build_lt $(: $build_lt_bound)?, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-    > lucia::req_res::RequestParamsModifier<
-    lucia::misc::CommonParams<(), ()>,
-      ()
-    > for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    >
-    {
-      #[inline]
-      fn modify_all_params(_: &mut lucia::misc::CommonParams<(), ()>, _: ()) -> Result<(), Self::Error> {
-        Ok(())
-      }
-    }
-
-    impl<
-      $( $build_lt $(: $build_lt_bound)?, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-    > lucia::req_res::RequestParamsModifier<
-      lucia::misc::CommonParams<lucia::network::http::ReqParams, ()>,
-      ()
-    > for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    >
-    {
-      #[inline]
-      fn modify_all_params(hp: &mut lucia::misc::CommonParams<lucia::network::http::ReqParams, ()>, _: ()) -> Result<(), Self::Error> {
-        hp.tp.method = lucia::network::http::Method::Post;
-        hp.tp.mime_type = Some(lucia::network::http::MimeType::_Json);
-        Ok(())
-      }
-    }
-
-    impl<
-      $( $build_lt $(: $build_lt_bound)?, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-    > lucia::req_res::RequestParamsModifier<
-    lucia::misc::CommonParams<lucia::network::http::ReqParams, lucia::misc::RequestThrottling>,
-      ()
-    > for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    >
-    {
-      #[inline]
-      fn modify_all_params(
-        hp: &mut lucia::misc::CommonParams<lucia::network::http::ReqParams,
-        lucia::misc::RequestThrottling>,
-        _: ()
-      ) -> Result<(), Self::Error> {
-        hp.tp.mime_type = Some(lucia::network::http::MimeType::_Json);
-        hp.tp.method = lucia::network::http::Method::Post;
-        Ok(())
-      }
-    }
-
-    impl<
-      $( $build_lt $(: $build_lt_bound)?, )*
-      $( const $build_const: $build_const_ty, )*
-      $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-    > lucia::req_res::RequestParamsModifier<
-      lucia::misc::CommonParams<lucia::network::ws::ReqParams, ()>,
-      ()
-    > for $struct_name<
-      $( $build_lt, )*
-      $( $build_const, )*
-      $( $build_ty, )*
-    >
-    {
-      #[inline]
-      fn modify_all_params(_: &mut lucia::misc::CommonParams<lucia::network::ws::ReqParams, ()>, _: ()) -> Result<(), Self::Error> {
-        Ok(())
-      }
-    }
-
-    impl<CP, DRSR> crate::misc::RequestManagerWrapper<$api, CP, DRSR> {
-      /// Please see the official API's documentation to get more information about the expected
-      /// request data.
-      #[inline]
-      pub fn $build_fn<
-        $( $build_lt $(: $build_lt_bound)?, )*
-        $( const $build_const: $build_const_ty, )*
-        $( $build_ty: $(for<$build_path_lt>)? $($build_path +)* $($build_lf)? , )*
-      >(
-        &mut self,
-        $($build_arg: $build_arg_ty),*
-      ) ->
-        $(crate::Result$req_open)?
-          lucia::data_formats::JsonRpcRequest<$struct_name<
-            $( $build_lt, )*
-            $( $build_const, )*
-            $( $build_ty, )*
-          >>
-        $($req_close)?
-      {
-        let rslt = self.json_rpc_request($method_name, $build_params);
-        $( let rslt = $build_rslt(rslt); )?
-        rslt
-      }
-    }
-  };
-}
-
 macro_rules! _create_tokio_tungstenite_test {
-  ($cp_drsr:expr, $sub:ident, ($($unsub:ident),+), $cb:expr $(, $(#[$attrs:meta])+)?) => {
+  (
+    $url:expr,
+    $api:expr,
+    $cp_drsr:expr,
+    $sub:ident,
+    ($($unsub:ident),+),
+    $cb:expr $(, $(#[$attrs:meta])+)?
+  ) => {
     _create_generic_test! {
       tokio,
       $sub,
       {
-        let (cp, drsr) = $cp_drsr;
-        let trans = lucia::network::tokio_tungstenite(&cp.tp).await.unwrap();
-        lucia::misc::Pair::new(crate::misc::RequestManagerWrapper::new(<_>::default(), cp, drsr), trans)
+        let (drsr, ext_req_params) = $cp_drsr;
+        let (trans, _) = tokio_tungstenite::connect_async($url).await.unwrap();
+        lucia::misc::Pair::new(
+          crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
+          trans
+        )
       },
       $cb,
-      |rm, trans, subs| async move {
+      |pkgs_aux, trans, subs| async move {
         let mut iter = subs.into_iter();
-        let ids = [$( rm.$unsub(iter.next().unwrap()), )+];
-        let _ = trans.send(rm, &ids, ()).await.unwrap();
+        let ids = &mut [$( pkgs_aux.$unsub().data(iter.next().unwrap()).build(), )+][..];
+        let batch_pkg = &mut lucia::package::BatchPackage::new(ids);
+        let _ = trans.send(batch_pkg, pkgs_aux).await.unwrap();
       }
       $(, $(#[$attrs])+)?
     }
+  };
+}
+
+macro_rules! _generic_dummy_api_doc {
+  () => {
+    "Marker used to group a set of packages related to this API. Does not contain any meaningful inner data."
   };
 }

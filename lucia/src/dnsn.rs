@@ -10,6 +10,8 @@ mod miniserde;
 mod serde_json;
 #[cfg(feature = "serde-xml-rs")]
 mod serde_xml_rs;
+#[cfg(feature = "serde_yaml")]
+mod serde_yaml;
 mod serialize;
 
 #[cfg(feature = "miniserde")]
@@ -18,5 +20,7 @@ pub use self::miniserde::*;
 pub use self::serde_json::*;
 #[cfg(feature = "serde-xml-rs")]
 pub use self::serde_xml_rs::*;
+#[cfg(feature = "serde_yaml")]
+pub use self::serde_yaml::*;
 pub use deserialize::*;
 pub use serialize::*;
