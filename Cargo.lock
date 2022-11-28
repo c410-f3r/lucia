@@ -1429,7 +1429,7 @@ dependencies = [
 
 [[package]]
 name = "lucia"
-version = "0.3.0"
+version = "0.4.0"
 dependencies = [
  "arrayvec 0.7.2",
  "async-std",
@@ -1453,7 +1453,7 @@ dependencies = [
 
 [[package]]
 name = "lucia-apis"
-version = "0.3.0"
+version = "0.1.0"
 dependencies = [
  "arrayvec 0.7.2",
  "async-std",
