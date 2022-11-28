@@ -1,12 +1,10 @@
 use crate::{
   dnsn::Serialize,
-  network::{
-    ws::{ReqParams, ReqParamsMut},
-    Transport,
-  },
-  req_res::{RequestManager, RequestParamsModifier},
+  misc::log_req,
+  network::{transport::Transport, TransportGroup, WsParams},
+  package::{Package, PackagesAux},
 };
-use alloc::{boxed::Box, vec::Vec};
+use alloc::boxed::Box;
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
@@ -15,77 +13,66 @@ use tungstenite::Message;
 /// Shortcut of `WebSocketStream<MaybeTlsStream<TcpStream>>`.
 pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
-/// Handy constructor to avoid having to explicitly import `tokio-tungstenite`.
-#[inline]
-pub async fn tokio_tungstenite(ws_params: &ReqParams) -> crate::Result<TokioTungstenite> {
-  let (elem, _) = tokio_tungstenite::connect_async(ws_params._url_parts.origin()).await?;
-  Ok(elem)
-}
-
 /// Handy constructor to avoid having to explicitly import `tokio_tungstenite` dependencies.
 ///
 /// ```rust,no_run
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
-///   misc::{CommonParams, Pair},
-///   network::{tokio_tungstenite, Transport, ws::ReqParams},
-///   req_res::RequestManager
+///   network::{transport::Transport, WsParams},
+///   package::PackagesAux,
 /// };
-/// let req_params = ReqParams::from_origin("ORIGIN")?;
-/// let tokio_tungstenite = tokio_tungstenite(&req_params).await?;
-/// let (mut rm, mut trans) = Pair::new(
-///   RequestManager::new((), CommonParams::new(req_params, ()), ()),
-///   tokio_tungstenite,
-/// ).into_parts();
-/// let req = ();
-/// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
+/// let _ = tokio_tungstenite::connect_async("URL")
+///   .await?
+///   .0
+///   .send_retrieve_and_decode_contained(
+///     &mut (),
+///     &mut PackagesAux::from_minimum((), (), WsParams::default()),
+///   )
+///   .await?;
 /// # Ok(()) }
 /// ```
 #[async_trait::async_trait]
-impl<A, CP, DRSR> Transport<A, CP, DRSR> for TokioTungstenite
+impl<DRSR> Transport<DRSR> for TokioTungstenite
 where
-  A: Send,
-  CP: Send,
-  DRSR: Send,
-  for<'any> &'any mut CP: Into<ReqParamsMut<'any>>,
+  DRSR: Send + Sync,
 {
-  type ResponseParams = ();
+  const GROUP: TransportGroup = TransportGroup::WebSocket;
+  type Params = WsParams;
 
   #[inline]
-  async fn send<REQ, REQP>(
+  async fn send<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    _: REQP,
-  ) -> Result<Self::ResponseParams, REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<(), P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, WsParams> + Send + Sync,
   {
-    let mut vec = Vec::new();
-    req.to_bytes(&mut vec, &mut rm.drsr)?;
-    <Self as SinkExt<_>>::send(self, Message::Binary(vec)).await.map_err(Into::into)?;
+    pkgs_aux.byte_buffer.clear();
+    pkg.ext_req_ctnt_mut().to_bytes(&mut pkgs_aux.byte_buffer, &mut pkgs_aux.drsr)?;
+    <Self as SinkExt<_>>::send(self, Message::Binary(pkgs_aux.byte_buffer.clone()))
+      .await
+      .map_err(Into::into)?;
+    pkgs_aux.byte_buffer.clear();
+    log_req(pkg, pkgs_aux, self);
     Ok(())
   }
 
   #[inline]
-  async fn send_and_retrieve<REQ, REQP>(
+  async fn send_and_retrieve<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    _: REQP,
-  ) -> Result<(Self::ResponseParams, Vec<u8>), REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<usize, P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, WsParams> + Send + Sync,
   {
-    let mut vec = Vec::new();
-    req.to_bytes(&mut vec, &mut rm.drsr)?;
-    <Self as SinkExt<_>>::send(self, Message::Binary(vec)).await.map_err(Into::into)?;
+    let _res = <Self as Transport<DRSR>>::send(self, pkg, pkgs_aux).await?;
     Ok(if let Some(elem) = self.next().await {
-      ((), elem.map_err(Into::into)?.into_data().into())
+      pkgs_aux.byte_buffer.extend(elem.map_err(Into::into)?.into_data());
+      pkgs_aux.byte_buffer.len()
     } else {
-      ((), Vec::new())
+      0
     })
   }
 }

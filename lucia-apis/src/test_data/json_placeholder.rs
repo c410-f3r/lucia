@@ -5,36 +5,31 @@
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
 //! use lucia::{
-//!   misc::{CommonParams, Pair},
-//!   network::{http::{Method, ReqParams}, Transport},
+//!   dnsn::SerdeJson,
+//!   network::{HttpMethod, HttpParams},
 //! };
 //! use lucia_apis::{
-//!   misc::RequestManagerWrapper,
-//!   test_data::json_placeholder::AlbumsParams
+//!   misc::PackagesAux,
+//!   test_data::json_placeholder::{GenericParams, JsonPlaceholder},
 //! };
 //!
-//! let (mut rm, mut trans) = Pair::new(
-//!   RequestManagerWrapper::new(
-//!     <_>::default(),
-//!     CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()),
-//!     ()
-//!   ),
-//!   ()
-//! ).into_parts();
-//! let req = rm.albums();
-//! let _res = trans.send_and_retrieve(
-//!   &mut rm,
-//!   &req,
-//!   AlbumsParams::new(Method::Get, None, None, &[])
-//! ).await?;
+//! let mut pkgs_aux =
+//!   PackagesAux::from_minimum(JsonPlaceholder, SerdeJson, (HttpParams::from_url("URL")?));
+//! let _ = pkgs_aux.albums().params(GenericParams::new(None, HttpMethod::Get, None, &[])).build();
 //! # Ok(()) }
 //! ```
 
-mod endpoint;
 #[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
+mod pkg;
 
-pub use endpoint::*;
+use crate::misc::PackagesAux;
+use lucia::network::HttpParams;
+pub use pkg::*;
 
-#[derive(Debug, Default)]
+pub(crate) type JsonPlaceholderHttpPackagesAux<DRSR> =
+  PackagesAux<JsonPlaceholder, DRSR, HttpParams>;
+
+#[doc = _generic_dummy_api_doc!()]
+#[derive(Debug)]
 pub struct JsonPlaceholder;

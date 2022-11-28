@@ -1,116 +1,108 @@
 use crate::{
   dnsn::Serialize,
-  network::{
-    http::{AllReqParamsMut, Method},
-    Transport,
-  },
-  req_res::{RequestManager, RequestParamsModifier},
+  misc::log_req,
+  network::{http::HttpMethod, transport::Transport, HttpParams, TransportGroup},
+  package::{Package, PackagesAux},
 };
-use alloc::{boxed::Box, vec::Vec};
+use alloc::boxed::Box;
 use surf::{
   http::headers::{CONTENT_TYPE, USER_AGENT},
   Client, RequestBuilder,
 };
 
-/// Handy constructor to avoid having to explicitly import `surf`.
-#[inline]
-pub fn surf() -> Client {
-  <_>::default()
-}
-
 /// ```rust,no_run
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
-///   misc::{CommonParams, Pair},
-///   network::{surf, Transport, http::ReqParams},
-///   req_res::RequestManager
+///   network::{transport::Transport, HttpParams},
+///   package::PackagesAux,
 /// };
-/// let (mut rm, mut trans) = Pair::new(
-///   RequestManager::new((), CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()), ()),
-///   surf()
-/// ).into_parts();
-/// let req = ();
-/// let _res = trans.send_retrieve_and_decode_one(&mut rm, &req, ()).await?;
+/// let _ = surf::Client::new()
+///   .send_retrieve_and_decode_contained(
+///     &mut (),
+///     &mut PackagesAux::from_minimum((), (), HttpParams::from_url("URL")?),
+///   )
+///   .await?;
 /// # Ok(()) }
 /// ```
 #[async_trait::async_trait]
-impl<A, CP, DRSR> Transport<A, CP, DRSR> for Client
+impl<DRSR> Transport<DRSR> for Client
 where
-  A: Send,
-  CP: Send,
-  DRSR: Send,
-  for<'any> &'any mut CP: Into<AllReqParamsMut<'any>>,
+  DRSR: Send + Sync,
 {
-  type ResponseParams = crate::network::http::Response;
+  const GROUP: TransportGroup = TransportGroup::HTTP;
+  type Params = HttpParams;
 
   #[inline]
-  async fn send<REQ, REQP>(
+  async fn send<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<Self::ResponseParams, REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<(), P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    DRSR: Send + Sync,
+    P: Package<DRSR, HttpParams> + Send + Sync,
+    P::Api: Send + Sync,
   {
-    REQ::modify_all_params(&mut rm.cp, reqp)?;
-    let res = surf_response((&mut rm.cp).into(), self, &mut rm.drsr, req).await?;
-    Ok((&res).try_into()?)
+    let _ = response(self, pkg, pkgs_aux).await?;
+    log_req(pkg, pkgs_aux, self);
+    Ok(())
   }
 
   #[inline]
-  async fn send_and_retrieve<REQ, REQP>(
+  async fn send_and_retrieve<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<(Self::ResponseParams, Vec<u8>), REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<usize, P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, HttpParams> + Send + Sync,
   {
-    REQ::modify_all_params(&mut rm.cp, reqp)?;
-    let mut res = surf_response((&mut rm.cp).into(), self, &mut rm.drsr, req).await?;
-    Ok(((&res).try_into()?, res.body_bytes().await.map_err(Into::into)?.to_vec()))
+    let mut res = response(self, pkg, pkgs_aux).await?;
+    log_req(pkg, pkgs_aux, self);
+    let received_bytes = res.body_bytes().await.map_err(Into::into)?;
+    pkgs_aux.byte_buffer.extend(received_bytes.into_iter());
+    Ok(pkgs_aux.byte_buffer.len())
   }
 }
 
 #[inline]
-async fn surf_response<DRSR, T>(
-  mut all_params: AllReqParamsMut<'_>,
+async fn response<DRSR, P>(
   client: &Client,
-  drsr: &mut DRSR,
-  req: T,
-) -> crate::Result<surf::Response>
+  pkg: &mut P,
+  pkgs_aux: &mut PackagesAux<P::Api, DRSR, HttpParams>,
+) -> Result<surf::Response, P::Error>
 where
-  T: Send + Serialize<DRSR> + Sync,
+  P: Package<DRSR, HttpParams> + Send + Sync,
 {
-  if let Some(ref mut rt) = all_params._rt {
+  pkg.before_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_req_params)?;
+  if let Some(ref mut rt) = pkgs_aux.rt {
     rt.rc.update_params(&rt.rl).await?;
   }
   let mut manage_data = |mut rb: RequestBuilder| {
-    if let Some(data_format) = all_params._rp.mime_type {
+    if let Some(data_format) = pkgs_aux.ext_req_params.mime_type {
       rb = rb.header(CONTENT_TYPE, data_format._as_str());
     }
-    let mut vec = Vec::new();
-    req.to_bytes(&mut vec, drsr)?;
-    rb = rb.body(vec);
+    pkgs_aux.byte_buffer.clear();
+    pkg.ext_req_ctnt_mut().to_bytes(&mut pkgs_aux.byte_buffer, &mut pkgs_aux.drsr)?;
+    rb = rb.body(&*pkgs_aux.byte_buffer);
+    pkgs_aux.byte_buffer.clear();
     crate::Result::Ok(rb)
   };
-  let mut rb = match all_params._rp.method {
-    Method::Delete => client.delete(all_params._rp.url_parts.url()),
-    Method::Get => client.get(all_params._rp.url_parts.url()),
-    Method::Patch => manage_data(client.patch(all_params._rp.url_parts.url()))?,
-    Method::Post => manage_data(client.post(all_params._rp.url_parts.url()))?,
-    Method::Put => manage_data(client.put(all_params._rp.url_parts.url()))?,
+  let mut rb = match pkgs_aux.ext_req_params.method {
+    HttpMethod::Delete => client.delete(pkgs_aux.ext_req_params.url.url()),
+    HttpMethod::Get => client.get(pkgs_aux.ext_req_params.url.url()),
+    HttpMethod::Patch => manage_data(client.patch(pkgs_aux.ext_req_params.url.url()))?,
+    HttpMethod::Post => manage_data(client.post(pkgs_aux.ext_req_params.url.url()))?,
+    HttpMethod::Put => manage_data(client.put(pkgs_aux.ext_req_params.url.url()))?,
   };
-  for header in all_params._rp.headers.iter() {
-    rb = rb.header(header._key.as_str(), header._value.as_str());
+  for (key, value) in pkgs_aux.ext_req_params.headers.iter() {
+    rb = rb.header(key, value);
   }
-  if let Some(elem) = all_params._rp.user_agent {
+  if let Some(elem) = pkgs_aux.ext_req_params.user_agent {
     rb = rb.header(USER_AGENT, elem._as_str());
   }
-  all_params._reset();
-  Ok(rb.await?)
+  pkgs_aux.ext_req_params.url.retain_origin()?;
+  let res = rb.await.map_err(Into::into)?;
+  pkgs_aux.ext_res_params.status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
+  Ok(res)
 }

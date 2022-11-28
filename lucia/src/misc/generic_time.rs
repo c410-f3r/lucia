@@ -1,6 +1,6 @@
 use core::time::Duration;
 
-/// Tries to support different time machinery on different platforms.
+/// Tries to support different time machineries of different platforms.
 ///
 /// Currently only supports `std`. For anything else, methods return errors.
 #[derive(Clone, Copy, Debug)]

@@ -2,15 +2,42 @@
 
 mod status_code;
 
+use crate::{misc::UrlString, network::transport::TransportParams};
+use alloc::{string::String, vec::Vec};
 pub use status_code::*;
 
-use crate::misc::{CommonParams, RequestThrottling, UrlPartsString};
-use alloc::vec::Vec;
-use arrayvec::ArrayString;
+#[derive(Debug)]
+#[doc = generic_trans_params_doc!()]
+pub struct HttpParams(HttpReqParams, HttpResParams);
+impl HttpParams {
+  /// For example, from `http://localhost`.
+  #[inline]
+  pub fn from_url(url: &str) -> crate::Result<Self> {
+    Ok(Self(
+      HttpReqParams {
+        headers: HttpHeaders::default(),
+        method: HttpMethod::Get,
+        mime_type: None,
+        url: UrlString::from_url(url.into())?,
+        user_agent: None,
+      },
+      HttpResParams { status_code: StatusCode::Forbidden },
+    ))
+  }
+}
+impl TransportParams for HttpParams {
+  type ExternalRequestParams = HttpReqParams;
+  type ExternalResponseParams = HttpResParams;
+
+  #[inline]
+  fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
+    (self.0, self.1)
+  }
+}
 
 /// Contains variants for a number of common HTTP methods such as GET, POST, etc.
 #[derive(Clone, Copy, Debug)]
-pub enum Method {
+pub enum HttpMethod {
   /// DELETE
   Delete,
   /// GET
@@ -23,148 +50,127 @@ pub enum Method {
   Put,
 }
 
-/// All possible HTTP parameters that an API can use.
-#[derive(Debug)]
-pub struct ReqParams {
-  /// See [Header].
-  pub headers: Vec<Header<16, 64>>,
-  /// See [Method].
-  pub method: Method,
-  /// See [MimeType].
-  pub mime_type: Option<MimeType>,
-  /// See [UrlPartsString].
-  pub url_parts: UrlPartsString,
-  /// See [UserAgent].
-  pub user_agent: Option<UserAgent>,
-}
-
-impl ReqParams {
-  /// For example, from `http://localhost`.
-  #[inline]
-  pub fn from_origin(origin: &str) -> crate::Result<Self> {
-    Ok(Self {
-      headers: Vec::new(),
-      method: Method::Get,
-      mime_type: None,
-      url_parts: UrlPartsString::from_origin(origin)?,
-      user_agent: None,
-    })
-  }
-}
-
-/// A HTTP response returned by a submitted HTTP request.
-#[derive(Debug)]
-pub struct Response {
-  /// See [StatusCode].
-  pub status_code: StatusCode,
-}
-
-impl Response {
-  pub(crate) const _DUMMY: Response = Self { status_code: StatusCode::Ok };
-}
-
-impl<'res> From<&'res ()> for &'res Response {
-  #[inline]
-  fn from(_: &'res ()) -> Self {
-    &Response::_DUMMY
-  }
-}
-
-#[cfg(feature = "reqwest")]
-impl<'res> TryFrom<&'res reqwest::Response> for Response {
-  type Error = crate::Error;
-
-  #[inline]
-  fn try_from(res: &'res reqwest::Response) -> Result<Self, Self::Error> {
-    let status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
-    Ok(Self { status_code })
-  }
-}
-
-#[cfg(feature = "surf")]
-impl<'res> TryFrom<&'res surf::Response> for Response {
-  type Error = crate::Error;
-
-  #[inline]
-  fn try_from(res: &'res surf::Response) -> Result<Self, Self::Error> {
-    let status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
-    Ok(Self { status_code })
-  }
-}
-
 /// Used to specify the data type that is going to be sent to a counterpart.
 #[derive(Clone, Copy, Debug)]
-pub enum MimeType {
+pub enum HttpMimeType {
   /// Opaque bytes
-  _Bytes,
+  Bytes,
   /// JSON
-  _Json,
+  Json,
   /// Plain text
-  _Text,
+  Text,
   /// XML
-  _Xml,
+  Xml,
+  /// YAML
+  Yaml,
 }
 
-impl MimeType {
+impl HttpMimeType {
   #[inline]
   pub(crate) fn _as_str(self) -> &'static str {
     match self {
-      MimeType::_Bytes => "application/octet-stream",
-      MimeType::_Json => "application/json",
-      MimeType::_Text => "text/plain",
-      MimeType::_Xml => "application/xml",
+      HttpMimeType::Bytes => "application/octet-stream",
+      HttpMimeType::Json => "application/json",
+      HttpMimeType::Text => "text/plain",
+      HttpMimeType::Xml => "application/xml",
+      HttpMimeType::Yaml => "application/yaml",
     }
   }
 }
 
-#[derive(Debug)]
-pub(crate) struct AllReqParamsMut<'generic> {
-  pub(crate) _rp: &'generic mut ReqParams,
-  pub(crate) _rt: Option<&'generic mut RequestThrottling>,
-}
-
-impl AllReqParamsMut<'_> {
-  #[inline]
-  pub(crate) fn _reset(&mut self) {
-    self._rp.headers.clear();
-    self._rp.method = Method::Get;
-    self._rp.url_parts._retain_origin();
-  }
-}
-
-impl<'rm> From<&'rm mut CommonParams<ReqParams, ()>> for AllReqParamsMut<'rm> {
-  #[inline]
-  fn from(from: &'rm mut CommonParams<ReqParams, ()>) -> AllReqParamsMut<'rm> {
-    Self { _rp: &mut from.tp, _rt: None }
-  }
-}
-
-impl<'rm> From<&'rm mut CommonParams<ReqParams, RequestThrottling>> for AllReqParamsMut<'rm> {
-  #[inline]
-  fn from(from: &'rm mut CommonParams<ReqParams, RequestThrottling>) -> AllReqParamsMut<'rm> {
-    Self { _rp: &mut from.tp, _rt: Some(&mut from.up) }
-  }
-}
-
-/// List of pairs sent on every request.
-#[derive(Debug)]
-pub struct Header<const K: usize, const V: usize> {
-  pub(crate) _key: ArrayString<K>,
-  pub(crate) _value: ArrayString<V>,
-}
-
 /// Characteristic string that lets servers and network peers identify a client.
 #[derive(Clone, Copy, Debug)]
-pub enum UserAgent {
+pub enum HttpUserAgent {
   /// Generic Mozilla
   Mozilla,
 }
 
-impl UserAgent {
+impl HttpUserAgent {
   #[inline]
   pub(crate) fn _as_str(self) -> &'static str {
     match self {
       Self::Mozilla => "Mozilla",
     }
+  }
+}
+
+#[derive(Debug)]
+#[doc = generic_trans_req_params_doc!("HTTP")]
+pub struct HttpReqParams {
+  /// Http headers.
+  pub headers: HttpHeaders,
+  /// Http method.
+  pub method: HttpMethod,
+  /// MIME type.
+  pub mime_type: Option<HttpMimeType>,
+  /// URL.
+  pub url: UrlString,
+  /// User agent.
+  pub user_agent: Option<HttpUserAgent>,
+}
+
+#[doc = generic_trans_res_params_doc!("HTTP")]
+#[derive(Debug)]
+pub struct HttpResParams {
+  /// Status code.
+  pub status_code: StatusCode,
+}
+
+impl HttpResParams {
+  pub(crate) const _DUMMY: &Self = &Self { status_code: StatusCode::Ok };
+}
+
+/// List of pairs sent on every request.
+#[derive(Debug, Default)]
+pub struct HttpHeaders {
+  buffer: String,
+  indcs: Vec<(usize, usize)>,
+}
+
+impl HttpHeaders {
+  /// Clears the internal buffer "erasing" all previously inserted elements.
+  #[inline]
+  pub fn clear(&mut self) {
+    self.buffer.clear();
+    self.indcs.clear();
+  }
+
+  /// Retrieves all stored elements.
+  #[inline]
+  pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
+    self.indcs.iter().scan(0, |idx_tracker, &(key_idx, value_idx)| {
+      let key_str = self.buffer.get(*idx_tracker..key_idx)?;
+      let value_str = self.buffer.get(key_idx..value_idx)?;
+      *idx_tracker = value_idx;
+      Some((key_str, value_str))
+    })
+  }
+
+  /// Pushes a new pair of `key` and `value` at the end of the internal buffer.
+  #[inline]
+  pub fn push(&mut self, key: &str, value: &str) {
+    let curr_len = self.buffer.len();
+    let key_idx = curr_len.wrapping_add(key.len());
+    let value_idx = key_idx.wrapping_add(value.len());
+    self.buffer.push_str(key);
+    self.buffer.push_str(value);
+    self.indcs.push((key_idx, value_idx));
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::network::HttpHeaders;
+  use alloc::{vec, vec::Vec};
+
+  #[test]
+  fn headers_has_correct_values() {
+    let mut headers = HttpHeaders::default();
+    headers.push("1", "2");
+    assert_eq!(headers.iter().collect::<Vec<_>>(), vec![("1", "2")]);
+    headers.push("3", "4");
+    assert_eq!(headers.iter().collect::<Vec<_>>(), vec![("1", "2"), ("3", "4")]);
+    headers.clear();
+    assert_eq!(headers.iter().collect::<Vec<_>>(), vec![]);
   }
 }

@@ -4,32 +4,24 @@
 //!
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
-//! use lucia::{
-//!   network::{http::ReqParams, Transport},
-//!   misc::{CommonParams, Pair}
-//! };
-//! use lucia_apis::{
-//!   calendar::nager_date::V3CountryInfoParams,
-//!   misc::RequestManagerWrapper
-//! };
-//! let (mut rm, mut trans) = Pair::new(
-//!   RequestManagerWrapper::new(
-//!     <_>::default(),
-//!     CommonParams::new(ReqParams::from_origin("ORIGIN")?, ()),
-//!     ()
-//!   ),
-//!   ()
-//! ).into_parts();
-//! let req = rm.v3_country_info();
-//! let _res = trans.send_and_retrieve(&mut rm, &req, V3CountryInfoParams::new("es")).await?;
+//! use lucia::{dnsn::SerdeJson, network::HttpParams};
+//! use lucia_apis::{calendar::nager_date::NagerDate, misc::PackagesAux};
+//!
+//! let mut pkgs_aux = PackagesAux::from_minimum(NagerDate, SerdeJson, HttpParams::from_url("URL")?);
+//! let _ = pkgs_aux.v3_country_info().params("es").build();
 //! # Ok(()) }
 //! ```
 
-mod endpoint;
 #[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
+mod pkg;
 
-pub use endpoint::*;
+use crate::misc::PackagesAux;
+use lucia::network::HttpParams;
+pub use pkg::*;
 
-#[derive(Debug, Default)]
+pub(crate) type NagerDateHttpPackagesAux<DRSR> = PackagesAux<NagerDate, DRSR, HttpParams>;
+
+#[derive(Debug)]
+#[doc = _generic_dummy_api_doc!()]
 pub struct NagerDate;

@@ -1,6 +1,6 @@
 # Adding a new API
 
-Simply put, the only necessary thing to create an endpoint is implementing the `Request` trait. However, this project expects more from an API definition.
+Simply put, the only necessary thing to create an endpoint is implementing the `Package` trait. However, this project expects more from an API definition.
 
 ## Location
 
@@ -37,7 +37,7 @@ last-api = []
 ```
 
 ```rust
-// src/api/gaming.rs
+// src/gaming.rs
 
 #[cfg(feature = "first-api")]
 pub mod first_api;
@@ -51,11 +51,26 @@ pub mod last_api;
 
 ### Endpoints
 
-This is a redundant and laborious step that is currently handled by declarative macros that will be removed in favour of procedural macros. As such, more documentation about the subject will be delivered as soon as procedural macros are done.
+It is encouraged to use the `lucia-macros` crate to easily build endpoints without having the burden of manually implementing all necessary traits.
+
+```rust
+pub struct MyNewGamingApi;
+
+#[lucia_macros::pkg(api(MyNewGamingApi), data_format(json), transport(http))]
+mod my_endpoint {
+  #[derive(Debug, serde::Serialize)]
+  #[pkg::req_data]
+  pub struct MyEndpointReqData(i32);
+
+  #[derive(Debug)]
+  #[pkg::res_data]
+  pub struct MyEndpointResData(i32);
+}
+```
 
 ## Tests
 
-Integration tests or end-to-end testing can be performed using an internet connection or through the local `Test` structure.
+Integration tests or end-to-end testing can be performed using an internet connection or through the local `Mock` transport structure.
 
 APIs are numerous and generally built based on third-parties specifications so it makes sense to perform external calls.
 

@@ -1,22 +1,25 @@
 use crate::blockchain::solana::{
   program::spl_token::{TransferCheckedInstruction, TransferInstruction},
   SolanaAddressHashStr, SolanaBlockhashStr, SolanaProgramName, SolanaSignatureHashStr,
-  MAX_TRANSACTION_ACCOUNTS_NUM,
 };
 use alloc::{string::String, vec::Vec};
-use arrayvec::{ArrayString, ArrayVec};
+use arrayvec::ArrayString;
 
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
 #[derive(Debug)]
+#[allow(
+  // Only used in tx deserialization that is already boxed
+  variant_size_differences
+)]
 pub enum GenericInstructionJson {
   Compiled(CompiledInstructionJson),
   Parsed(InstructionJson),
 }
 
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
+#[derive(Debug)]
 pub enum InstructionJsonParsedInfo {
   TransferInstruction(TransferInstruction),
   TransferCheckedInstruction(TransferCheckedInstruction),
@@ -29,7 +32,7 @@ pub enum InstructionJsonParsedInfo {
 #[derive(Debug)]
 pub struct CompiledInstructionJson {
   pub program_id_index: u8,
-  pub accounts: ArrayVec<u8, MAX_TRANSACTION_ACCOUNTS_NUM>,
+  pub accounts: Vec<u8>,
   pub data: String,
 }
 

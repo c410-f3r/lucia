@@ -1,10 +1,7 @@
-mod one_mand_and_one_opt;
-mod request_manager_wrapper;
-
-pub use one_mand_and_one_opt::OneMandAndOneOpt;
-pub use request_manager_wrapper::RequestManagerWrapper;
+//! Utility functions and structures
 
 use core::any::type_name;
+use lucia::create_packages_aux_wrapper;
 
 pub(crate) const _MAX_ASSET_ABBR_LEN: usize = 10;
 /// The maximum length of any string number representation.
@@ -84,3 +81,16 @@ pub(crate) fn _init_tracing() {
     .finish()
     .try_init();
 }
+
+#[cfg(feature = "serde")]
+#[inline]
+pub(crate) fn _serde_ser_as_tuple<T, S>(field: T, serializer: S) -> Result<S::Ok, S::Error>
+where
+  T: serde::Serialize,
+  S: serde::Serializer,
+{
+  use serde::Serialize;
+  (field,).serialize(serializer)
+}
+
+create_packages_aux_wrapper!();

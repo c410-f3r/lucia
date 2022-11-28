@@ -1,180 +1,154 @@
+//! Implementations of the [Transport] trait.
+
+mod mock;
 #[cfg(feature = "reqwest")]
 mod reqwest;
+#[cfg(feature = "std")]
+mod std;
 #[cfg(feature = "surf")]
 mod surf;
-mod test;
 #[cfg(feature = "tokio-tungstenite")]
 mod tokio_tungstenite;
+mod transport_params;
 mod unit;
 
-#[cfg(feature = "reqwest")]
-pub use self::reqwest::*;
-#[cfg(feature = "surf")]
-pub use self::surf::*;
 #[cfg(feature = "tokio-tungstenite")]
 pub use self::tokio_tungstenite::*;
-pub use test::*;
+pub use mock::*;
+pub use transport_params::*;
 
 use crate::{
-  dnsn::Serialize,
-  misc::{decode_many, decode_one},
-  req_res::{Request, RequestManager, RequestParamsModifier, Requests},
+  dnsn::{Deserialize, Serialize},
+  misc::log_res,
+  network::TransportGroup,
+  package::{BatchElems, BatchPackage, Package, PackagesAux},
+  Id,
 };
-use alloc::{boxed::Box, vec::Vec};
+use alloc::boxed::Box;
+use cl_aux::DynContigColl;
+use core::borrow::Borrow;
 
 /// Any means of transferring data between two parties.
 ///
-/// Internally in every method all custom related parameters are temporally used to
-/// tell how the given request should be issued.
-///
-/// Please, see the [crate::req_res::Request] implementation of the desired request to know
+/// Please, see the [crate::package::Package] implementation of the desired package to know
 /// more about the expected types as well as any other additional documentation.
-///
-/// # Example
-///
-/// The Covid-19 API provided by `M Media` has an endpoint called `cases` that accepts
-/// different HTTP query parameters to modify returned data.
-///
-/// ```rust-no_run
-/// # #[cfg(feature = "m-media-covid-19")] async fn fun() -> lucia::Result<()> {
-/// use lucia::{
-///   api::health::m_media_covid_19::CasesParams,
-///   network::{http::ReqParams, Transport},
-///   CommonParams, Pair, RequestManager,
-/// };
-/// let (mut rm, mut trans) = Pair::new(
-///   RequestManager::new(
-///     <_>::default(),
-///     CommonParams::new((), ReqParams::from_origin("https://covid-api.mmediagroup.fr")?, ())
-///   ),
-///   (),
-/// ).into_parts();
-/// let req = rm.cases();
-/// let _res = trans
-///   .send_retrieve_and_decode_one(&mut rm, &req, CasesParams::new(Some("pt"), None, None))
-///   .await?;
-/// # Ok(()) }
-/// ```
-///
-/// As seen from above, [lucia::api::health::covid_19::CasesParams<'_>] comes from
-/// <https://docs.rs/lucia/0.1.0/lucia/trait.Request.html#impl-Request-8>
 ///
 /// # Types
 ///
-/// * `A`: `A`PI
-/// * `CP`: `C`ommon `P`arameters
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
 #[async_trait::async_trait]
-pub trait Transport<A, CP, DRSR>
-where
-  A: Send,
-  CP: Send,
-  DRSR: Send,
-{
-  /// Any parameter returned by the transport. For example, HTTP has response headers.
-  type ResponseParams;
+pub trait Transport<DRSR> {
+  /// Every transport has an [TransportGroup] identifier.
+  const GROUP: TransportGroup;
+  /// Every transport has request and response parameters.
+  type Params: TransportParams;
 
   /// Sends a request without trying to retrieve any counterpart data.
-  ///
-  /// See the trait documentation for more information.
-  async fn send<REQ, REQP>(
+  async fn send<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<Self::ResponseParams, REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<(), P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send;
+    P: Package<DRSR, Self::Params> + Send + Sync;
 
   /// Sends a request and then awaits its counterpart data response.
   ///
-  /// See the trait documentation for more information.
-  async fn send_and_retrieve<REQ, REQP>(
+  /// The returned bytes are stored in `pkgs_aux` and its length is returned by this method.
+  async fn send_and_retrieve<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<(Self::ResponseParams, Vec<u8>), REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<usize, P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send;
+    P: Package<DRSR, Self::Params> + Send + Sync;
 
-  /// Convenient method used for JSON-RPC 2.0 batch requests
-  ///
-  /// See [crate::req_res::Requests] for more information.
+  /// Convenient method similar to [Self::send_retrieve_and_decode_contained] but used for batch
+  /// requests
   #[inline]
-  async fn send_retrieve_and_decode_many<BUFFER, REQS, REQP>(
+  async fn send_retrieve_and_decode_batch<'slice, B, P>(
     &mut self,
-    buffer: &mut BUFFER,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    reqs: &REQS,
-    reqp: REQP,
-  ) -> Result<(), REQS::Error>
+    buffer: &mut B,
+    pkgs: &'slice mut [P],
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<(), P::Error>
   where
-    BUFFER: Send,
-    REQS: Requests<BUFFER, CP, DRSR, REQP, Self::ResponseParams> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    B: DynContigColl<P::ExternalResponseContent> + Send + Sync,
+    DRSR: Send + Sync,
+    P: Package<DRSR, Self::Params> + Send + Sync,
+    P::ExternalRequestContent: Borrow<Id> + Ord,
+    P::ExternalResponseContent: Borrow<Id> + Ord,
+    for<'any> BatchElems<'any, DRSR, P, Self::Params>: Serialize<DRSR>,
+    Self::Params: Send + Sync,
   {
-    let (resp, bytes) = self.send_and_retrieve(rm, reqs, reqp).await?;
-    Ok(decode_many(buffer, &bytes, &mut rm.drsr, reqs, &resp)?)
+    let batch_package = &mut BatchPackage::new(pkgs);
+    let len = self.send_and_retrieve(batch_package, pkgs_aux).await?;
+    log_res(pkgs_aux.byte_buffer.as_ref());
+    batch_package.decode_and_push_from_bytes(
+      buffer,
+      pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
+      &mut pkgs_aux.drsr,
+    )?;
+    Ok(())
   }
 
-  /// Similar to [Self::send_retrieve_and_decode_many] but expects a single data return from the
-  /// counterpart. Can be currently used by any data format.
-  ///
-  /// See [crate::req_res::Request] for more information.
+  /// Internally calls [Self::send_and_retrieve] and then tries to decode the defined response specified
+  /// in [Package::ExternalResponseContent].
   #[inline]
-  async fn send_retrieve_and_decode_one<REQ, REQP>(
+  async fn send_retrieve_and_decode_contained<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<REQ::ProcessedResponse, REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<P::ExternalResponseContent, P::Error>
   where
-    REQ: Request<CP, DRSR, REQP, Self::ResponseParams> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    DRSR: Send + Sync,
+    P: Package<DRSR, Self::Params> + Send + Sync,
   {
-    let (resp, bytes) = self.send_and_retrieve(rm, req, reqp).await?;
-    Ok(decode_one(&bytes, &mut rm.drsr, req, &resp)?)
+    let len = self.send_and_retrieve(pkg, pkgs_aux).await?;
+    log_res(pkgs_aux.byte_buffer.as_ref());
+    Ok(P::ExternalResponseContent::from_bytes(
+      pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
+      &mut pkgs_aux.drsr,
+    )?)
+  }
+
+  /// Instance counterpart of [Self::GROUP].
+  #[inline]
+  fn ty(&self) -> TransportGroup {
+    Self::GROUP
   }
 }
 
 #[async_trait::async_trait]
-impl<A, CP, DRSR, U> Transport<A, CP, DRSR> for &mut U
+impl<DRSR, T> Transport<DRSR> for &mut T
 where
-  A: Send,
-  CP: Send,
-  DRSR: Send,
-  U: Send + Transport<A, CP, DRSR>,
+  DRSR: Send + Sync,
+  T: Send + Sync + Transport<DRSR>,
 {
-  type ResponseParams = U::ResponseParams;
+  const GROUP: TransportGroup = T::GROUP;
+  type Params = T::Params;
 
   #[inline]
-  async fn send<REQ, REQP>(
+  async fn send<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<Self::ResponseParams, REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<(), P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, Self::Params> + Send + Sync,
   {
-    (*self).send(rm, req, reqp).await
+    (**self).send(pkg, pkgs_aux).await
   }
 
   #[inline]
-  async fn send_and_retrieve<REQ, REQP>(
+  async fn send_and_retrieve<P>(
     &mut self,
-    rm: &mut RequestManager<A, CP, DRSR>,
-    req: &REQ,
-    reqp: REQP,
-  ) -> Result<(Self::ResponseParams, Vec<u8>), REQ::Error>
+    pkg: &mut P,
+    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<usize, P::Error>
   where
-    REQ: RequestParamsModifier<CP, REQP> + Send + Serialize<DRSR> + Sync,
-    REQP: Send,
+    P: Package<DRSR, Self::Params> + Send + Sync,
   {
-    (*self).send_and_retrieve(rm, req, reqp).await
+    (**self).send_and_retrieve(pkg, pkgs_aux).await
   }
 }

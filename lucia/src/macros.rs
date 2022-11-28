@@ -1,3 +1,63 @@
+/// Useful to automatically create a local `lucia::package::PackagesAux` wrapper that implements
+/// `core::ops::DerefMut` in case you want to use a fluent-like interface for your APIs.
+#[macro_export]
+macro_rules! create_packages_aux_wrapper {
+  () => {
+    $crate::create_packages_aux_wrapper!(@PackagesAux<API with API>);
+  };
+  ($name:ident) => {
+    $crate::create_packages_aux_wrapper!(@$name<API with API>);
+  };
+  ($name:ident, $api_ty:ty) => {
+    $crate::create_packages_aux_wrapper!(@$name<with $api_ty>);
+  };
+  (
+    @$name:ident<
+      $($api_param:ident)? with $api_ty:ty
+    >
+  ) => {
+    /// Just a wrapper that implements [core::ops::Deref] and [core::ops::DerefMut] to easily call
+    /// methods from [lucia::package::PackagesAux].
+    #[derive(Debug)]
+    pub struct $name<$($api_param,)? DRSR, TP>(lucia::package::PackagesAux<$api_ty, DRSR, TP>)
+    where
+      TP: lucia::network::transport::TransportParams;
+
+    impl<$($api_param,)? DRSR, TP> $name<$api_ty, DRSR, TP>
+    where
+      TP: lucia::network::transport::TransportParams
+    {
+      /// Proxy of [lucia::package::PackagesAux::from_minimum].
+      #[inline]
+      pub fn from_minimum(api: $api_ty, drsr: DRSR, tp: TP) -> Self {
+        Self(lucia::package::PackagesAux::from_minimum(api, drsr, tp))
+      }
+    }
+
+    impl<$($api_param,)? DRSR, TP> core::ops::Deref for $name<$api_ty, DRSR, TP>
+    where
+      TP: lucia::network::transport::TransportParams
+    {
+      type Target = lucia::package::PackagesAux<$api_ty, DRSR, TP>;
+
+      #[inline]
+      fn deref(&self) -> &Self::Target {
+        &self.0
+      }
+    }
+
+    impl<$($api_param,)? DRSR, TP> core::ops::DerefMut for $name<$api_ty, DRSR, TP>
+    where
+      TP: lucia::network::transport::TransportParams
+    {
+      #[inline]
+      fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+      }
+    }
+  };
+}
+
 macro_rules! _create_set_of_request_throttling {
   (
     $name:ident {
@@ -44,9 +104,24 @@ macro_rules! generic_data_format_doc {
   };
 }
 
-// Implements `Serialize` for several collections
-//
-// Must be in sync with `requests.rs`.
+macro_rules! generic_trans_params_doc {
+  () => {
+    "Grouping of request and response parameters"
+  };
+}
+
+macro_rules! generic_trans_req_params_doc {
+  ($ty:literal) => {
+    concat!("All possible ", $ty, " parameters that a request can manipulate for sending.")
+  };
+}
+
+macro_rules! generic_trans_res_params_doc {
+  ($ty:literal) => {
+    concat!("All possible response parameters returned by a ", $ty, " request.")
+  };
+}
+
 macro_rules! _impl_se_collections {
   (
     for $drsr:ty => $bound:path;
@@ -62,9 +137,9 @@ macro_rules! _impl_se_collections {
         T: $bound,
       {
         #[inline]
-        fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+        fn to_bytes<BB>(&mut self, bytes: &mut BB, drsr: &mut $drsr) -> crate::Result<()>
         where
-          B: crate::misc::ByteBuffer,
+          BB: crate::misc::ByteBuffer,
         {
           let $array_self = self;
           let $array_bytes = bytes;
@@ -76,14 +151,15 @@ macro_rules! _impl_se_collections {
     )?
 
     $(
+      #[cfg(feature = "arrayvec")]
       impl<T, const N: usize> crate::dnsn::Serialize<$drsr> for arrayvec::ArrayVec<T, N>
       where
         T: $bound,
       {
         #[inline]
-        fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+        fn to_bytes<BB>(&mut self, bytes: &mut BB, drsr: &mut $drsr) -> crate::Result<()>
         where
-          B: crate::misc::ByteBuffer,
+          BB: crate::misc::ByteBuffer,
         {
           let $arrayvec_self = self;
           let $arrayvec_bytes = bytes;
@@ -99,9 +175,9 @@ macro_rules! _impl_se_collections {
       T: $bound,
     {
       #[inline]
-      fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+      fn to_bytes<BB>(&mut self, bytes: &mut BB, drsr: &mut $drsr) -> crate::Result<()>
       where
-        B: crate::misc::ByteBuffer,
+        BB: crate::misc::ByteBuffer,
       {
         let $slice_ref_self = self;
         let $slice_ref_bytes = bytes;
@@ -116,9 +192,9 @@ macro_rules! _impl_se_collections {
       T: $bound,
     {
       #[inline]
-      fn to_bytes<B>(&self, bytes: &mut B, drsr: &mut $drsr) -> crate::Result<()>
+      fn to_bytes<BB>(&mut self, bytes: &mut BB, drsr: &mut $drsr) -> crate::Result<()>
       where
-        B: crate::misc::ByteBuffer,
+        BB: crate::misc::ByteBuffer,
       {
         let $vec_self = self;
         let $vec_bytes = bytes;

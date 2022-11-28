@@ -1,15 +1,11 @@
 use crate::blockchain::solana::{
   program::spl_token::AccountBalance, CompiledInstructionJson, InnerInstructionJson,
-  InstructionJson, MessageJsonAccountKey, SolanaAddressHashStr, SolanaLogMessage,
-  TransactionEncoding, TransactionJson, MAX_TRANSACTION_ACCOUNTS_NUM,
+  InstructionJson, MessageJsonAccountKey, SolanaAddressHashStr, TransactionEncoding,
+  TransactionJson,
 };
 use alloc::{string::String, vec::Vec};
-use arrayvec::ArrayVec;
 
-#[allow(
-  // Users can Box if desired
-  clippy::large_enum_variant
-)]
+#[allow(clippy::large_enum_variant)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
 #[derive(Debug)]
@@ -173,7 +169,6 @@ pub enum InstructionError {
   /// which can be dangerous because the error strings could change across
   /// Borsh versions. Only programs can use this error because they are
   /// consistent across Solana software versions.
-  ///
   BorshIoError(String),
 
   /// An account does not have enough lamports to be rent-exempt
@@ -279,10 +274,10 @@ pub struct TransactionMeta {
   pub err: Option<TransactionError>,
   pub fee: u64,
   pub inner_instructions: Vec<InnerInstructionJson>,
-  pub log_messages: Option<Vec<SolanaLogMessage>>,
-  pub post_balances: ArrayVec<u64, MAX_TRANSACTION_ACCOUNTS_NUM>,
+  pub log_messages: Option<Vec<String>>,
+  pub post_balances: Vec<u64>,
   pub post_token_balances: Option<Vec<TransactionTokenBalance>>,
-  pub pre_balances: ArrayVec<u64, MAX_TRANSACTION_ACCOUNTS_NUM>,
+  pub pre_balances: Vec<u64>,
   pub pre_token_balances: Option<Vec<TransactionTokenBalance>>,
 }
 

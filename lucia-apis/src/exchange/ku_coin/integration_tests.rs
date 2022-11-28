@@ -1,36 +1,24 @@
-use crate::exchange::ku_coin::{
-  V1BulletPublicParams, V1CurrenciesParams, V1SymbolsParams, V2CurrenciesParams,
-};
+use crate::exchange::ku_coin::KuCoin;
 use lucia::{
   dnsn::SerdeJson,
-  misc::CommonParams,
-  network::{http::ReqParams, Transport},
+  network::{transport::Transport, HttpParams},
 };
 
-_create_http_test!(http(), v1_bullet_public, |rm, trans| async {
-  let req = rm.v1_bullet_public();
-  let _ = trans.send_retrieve_and_decode_one(rm, &req, V1BulletPublicParams::new()).await.unwrap();
+_create_http_test!(KuCoin, http(), v1_currencies, |pkgs_aux, trans| async {
+  let pkg = &mut pkgs_aux.v1_currencies().build();
+  let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(http(), v1_currencies, |rm, trans| async {
-  let req = rm.v1_currencies();
-  let _ = trans.send_retrieve_and_decode_one(rm, &req, V1CurrenciesParams::new()).await.unwrap();
+_create_http_test!(KuCoin, http(), v2_currencies, |pkgs_aux, trans| async {
+  let pkg = &mut pkgs_aux.v2_currencies().params("BTC").build();
+  let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(http(), v2_currencies, |rm, trans| async {
-  let req = rm.v2_currencies();
-  let _ =
-    trans.send_retrieve_and_decode_one(rm, &req, V2CurrenciesParams::new("BTC")).await.unwrap();
+_create_http_test!(KuCoin, http(), v1_symbols, |pkgs_aux, trans| async {
+  let pkg = &mut pkgs_aux.v1_symbols().build();
+  let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(http(), v1_symbols, |rm, trans| async {
-  let req = rm.v1_symbols();
-  let _ = trans.send_retrieve_and_decode_one(rm, &req, V1SymbolsParams::new()).await.unwrap();
-});
-
-fn http() -> (CommonParams<ReqParams, ()>, SerdeJson) {
-  (
-    CommonParams::new(ReqParams::from_origin("https://openapi-sandbox.kucoin.com").unwrap(), ()),
-    SerdeJson::default(),
-  )
+fn http() -> (SerdeJson, HttpParams) {
+  (SerdeJson, HttpParams::from_url("https://openapi-sandbox.kucoin.com").unwrap())
 }

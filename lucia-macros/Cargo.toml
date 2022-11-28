@@ -1,0 +1,26 @@
+[dependencies]
+proc-macro2 = { default-features = false, version = "1.0" }
+quote = { default-features = false, features = ["proc-macro"], version = "1.0" }
+syn = { default-features = false, features = ["full", "parsing", "printing", "extra-traits", "proc-macro"], version = "1.0" }
+
+[dev-dependencies]
+lucia = { default-features = false, path = "../lucia" }
+trybuild = { default-features = false, version = "1.0" }
+
+[lib]
+proc-macro = true
+
+[package]
+categories = ["asynchronous", "data-structures", "network-programming"]
+description = "Procedural macros for lucia"
+edition = "2021"
+keywords = ["api", "client", "io", "network"]
+license = "MIT"
+name = "lucia-macros"
+readme = "README.md"
+repository = "https://github.com/c410-f3r/lucia"
+rust-version = "1.65"
+version = "0.1.0"
+
+[package.metadata.docs.rs]
+all-features = true

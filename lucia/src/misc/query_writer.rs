@@ -1,3 +1,4 @@
+use cl_aux::DynString;
 use core::{borrow::Borrow, fmt::Display};
 
 /// Query parameters need special handling because of the initial `?`.
@@ -9,7 +10,7 @@ pub struct QueryWriter<'str, S> {
 
 impl<'str, S> QueryWriter<'str, S>
 where
-  S: cl_aux::String,
+  S: DynString,
 {
   #[inline]
   pub(crate) fn new(s: &'str mut S) -> Self {
