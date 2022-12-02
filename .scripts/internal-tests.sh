@@ -37,10 +37,8 @@ LUCIA=(
 
 LUCIA_APIS=(
   # API
-  age-of-empires-ii
   json-placeholder
   ku-coin
-  m-media-covid-19
   nager-date
   solana
 
@@ -59,3 +57,5 @@ for feature in "${LUCIA_APIS[@]}"
 do
 	$rt check-with-features lucia-apis $feature
 done
+
+$rt test-generic lucia-macros

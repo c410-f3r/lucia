@@ -18,7 +18,6 @@ pub(crate) enum Error {
   BadResData(Span),
   DuplicatedAttribute(Span),
   DuplicatedPkg,
-  ElemHasDoc(Span),
   EmptyDataFormats,
   IncorrectJsonRpcDataFormat,
   MandatoryOuterAttrsAreNotPresent,
@@ -55,15 +54,15 @@ impl From<Error> for syn::Error {
       ),
       Error::BadAfterSending(span) => syn::Error::new(
         span,
-        "#[pkg::after_sending] must have be a function with signature of type \
-        `after_sending(&mut ResponseParameters) -> Result<(), DefinedError>` or \
-        `after_sending(&mut Parameters, &mut ResponseParameters) -> Result<(), DefinedError>`",
+        "`#[pkg::after_sending]` must be an async function called `after_sending` containing any \
+        combination of `api: &mut SomeApi`, `params: &mut SomePackageParams`, `req_bytes: &[u8]`, \
+        and `req_params: &mut SomeRequestParams`.",
       ),
       Error::BadBeforeSending(span) => syn::Error::new(
         span,
-        "#[pkg::before_sending] must have be a function with signature of type \
-        `before_sending(&mut ResponseParameters) -> Result<(), DefinedError>` or \
-        `before_sending(&mut Parameters, &mut ResponseParameters) -> Result<(), DefinedError>`",
+        "`#[pkg::before_sending]` must be an async function called `before_sending` containing any \
+        combination of `api: &mut SomeApi`, `params: &mut SomePackageParams` and `res_params: &mut \
+        SomeResponseParams`.",
       ),
       Error::BadReqData(span) => {
         syn::Error::new(span, "Request data must end with the `ReqData` suffix.")
@@ -87,7 +86,6 @@ impl From<Error> for syn::Error {
         Span::call_site(),
         "It is not possible to have more than one `pkg` attribute in this structure.",
       ),
-      Error::ElemHasDoc(span) => syn::Error::new(span, "Element expects no documentation"),
       Error::EmptyDataFormats => {
         syn::Error::new(Span::call_site(), "`#[pkg]` requires at least one data format.")
       }

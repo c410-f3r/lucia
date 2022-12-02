@@ -2,27 +2,14 @@ use proc_macro2::Span;
 use quote::ToTokens;
 use syn::{
   parse::Parse, punctuated::Punctuated, token::Paren, AngleBracketedGenericArguments, Attribute,
-  FnArg, GenericArgument, GenericParam, Generics, PathArguments, PathSegment, Token, Type,
-  TypePath, TypeTuple, WherePredicate,
+  GenericArgument, GenericParam, Generics, PathArguments, PathSegment, Token, Type, TypePath,
+  TypeTuple, WherePredicate,
 };
 
 pub(crate) const EMPTY_GEN_ARGS: &Punctuated<GenericArgument, Token![,]> = &Punctuated::new();
 pub(crate) const EMPTY_GEN_PARAMS: &Punctuated<GenericParam, Token![,]> = &Punctuated::new();
 pub(crate) const EMPTY_PATH_SEGS: &Punctuated<PathSegment, Token![::]> = &Punctuated::new();
 pub(crate) const EMPTY_WHERE_PREDS: &Punctuated<WherePredicate, Token![,]> = &Punctuated::new();
-
-pub(crate) fn fn_arg_typed(fn_arg: &FnArg) -> Option<&Type> {
-  let ty = if let FnArg::Typed(ref elem) = *fn_arg {
-    &elem.ty
-  } else {
-    return None;
-  };
-  if let Type::Reference(ref elem) = **ty {
-    Some(&elem.elem)
-  } else {
-    None
-  }
-}
 
 pub(crate) fn from_camel_case_to_snake_case(string: &str) -> String {
   let mut snake_case_string = String::new();
@@ -103,6 +90,14 @@ pub(crate) fn parts_from_generics(
     &generics.params,
     generics.where_clause.as_ref().map(|el| &el.predicates).unwrap_or(EMPTY_WHERE_PREDS),
   )
+}
+
+pub(crate) fn single_elem<T>(mut iter: impl Iterator<Item = T>) -> Option<T> {
+  let first = iter.next()?;
+  if iter.next().is_some() {
+    return None;
+  }
+  Some(first)
 }
 
 pub(crate) fn split_params(

@@ -15,23 +15,21 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetMultipleAccountsReqData<'pks, S>(
     #[pkg::field(name = "pks")] &'pks [S],
-    #[pkg::field(name = "config")] Option<GetMultipleAccountsConfigReqData>,
+    #[pkg::field(name = "config")] Option<GetMultipleAccountsConfig>,
   )
   where
-    S: AsRef<str>;
+    S: AsRef<str> + Send + Sync;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetMultipleAccountsResData = JsonRpcResponseResultWithContext<Vec<Account>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[lucia_macros::pkg_doc]
-  pub struct GetMultipleAccountsConfigReqData {
+  pub struct GetMultipleAccountsConfig {
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<AccountEncoding>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]

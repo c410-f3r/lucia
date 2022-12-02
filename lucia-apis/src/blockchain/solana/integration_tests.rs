@@ -1,8 +1,7 @@
 use crate::blockchain::solana::{
-  AccountEncoding, AccountSubscribeConfigReqData, Commitment, DataSlice, Filter,
-  GenericTransaction, GetAccountInfoConfigReqData, GetBlockConfigReqData,
-  GetProgramAccountsConfigReqData, GetTokenAccountsByOwnerConfigReqData,
-  GetTransactionConfigReqData, InstructionJsonParsedInfo, Memcmp, MemcmpEncodedBytes, MessageInput,
+  AccountEncoding, AccountSubscribeConfig, Commitment, DataSlice, Filter, GenericTransaction,
+  GetAccountInfoConfig, GetBlockConfig, GetProgramAccountsConfig, GetTokenAccountsByOwnerConfig,
+  GetTransactionConfig, InstructionJsonParsedInfo, Memcmp, MemcmpEncodedBytes, MessageInput,
   MintOrProgramId, Solana, SolanaAddressHash, TransactionDetailsReqData, TransactionEncoding,
   TransactionInput,
 };
@@ -31,12 +30,12 @@ const TO_SOL_TOKEN_MINT: &str = "So11111111111111111111111111111111111111112";
 const TOKEN_PROGRAM: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const WS_URL: &str = "ws://localhost:8900";
 
-_create_http_test!(Solana, http(), get_account_info, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_account_info, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux
     .get_account_info()
     .data(
       TO_NORMAL_ACCOUNT,
-      Some(GetAccountInfoConfigReqData {
+      Some(GetAccountInfoConfig {
         commitment: None,
         data_slice: None,
         encoding: Some(AccountEncoding::JsonParsed),
@@ -53,12 +52,12 @@ _create_http_test!(Solana, http(), get_account_info, |pkgs_aux, trans| async {
     .unwrap();
 });
 
-_create_http_test!(Solana, http(), get_balance, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_balance, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_balance().data(TO_NORMAL_ACCOUNT, None).build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_block, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async {
   let slot_pkg = &mut pkgs_aux.get_slot().data(None, None).build();
   let slot =
     trans.send_retrieve_and_decode_contained(slot_pkg, pkgs_aux).await.unwrap().result.unwrap();
@@ -66,7 +65,7 @@ _create_http_test!(Solana, http(), get_block, |pkgs_aux, trans| async {
     .get_block()
     .data(
       slot,
-      Some(GetBlockConfigReqData {
+      Some(GetBlockConfig {
         commitment: Some(Commitment::Finalized),
         encoding: Some(TransactionEncoding::JsonParsed),
         rewards: Some(true),
@@ -77,18 +76,18 @@ _create_http_test!(Solana, http(), get_block, |pkgs_aux, trans| async {
   let _ = trans.send_retrieve_and_decode_contained(get_block_pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_block_height, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_block_height, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_block_height().data(Some(Commitment::Finalized), Some(2)).build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_cluster_nodes, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_cluster_nodes, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_cluster_nodes().build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
 #[cfg(feature = "solana-program")]
-_create_http_test!(Solana, http(), get_fee_for_message, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_fee_for_message, |pkgs_aux, trans| async {
   let from_keypair = Keypair::from_bytes(&alice_keypair()[..]).unwrap();
   let from_public_key = from_keypair.public.to_bytes();
   let get_latest_blockhash_pkg = &mut pkgs_aux.get_latest_blockhash().data(None, None).build();
@@ -117,7 +116,7 @@ _create_http_test!(Solana, http(), get_fee_for_message, |pkgs_aux, trans| async 
 });
 
 _create_http_test!(
-  Solana,
+  Solana::new(None),
   http(),
   get_minimum_balance_for_rent_exemption,
   |pkgs_aux, trans| async {
@@ -126,7 +125,7 @@ _create_http_test!(
   }
 );
 
-_create_http_test!(Solana, http(), get_multiple_accounts, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_multiple_accounts, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux
     .get_multiple_accounts()
     .data(&[TO_NORMAL_ACCOUNT, TO_SOL_TOKEN_ACCOUNT], None)
@@ -134,12 +133,12 @@ _create_http_test!(Solana, http(), get_multiple_accounts, |pkgs_aux, trans| asyn
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_program_accounts, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_program_accounts, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux
     .get_program_accounts()
     .data(
       TOKEN_PROGRAM,
-      Some(GetProgramAccountsConfigReqData {
+      Some(GetProgramAccountsConfig {
         commitment: None,
         data_slice: Some(DataSlice { length: 32, offset: 0 }),
         encoding: Some(AccountEncoding::Base64),
@@ -160,45 +159,50 @@ _create_http_test!(Solana, http(), get_program_accounts, |pkgs_aux, trans| async
   );
 });
 
-_create_http_test!(Solana, http(), get_slot, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_slot, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_slot().data(Some(Commitment::Processed), Some(2)).build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_slot_leader, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_slot_leader, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_slot_leader().data(Some(Commitment::Processed), Some(2)).build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_slot_leaders, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_slot_leaders, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_slot_leaders().data(1, 2).build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_token_account_balance, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_token_account_balance, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_token_account_balance().data(TO_SOL_TOKEN_ACCOUNT, None).build();
   let _ = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
 });
 
-_create_http_test!(Solana, http(), get_token_accounts_by_owner, |pkgs_aux, trans| async {
-  let pkg = &mut pkgs_aux
-    .get_token_accounts_by_owner()
-    .data(
-      TO_NORMAL_ACCOUNT,
-      MintOrProgramId::Mint(TO_SOL_TOKEN_MINT),
-      Some(GetTokenAccountsByOwnerConfigReqData {
-        commitment: None,
-        data_slice: None,
-        encoding: Some(AccountEncoding::JsonParsed),
-        min_context_slot: None,
-      }),
-    )
-    .build();
-  let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
-  let _ = res.result.unwrap().value[0].pubkey;
-});
+_create_http_test!(
+  Solana::new(None),
+  http(),
+  get_token_accounts_by_owner,
+  |pkgs_aux, trans| async {
+    let pkg = &mut pkgs_aux
+      .get_token_accounts_by_owner()
+      .data(
+        TO_NORMAL_ACCOUNT,
+        MintOrProgramId::Mint(TO_SOL_TOKEN_MINT),
+        Some(GetTokenAccountsByOwnerConfig {
+          commitment: None,
+          data_slice: None,
+          encoding: Some(AccountEncoding::JsonParsed),
+          min_context_slot: None,
+        }),
+      )
+      .build();
+    let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
+    let _ = res.result.unwrap().value[0].pubkey;
+  }
+);
 
-_create_http_test!(Solana, http(), get_version, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), get_version, |pkgs_aux, trans| async {
   let pkg = &mut pkgs_aux.get_version().build();
   let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap();
   let _ = res.result.unwrap().feature_set;
@@ -206,7 +210,7 @@ _create_http_test!(Solana, http(), get_version, |pkgs_aux, trans| async {
 
 #[cfg(feature = "solana-program")]
 _create_http_test!(
-  Solana,
+  Solana::new(None),
   http(),
   http_get_latest_blockhash_send_transaction_and_get_transaction,
   |pkgs_aux, trans| async {
@@ -237,7 +241,7 @@ _create_http_test!(
       .get_transaction()
       .data(
         tx_hash.as_str(),
-        Some(GetTransactionConfigReqData {
+        Some(GetTransactionConfig {
           commitment: Some(Commitment::Finalized),
           encoding: Some(TransactionEncoding::Base64),
         }),
@@ -255,7 +259,7 @@ _create_http_test!(
       .get_transaction()
       .data(
         tx_hash.as_str(),
-        Some(GetTransactionConfigReqData {
+        Some(GetTransactionConfig {
           commitment: Some(Commitment::Finalized),
           encoding: Some(TransactionEncoding::Json),
         }),
@@ -273,7 +277,7 @@ _create_http_test!(
       .get_transaction()
       .data(
         tx_hash.as_str(),
-        Some(GetTransactionConfigReqData {
+        Some(GetTransactionConfig {
           commitment: Some(Commitment::Finalized),
           encoding: Some(TransactionEncoding::JsonParsed),
         }),
@@ -293,7 +297,7 @@ _create_http_test!(
   }
 );
 
-_create_http_test!(Solana, http(), http_reqs_with_array, |pkgs_aux, trans| async {
+_create_http_test!(Solana::new(None), http(), http_reqs_with_array, |pkgs_aux, trans| async {
   let first = &mut pkgs_aux.get_balance().data(TO_NORMAL_ACCOUNT, None).build();
   let second = &mut pkgs_aux.get_balance().data(TO_NORMAL_ACCOUNT, None).build();
   let mut buffer = Vec::new();
@@ -305,17 +309,14 @@ _create_http_test!(Solana, http(), http_reqs_with_array, |pkgs_aux, trans| async
 
 _create_tokio_tungstenite_test!(
   WS_URL,
-  Solana,
+  Solana::new(None),
   ws(),
   account_subscribe,
   (account_unsubscribe),
   |pkgs_aux, trans| async {
     let pkg = &mut pkgs_aux
       .account_subscribe()
-      .data(
-        TO_NORMAL_ACCOUNT,
-        Some(AccountSubscribeConfigReqData { commitment: None, encoding: None }),
-      )
+      .data(TO_NORMAL_ACCOUNT, Some(AccountSubscribeConfig { commitment: None, encoding: None }))
       .build();
     [trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await.unwrap().result.unwrap()]
   }
@@ -323,7 +324,7 @@ _create_tokio_tungstenite_test!(
 
 _create_tokio_tungstenite_test!(
   WS_URL,
-  Solana,
+  Solana::new(None),
   ws(),
   root_subscribe,
   (root_unsubscribe),
@@ -335,7 +336,7 @@ _create_tokio_tungstenite_test!(
 
 _create_tokio_tungstenite_test!(
   WS_URL,
-  Solana,
+  Solana::new(None),
   ws(),
   slot_subscribe,
   (slot_unsubscribe),
@@ -347,7 +348,7 @@ _create_tokio_tungstenite_test!(
 
 _create_tokio_tungstenite_test!(
   WS_URL,
-  Solana,
+  Solana::new(None),
   ws(),
   slot_updates_subscribe,
   (slots_updates_unsubscribe),
@@ -359,7 +360,7 @@ _create_tokio_tungstenite_test!(
 
 _create_tokio_tungstenite_test!(
   WS_URL,
-  Solana,
+  Solana::new(None),
   ws(),
   ws_reqs_with_array,
   (account_unsubscribe, account_unsubscribe),
@@ -368,7 +369,7 @@ _create_tokio_tungstenite_test!(
       .account_subscribe()
       .data(
         TO_NORMAL_ACCOUNT,
-        Some(AccountSubscribeConfigReqData {
+        Some(AccountSubscribeConfig {
           commitment: Some(Commitment::Confirmed),
           encoding: Some(AccountEncoding::JsonParsed),
         }),
@@ -378,7 +379,7 @@ _create_tokio_tungstenite_test!(
       .account_subscribe()
       .data(
         TO_NORMAL_ACCOUNT,
-        Some(AccountSubscribeConfigReqData {
+        Some(AccountSubscribeConfig {
           commitment: Some(Commitment::Confirmed),
           encoding: Some(AccountEncoding::JsonParsed),
         }),

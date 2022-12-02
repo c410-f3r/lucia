@@ -2,6 +2,8 @@
 
 mod status_code;
 
+use core::fmt::{Arguments, Write};
+
 use crate::{misc::UrlString, network::transport::TransportParams};
 use alloc::{string::String, vec::Vec};
 pub use status_code::*;
@@ -9,6 +11,7 @@ pub use status_code::*;
 #[derive(Debug)]
 #[doc = generic_trans_params_doc!()]
 pub struct HttpParams(HttpReqParams, HttpResParams);
+
 impl HttpParams {
   /// For example, from `http://localhost`.
   #[inline]
@@ -25,6 +28,7 @@ impl HttpParams {
     ))
   }
 }
+
 impl TransportParams for HttpParams {
   type ExternalRequestParams = HttpReqParams;
   type ExternalResponseParams = HttpResParams;
@@ -48,6 +52,19 @@ pub enum HttpMethod {
   Post,
   /// PUT
   Put,
+}
+
+impl From<HttpMethod> for &'static str {
+  #[inline]
+  fn from(from: HttpMethod) -> Self {
+    match from {
+      HttpMethod::Delete => "DELETE",
+      HttpMethod::Get => "GET",
+      HttpMethod::Patch => "PATCH",
+      HttpMethod::Post => "POST",
+      HttpMethod::Put => "PUT",
+    }
+  }
 }
 
 /// Used to specify the data type that is going to be sent to a counterpart.
@@ -148,13 +165,26 @@ impl HttpHeaders {
 
   /// Pushes a new pair of `key` and `value` at the end of the internal buffer.
   #[inline]
-  pub fn push(&mut self, key: &str, value: &str) {
+  pub fn push_str(&mut self, key: &str, value: &str) -> crate::Result<()> {
+    self.push_fmt(format_args!("{}", key), format_args!("{}", value))?;
+    Ok(())
+  }
+
+  /// Similar to [Self::push_str] but expects an `Arguments` instead.
+  #[inline]
+  pub fn push_fmt(&mut self, key: Arguments<'_>, value: Arguments<'_>) -> crate::Result<()> {
     let curr_len = self.buffer.len();
-    let key_idx = curr_len.wrapping_add(key.len());
-    let value_idx = key_idx.wrapping_add(value.len());
-    self.buffer.push_str(key);
-    self.buffer.push_str(value);
+
+    let before_key_len = self.buffer.len();
+    self.buffer.write_fmt(key)?;
+    let key_idx = curr_len.wrapping_add(self.buffer.len().wrapping_sub(before_key_len));
+
+    let before_value_len = self.buffer.len();
+    self.buffer.write_fmt(value)?;
+    let value_idx = key_idx.wrapping_add(self.buffer.len().wrapping_sub(before_value_len));
+
     self.indcs.push((key_idx, value_idx));
+    Ok(())
   }
 }
 
@@ -166,9 +196,9 @@ mod tests {
   #[test]
   fn headers_has_correct_values() {
     let mut headers = HttpHeaders::default();
-    headers.push("1", "2");
+    headers.push_str("1", "2").unwrap();
     assert_eq!(headers.iter().collect::<Vec<_>>(), vec![("1", "2")]);
-    headers.push("3", "4");
+    headers.push_str("3", "4").unwrap();
     assert_eq!(headers.iter().collect::<Vec<_>>(), vec![("1", "2"), ("3", "4")]);
     headers.clear();
     assert_eq!(headers.iter().collect::<Vec<_>>(), vec![]);

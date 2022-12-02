@@ -4,8 +4,7 @@
 )]
 
 use crate::{
-  dnsn::Serialize,
-  misc::{log_req, FromBytes},
+  misc::{manage_before_sending_related, FromBytes},
   network::{transport::Transport, TransportGroup},
   package::{Package, PackagesAux},
 };
@@ -98,13 +97,11 @@ where
   where
     P: Package<DRSR, ()> + Send + Sync,
   {
-    let rslt = {
-      let mut vec = Vec::new();
-      pkg.ext_req_ctnt_mut().to_bytes(&mut vec, &mut pkgs_aux.drsr)?;
-      self.requests.push(Cow::Owned(FromBytes::from_bytes(&vec)?))
-    };
-    log_req(pkg, pkgs_aux, self);
-    Ok(rslt)
+    manage_before_sending_related(pkg, pkgs_aux, self).await?;
+    self.requests.push(Cow::Owned(FromBytes::from_bytes(&pkgs_aux.byte_buffer)?));
+    pkgs_aux.byte_buffer.clear();
+    pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
+    Ok(())
   }
 
   #[inline]

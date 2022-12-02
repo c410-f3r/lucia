@@ -1,4 +1,4 @@
-use crate::item_with_attr_span::ItemWithAttrSpan;
+use crate::{item_with_attr_span::ItemWithAttrSpan, misc::push_doc_if_inexistent};
 use proc_macro2::Ident;
 use syn::Item;
 
@@ -11,10 +11,10 @@ impl<'module> TryFrom<ItemWithAttrSpan<(), &'module mut Item>> for FirResDataIte
   type Error = crate::Error;
 
   fn try_from(from: ItemWithAttrSpan<(), &'module mut Item>) -> Result<Self, Self::Error> {
-    let (res_ident, generics) = match *from.item {
-      Item::Enum(ref mut item) => (&item.ident, &item.generics),
-      Item::Struct(ref mut item) => (&item.ident, &item.generics),
-      Item::Type(ref mut item) => (&item.ident, &item.generics),
+    let (attrs, res_ident, generics) = match *from.item {
+      Item::Enum(ref mut item) => (&mut item.attrs, &item.ident, &item.generics),
+      Item::Struct(ref mut item) => (&mut item.attrs, &item.ident, &item.generics),
+      Item::Type(ref mut item) => (&mut item.attrs, &item.ident, &item.generics),
       Item::Const(_)
       | Item::ExternCrate(_)
       | Item::Fn(_)
@@ -31,6 +31,7 @@ impl<'module> TryFrom<ItemWithAttrSpan<(), &'module mut Item>> for FirResDataIte
       | Item::Verbatim(_)
       | _ => return Err(crate::Error::NoEnumStructOrType(from.span)),
     };
+    push_doc_if_inexistent(attrs, "Expected data response returned by the server.");
     if !res_ident.to_string().ends_with("ResData") {
       return Err(crate::Error::BadResData(res_ident.span()));
     }

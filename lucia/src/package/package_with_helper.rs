@@ -1,6 +1,7 @@
 use crate::{
   data_format::JsonRpcRequest, network::transport::TransportParams, package::Package, Id,
 };
+use alloc::boxed::Box;
 use core::{
   borrow::Borrow,
   cmp::{Ord, Ordering},
@@ -32,9 +33,11 @@ impl<H, P> PackageWithHelper<H, P> {
   }
 }
 
+#[async_trait::async_trait]
 impl<DRSR, H, P, TP> Package<DRSR, TP> for PackageWithHelper<H, P>
 where
-  P: Package<DRSR, TP>,
+  H: Send + Sync,
+  P: Package<DRSR, TP> + Send + Sync,
   TP: TransportParams,
 {
   type Api = P::Api;
@@ -44,31 +47,32 @@ where
   type PackageParams = P::PackageParams;
 
   #[inline]
-  fn after_sending(
+  async fn after_sending(
     &mut self,
     api: &mut Self::Api,
     ext_res_params: &mut TP::ExternalResponseParams,
   ) -> Result<(), Self::Error> {
-    self.package.after_sending(api, ext_res_params)
+    self.package.after_sending(api, ext_res_params).await
   }
 
   #[inline]
-  fn before_sending(
+  async fn before_sending(
     &mut self,
     api: &mut Self::Api,
     ext_req_params: &mut TP::ExternalRequestParams,
+    req_bytes: &[u8],
   ) -> Result<(), Self::Error> {
-    self.package.before_sending(api, ext_req_params)
+    self.package.before_sending(api, ext_req_params, req_bytes).await
   }
 
   #[inline]
-  fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent {
-    self.package.ext_req_ctnt()
+  fn ext_req_content(&self) -> &Self::ExternalRequestContent {
+    self.package.ext_req_content()
   }
 
   #[inline]
-  fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent {
-    self.package.ext_req_ctnt_mut()
+  fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
+    self.package.ext_req_content_mut()
   }
 
   #[inline]

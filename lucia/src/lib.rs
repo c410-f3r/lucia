@@ -6,6 +6,7 @@ extern crate alloc;
 #[macro_use]
 mod macros;
 
+mod api;
 pub mod data_format;
 pub mod dnsn;
 mod error;
@@ -13,6 +14,7 @@ pub mod misc;
 pub mod network;
 pub mod package;
 
+pub use api::Api;
 pub use error::Error;
 #[cfg(feature = "macros")]
 pub use lucia_macros::*;

@@ -1,3 +1,5 @@
+//! Common implementation for Fungible and Non Fungible tokens.
+
 mod account;
 mod account_balance;
 mod generic_account;

@@ -17,11 +17,15 @@ mod integration_tests;
 mod pkg;
 
 use crate::misc::PackagesAux;
-use lucia::network::HttpParams;
+use lucia::{network::HttpParams, Api};
 pub use pkg::*;
 
 pub(crate) type NagerDateHttpPackagesAux<DRSR> = PackagesAux<NagerDate, DRSR, HttpParams>;
 
 #[derive(Debug)]
-#[doc = _generic_dummy_api_doc!()]
+#[doc = _generic_api_doc!()]
 pub struct NagerDate;
+
+impl Api for NagerDate {
+  type Error = crate::Error;
+}

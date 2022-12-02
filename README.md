@@ -64,6 +64,10 @@ pub async fn fetch_my_endpoint() -> lucia::Result<i32> {
 
 ## Data formats
 
+Each request has one or more data formats or protocols attached specifically to an API.
+
+They are what will be serialized and deserialized so order to create yet another data format, it is necessary to implement `Deserialize` and `Serialize` according to the desired serializer.
+
 | Name | URL |
 |---|---|
 | JSON | <https://www.json.org/json-en.html> |
@@ -73,6 +77,8 @@ pub async fn fetch_my_endpoint() -> lucia::Result<i32> {
 
 ## De-serializers/Serializers
 
+Can be applied to one or more different data formats.
+
 | Feature | URL |
 |---|---|
 | miniserde | <https://docs.rs/miniserde> |
@@ -81,6 +87,10 @@ pub async fn fetch_my_endpoint() -> lucia::Result<i32> {
 | serde-yaml | <https://docs.rs/serde_yaml> |
 
 ## Transports
+
+How a request should be deployed. Transports have their own trait conveniently called `Transport`.
+
+Custom transport implementations can be declared in `lucia-macros` using the `transport(custom(SomeTransport))` attribute.
 
 | Name | Feature | URL |
 |---|---|---|

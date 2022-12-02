@@ -12,7 +12,6 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetSlotLeaderReqData(
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -23,7 +22,6 @@ pub(crate) mod pkg {
     pub Option<u64>,
   );
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetSlotLeaderResData = SolanaAddressHashStr;
 }

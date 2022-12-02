@@ -27,6 +27,7 @@ macro_rules! create_fir_custom_item_values {
   ) => {
     use crate::{
       item_with_attr_span::ItemWithAttrSpan,
+      misc::push_doc_if_inexistent,
       pkg::{
         enum_struct_or_type::EnumStructOrType,
         fir::{
@@ -75,11 +76,13 @@ macro_rules! create_fir_custom_item_values {
         let mut local_fields_attrs = Vec::new();
         match *from.item {
           Item::Enum(ref mut item) => {
+            push_doc_if_inexistent(&mut item.attrs, $doc);
             local_generics = &item.generics;
             local_ident = &item.ident;
             local_item = EnumStructOrType::Enum(item);
           }
           Item::Struct(ref mut item) => {
+            push_doc_if_inexistent(&mut item.attrs, $doc);
             local_generics = &item.generics;
             local_ident = &item.ident;
             match item.fields {
@@ -94,6 +97,7 @@ macro_rules! create_fir_custom_item_values {
             local_item = EnumStructOrType::Struct(item);
           }
           Item::Type(ref mut item) => {
+            push_doc_if_inexistent(&mut item.attrs, $doc);
             local_generics = &item.generics;
             local_ident = &item.ident;
             local_item = EnumStructOrType::Type(item);

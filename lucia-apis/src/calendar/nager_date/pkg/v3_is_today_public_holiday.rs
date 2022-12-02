@@ -14,10 +14,7 @@ pub(crate) mod pkg {
   impl<DRSR> NagerDateHttpPackagesAux<DRSR> {}
 
   #[pkg::after_sending]
-  fn after_sending(
-    _: &mut V3IsTodayPublicHolidayParams<'_>,
-    res_params: &mut HttpResParams,
-  ) -> crate::Result<()> {
+  async fn after_sending(res_params: &mut HttpResParams) -> crate::Result<()> {
     if res_params.status_code == StatusCode::Ok {
       Ok(())
     } else {
@@ -26,7 +23,7 @@ pub(crate) mod pkg {
   }
 
   #[pkg::before_sending]
-  fn before_sending(
+  async fn before_sending(
     params: &mut V3IsTodayPublicHolidayParams<'_>,
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
@@ -42,7 +39,6 @@ pub(crate) mod pkg {
   }
 
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::params]
   pub struct V3IsTodayPublicHolidayParams<'any> {
     country_code: &'any str,
@@ -52,11 +48,9 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct V3IsTodayPublicHolidayReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type V3IsTodayPublicHolidayResData = Box<V3IsTodayPublicHolidayElemResData>;
 

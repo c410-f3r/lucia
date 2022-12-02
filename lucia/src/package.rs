@@ -7,9 +7,11 @@ mod packages_aux;
 use crate::{
   dnsn::{Deserialize, Serialize},
   network::transport::TransportParams,
+  Api,
 };
-pub use batch_package::*;
-use core::fmt::{Debug, Display};
+use alloc::boxed::Box;
+pub use batch_package::{BatchElems, BatchPackage};
+use core::fmt::Display;
 pub use package_with_helper::*;
 pub use packages_aux::*;
 
@@ -20,14 +22,15 @@ pub use packages_aux::*;
 ///
 /// `DRSR`: DeserializeR/SerializeR
 /// `TP`: Transport Parameters
+#[async_trait::async_trait]
 pub trait Package<DRSR, TP>
 where
   TP: TransportParams,
 {
   /// Which API this package is attached to.
-  type Api: Send + Sync;
-  /// Any error structure that has the required bounds.
-  type Error: Debug + Display + From<crate::Error>;
+  type Api: Api<Error = Self::Error> + Send + Sync;
+  /// Any custom error structure that can be constructed from [crate::Error].
+  type Error: Display + From<crate::Error>;
   /// The expected data format that is going to be sent to an external actor.
   type ExternalRequestContent: Serialize<DRSR>;
   /// The expected data format returned by an external actor.
@@ -35,9 +38,10 @@ where
   /// Any additional parameters used by this package.
   type PackageParams;
 
-  /// Fallible hook that is automatically called after sending the request.
+  /// Fallible hook that is automatically called after sending the request described in this
+  /// package.
   #[inline]
-  fn after_sending(
+  async fn after_sending(
     &mut self,
     _api: &mut Self::Api,
     _ext_res_params: &mut TP::ExternalResponseParams,
@@ -45,25 +49,27 @@ where
     Ok(())
   }
 
-  /// Fallible hook that is automatically called before sending the request.
+  /// Fallible hook that is automatically called before sending the request described in this
+  /// package.
   #[inline]
-  fn before_sending(
+  async fn before_sending(
     &mut self,
     _api: &mut Self::Api,
     _ext_req_params: &mut TP::ExternalRequestParams,
+    _req_bytes: &[u8],
   ) -> Result<(), Self::Error> {
     Ok(())
   }
 
-  /// EXTernal REQuest ConTeNT
+  /// External Request Content
   ///
   /// Instance value of the defined [Self::ExternalRequestContent].
-  fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent;
+  fn ext_req_content(&self) -> &Self::ExternalRequestContent;
 
-  /// Similar to [Self::ext_req_ctnt] but returns a mutable reference instead.
-  fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent;
+  /// Similar to [Self::ext_req_content] but returns a mutable reference instead.
+  fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent;
 
-  /// PacKaGe PARAmeterS
+  /// Package Parameters
   ///
   /// Instance value of the defined [Self::ExternalRequestContent].
   fn pkg_params(&self) -> &Self::PackageParams;
@@ -72,6 +78,7 @@ where
   fn pkg_params_mut(&mut self) -> &mut Self::PackageParams;
 }
 
+#[async_trait::async_trait]
 impl<DRSR, TP> Package<DRSR, TP> for ()
 where
   TP: TransportParams,
@@ -83,30 +90,12 @@ where
   type PackageParams = ();
 
   #[inline]
-  fn after_sending(
-    &mut self,
-    _: &mut Self::Api,
-    _: &mut TP::ExternalResponseParams,
-  ) -> Result<(), Self::Error> {
-    Ok(())
-  }
-
-  #[inline]
-  fn before_sending(
-    &mut self,
-    _: &mut Self::Api,
-    _: &mut TP::ExternalRequestParams,
-  ) -> Result<(), Self::Error> {
-    Ok(())
-  }
-
-  #[inline]
-  fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent {
+  fn ext_req_content(&self) -> &Self::ExternalRequestContent {
     &()
   }
 
   #[inline]
-  fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent {
+  fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
     self
   }
 
@@ -121,9 +110,10 @@ where
   }
 }
 
+#[async_trait::async_trait]
 impl<DRSR, P, TP> Package<DRSR, TP> for &mut P
 where
-  P: Package<DRSR, TP>,
+  P: Package<DRSR, TP> + Send + Sync,
   TP: TransportParams,
 {
   type Api = P::Api;
@@ -133,31 +123,32 @@ where
   type PackageParams = P::PackageParams;
 
   #[inline]
-  fn after_sending(
+  async fn after_sending(
     &mut self,
     api: &mut Self::Api,
     ext_res_params: &mut TP::ExternalResponseParams,
   ) -> Result<(), Self::Error> {
-    (**self).after_sending(api, ext_res_params)
+    (**self).after_sending(api, ext_res_params).await
   }
 
   #[inline]
-  fn before_sending(
+  async fn before_sending(
     &mut self,
     api: &mut Self::Api,
     ext_req_params: &mut TP::ExternalRequestParams,
+    req_bytes: &[u8],
   ) -> Result<(), Self::Error> {
-    (**self).before_sending(api, ext_req_params)
+    (**self).before_sending(api, ext_req_params, req_bytes).await
   }
 
   #[inline]
-  fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent {
-    (**self).ext_req_ctnt()
+  fn ext_req_content(&self) -> &Self::ExternalRequestContent {
+    (**self).ext_req_content()
   }
 
   #[inline]
-  fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent {
-    (**self).ext_req_ctnt_mut()
+  fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
+    (**self).ext_req_content_mut()
   }
 
   #[inline]

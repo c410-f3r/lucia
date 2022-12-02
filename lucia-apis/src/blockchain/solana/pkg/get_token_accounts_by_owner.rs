@@ -15,17 +15,15 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetTokenAccountsByOwnerReqData<S>(
     #[pkg::field(name = "pk")] S,
     #[pkg::field(name = "criteria")] MintOrProgramId<S>,
-    #[pkg::field(name = "config")] Option<GetTokenAccountsByOwnerConfigReqData>,
+    #[pkg::field(name = "config")] Option<GetTokenAccountsByOwnerConfig>,
   )
   where
-    S: AsRef<str>;
+    S: AsRef<str> + Send;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetTokenAccountsByOwnerResData =
     JsonRpcResponseResultWithContext<Vec<GetTokenAccountsByOwnerResElem>>;
@@ -33,7 +31,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[lucia_macros::pkg_doc]
-  pub struct GetTokenAccountsByOwnerConfigReqData {
+  pub struct GetTokenAccountsByOwnerConfig {
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<AccountEncoding>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]

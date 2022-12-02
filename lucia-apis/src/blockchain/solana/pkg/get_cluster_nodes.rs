@@ -13,11 +13,9 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetClusterNodesReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetClusterNodesResData = Vec<GetClusterNodesResElem>;
 

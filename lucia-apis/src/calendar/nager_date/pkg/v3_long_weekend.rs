@@ -14,7 +14,7 @@ pub(crate) mod pkg {
   impl<DRSR> NagerDateHttpPackagesAux<DRSR> {}
 
   #[pkg::before_sending]
-  fn before_sending(
+  async fn before_sending(
     params: &mut V3LongWeekendParams<'_>,
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
@@ -25,7 +25,6 @@ pub(crate) mod pkg {
   }
 
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::params]
   pub struct V3LongWeekendParams<'any> {
     year: i16,
@@ -34,11 +33,9 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct V3LongWeekendReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type V3LongWeekendResData = Vec<V3LongWeekendElemResData>;
 

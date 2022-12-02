@@ -1,5 +1,4 @@
-use crate::misc::{push_allow_missing_docs, push_docs};
-use proc_macro2::Span;
+use crate::misc::{has_at_least_one_doc, push_allow_missing_docs, push_doc_if_inexistent};
 use quote::ToTokens;
 use syn::{Attribute, Fields, Item};
 
@@ -19,13 +18,13 @@ pub(crate) fn pkg_doc(
 
   match item {
     Item::Enum(ref mut container) => {
-      manage_container_doc(&mut container.attrs, container.ident.span())?;
+      push_doc_if_inexistent(&mut container.attrs, CONTAINER_DOC);
       for variant in container.variants.iter_mut() {
         manage_attrs_doc(&mut variant.attrs)
       }
     }
     Item::Struct(ref mut container) => {
-      manage_container_doc(&mut container.attrs, container.ident.span())?;
+      push_doc_if_inexistent(&mut container.attrs, CONTAINER_DOC);
       match container.fields {
         Fields::Named(ref mut elem) => {
           for variant in elem.named.iter_mut() {
@@ -41,7 +40,7 @@ pub(crate) fn pkg_doc(
       }
     }
     Item::Type(ref mut container) => {
-      manage_container_doc(&mut container.attrs, container.ident.span())?;
+      push_doc_if_inexistent(&mut container.attrs, CONTAINER_DOC);
     }
     Item::Const(_)
     | Item::ExternCrate(_)
@@ -63,27 +62,8 @@ pub(crate) fn pkg_doc(
   Ok(item.to_token_stream().into())
 }
 
-pub(crate) fn has_at_least_one_doc(attrs: &[Attribute]) -> bool {
-  attrs.iter().any(|attr| {
-    if let Some(last) = attr.path.segments.last() {
-      last.ident == "doc"
-    } else {
-      false
-    }
-  })
-}
-
 pub(crate) fn manage_attrs_doc(attrs: &mut Vec<Attribute>) {
   if !has_at_least_one_doc(attrs) {
     push_allow_missing_docs(attrs);
-  }
-}
-
-pub(crate) fn manage_container_doc(attrs: &mut Vec<Attribute>, span: Span) -> crate::Result<()> {
-  if has_at_least_one_doc(attrs) {
-    Err(crate::Error::ElemHasDoc(span))
-  } else {
-    push_docs(attrs, CONTAINER_DOC);
-    Ok(())
   }
 }

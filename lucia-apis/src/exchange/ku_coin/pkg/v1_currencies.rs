@@ -15,18 +15,16 @@ pub(crate) mod pkg {
   impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
 
   #[pkg::before_sending]
-  fn before_sending(req_params: &mut HttpReqParams) -> crate::Result<()> {
+  async fn before_sending(req_params: &mut HttpReqParams) -> crate::Result<()> {
     req_params.url.push_path(format_args!("/api/v1/currencies"))?;
     Ok(())
   }
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct V1CurrenciesReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type V1CurrenciesResData = GenericDataResponse<Vec<V1CurrenciesElemResData>>;
 

@@ -15,7 +15,7 @@ pub(crate) mod pkg {
     #[pkg::aux_data]
     fn get_fee_for_message_data(
       &mut self,
-      config: Option<GetFeeForMessageConfigReqData>,
+      config: Option<GetFeeForMessageConfig>,
       message: &MessageInput,
     ) -> crate::Result<GetFeeForMessageReqData> {
       self.byte_buffer.clear();
@@ -28,20 +28,20 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
-  pub struct GetFeeForMessageReqData(String, Option<GetFeeForMessageConfigReqData>);
+  pub struct GetFeeForMessageReqData(String, Option<GetFeeForMessageConfig>);
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetFeeForMessageResData = JsonRpcResponseResultWithContext<Option<u64>>;
 
+  /// Optional request configurations.
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct GetFeeForMessageConfigReqData {
+  pub struct GetFeeForMessageConfig {
+    /// Commitment
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
+    /// Minimum slot that the request can be evaluated at.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub min_context_slot: Option<u64>,
   }

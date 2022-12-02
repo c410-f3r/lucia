@@ -1,5 +1,5 @@
 create_fir_custom_item_values!(
-  "Please see the official API's documentation to get more information about the data of this request.",
+  "Expected data request that will be sent to the server.",
   FirReqDataItemValues,
   freqdiv_fields_attrs,
   freqdiv_ident,

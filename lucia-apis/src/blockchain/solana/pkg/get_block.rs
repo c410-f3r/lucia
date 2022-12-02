@@ -12,21 +12,19 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetBlockReqData(
     #[pkg::field(name = "slot")] u64,
-    #[pkg::field(name = "config")] Option<GetBlockConfigReqData>,
+    #[pkg::field(name = "config")] Option<GetBlockConfig>,
   );
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetBlockResData = Option<Block>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[lucia_macros::pkg_doc]
-  pub struct GetBlockConfigReqData {
+  pub struct GetBlockConfig {
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]

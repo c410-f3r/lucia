@@ -1,5 +1,5 @@
 use crate::{
-  misc::log_req,
+  misc::manage_before_sending_related,
   network::{transport::Transport, TransportGroup},
   package::{Package, PackagesAux},
 };
@@ -32,7 +32,8 @@ where
   where
     P: Package<DRSR, ()> + Send + Sync,
   {
-    log_req(pkg, pkgs_aux, self);
+    manage_before_sending_related(pkg, pkgs_aux, self).await?;
+    pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
     Ok(())
   }
 
@@ -45,7 +46,7 @@ where
   where
     P: Package<DRSR, ()> + Send + Sync,
   {
-    log_req(pkg, pkgs_aux, self);
+    self.send(pkg, pkgs_aux).await?;
     Ok(0)
   }
 }

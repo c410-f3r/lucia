@@ -1,6 +1,5 @@
 use crate::{
-  dnsn::Serialize,
-  misc::log_req,
+  misc::manage_before_sending_related,
   network::{
     transport::{Transport, TransportParams},
     TcpParams, TransportGroup, UdpParams,
@@ -100,7 +99,7 @@ where
   T: Send + Sync + Transport<DRSR>,
 {
   pkgs_aux.byte_buffer.clear();
-  pkg.ext_req_ctnt_mut().to_bytes(&mut pkgs_aux.byte_buffer, &mut pkgs_aux.drsr)?;
+  manage_before_sending_related(pkg, pkgs_aux, trans).await?;
   let mut slice = pkgs_aux.byte_buffer.as_ref();
   let mut everything_was_sent = false;
   for _ in 0..16 {
@@ -114,8 +113,8 @@ where
   }
   pkgs_aux.byte_buffer.clear();
   pkgs_aux.byte_buffer.extend((0..pkgs_aux.byte_buffer.capacity()).map(|_| 0));
+  pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
   if everything_was_sent {
-    log_req(pkg, pkgs_aux, trans);
     Ok(())
   } else {
     Err(crate::Error::CouldNotSendTheFullRequestData.into())
@@ -174,11 +173,11 @@ mod tests {
     type ExternalResponseContent = Pong;
     type PackageParams = ();
 
-    fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent {
+    fn ext_req_content(&self) -> &Self::ExternalRequestContent {
       &self.0
     }
 
-    fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent {
+    fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
       &mut self.0
     }
 

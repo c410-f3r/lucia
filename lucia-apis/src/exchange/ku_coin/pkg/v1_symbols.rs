@@ -15,18 +15,16 @@ pub(crate) mod pkg {
   impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
 
   #[pkg::before_sending]
-  fn before_sending(req_params: &mut HttpReqParams) -> crate::Result<()> {
+  async fn before_sending(req_params: &mut HttpReqParams) -> crate::Result<()> {
     req_params.url.push_path(format_args!("/api/v1/symbols"))?;
     Ok(())
   }
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct V1SymbolsReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type V1SymbolsResData = GenericDataResponse<Vec<V1SymbolsElemResData>>;
 
