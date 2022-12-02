@@ -27,15 +27,20 @@ impl<'attrs> TryFrom<&'attrs [NestedMeta]> for FirPkgAttr<'attrs> {
       } else {
         continue;
       };
-      if first_meta_list_path_seg.ident == "api" {
-        api = first_nested_meta_path(meta_list);
-      } else if first_meta_list_path_seg.ident == "data_format" {
-        data_formats = Some(&meta_list.nested);
-      } else if first_meta_list_path_seg.ident == "error" {
-        error = first_nested_meta_path(meta_list);
-      } else if first_meta_list_path_seg.ident == "transport" {
-        transports = Some(&meta_list.nested);
-      } else {
+      match first_meta_list_path_seg.ident.to_string().as_str() {
+        "api" => {
+          api = first_nested_meta_path(meta_list);
+        }
+        "data_format" => {
+          data_formats = Some(&meta_list.nested);
+        }
+        "error" => {
+          error = first_nested_meta_path(meta_list);
+        }
+        "transport" => {
+          transports = Some(&meta_list.nested);
+        }
+        _ => {}
       }
     }
     Ok(Self {

@@ -27,6 +27,7 @@ tokio-tungstenite = { default-features = false, features = ["connect"], optional
 
 [dev-dependencies]
 async-std = { default-features = false, features = ["attributes", "default"], version = "1.0" }
+dotenv = { default-features = false, version = "0.15" }
 lucia = { default-features = false, features = ["reqwest", "serde_json", "surf", "tokio-tungstenite", "tracing"], path = "../lucia" }
 lucia-apis = { features = ["ed25519-dalek", "serde"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
@@ -41,10 +42,8 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 # API
 
-age-of-empires-ii = []
 json-placeholder = []
 ku-coin = ["base64", "dep:crypto-common", "dep:hmac", "dep:sha2"]
-m-media-covid-19 = []
 nager-date = []
 solana = ["base64", "dep:bincode", "bs58"]
 

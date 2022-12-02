@@ -26,8 +26,10 @@ pub use url::*;
 pub(crate) use query_writer::QueryWriter;
 
 use crate::{
+  dnsn::Serialize,
   network::transport::Transport,
   package::{Package, PackagesAux},
+  Api,
 };
 use core::time::Duration;
 
@@ -76,7 +78,7 @@ pub(crate) fn log_req<DRSR, P, T>(
     use crate::dnsn::Serialize;
     let mut vec = alloc::vec::Vec::new();
     _pgk
-      .ext_req_ctnt_mut()
+      .ext_req_content_mut()
       .to_bytes(&mut vec, &mut _pkgs_aux.drsr)
       .and_then(|_| Ok(alloc::string::String::from_utf8(vec)?))
   });
@@ -90,4 +92,23 @@ pub(crate) fn log_req<DRSR, P, T>(
 #[inline]
 pub(crate) fn log_res(_res: &[u8]) {
   _debug!("Response: {:?}", core::str::from_utf8(_res));
+}
+
+#[inline]
+pub(crate) async fn manage_before_sending_related<DRSR, P, T>(
+  pkg: &mut P,
+  pkgs_aux: &mut PackagesAux<P::Api, DRSR, T::Params>,
+  trans: &T,
+) -> Result<(), P::Error>
+where
+  P: Package<DRSR, T::Params> + Send + Sync,
+  T: Transport<DRSR>,
+{
+  log_req(pkg, pkgs_aux, trans);
+  pkg.ext_req_content_mut().to_bytes(&mut pkgs_aux.byte_buffer, &mut pkgs_aux.drsr)?;
+  pkgs_aux.api.before_sending().await?;
+  pkg
+    .before_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_req_params, &pkgs_aux.byte_buffer)
+    .await?;
+  Ok(())
 }

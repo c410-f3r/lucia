@@ -8,7 +8,7 @@ use crate::pkg::{
     fir_res_data_item_values::FirResDataItemValues,
   },
   misc::split_params,
-  sir::{sir_aux_item_values::SirAuxItemValues, sir_pkg_attr::SirEndpointAttr},
+  sir::{sir_aux_item_values::SirAuxItemValues, sir_pkg_attr::SirPkaAttr},
   transport_group::TransportGroup,
 };
 use proc_macro2::{Ident, Span, TokenStream};
@@ -29,21 +29,16 @@ impl SirFinalValues {
     let (b_lts, b_tys) = split_params(freqdiv.freqdiv_params);
     (a_lts.chain(b_lts), a_tys.chain(b_tys))
   }
-  fn transport_params(transport_group: TransportGroup) -> TokenStream {
-    match transport_group {
-      TransportGroup::Http => {
-        quote::quote!(lucia::network::HttpParams)
+  fn transport_params(transport_group: &TransportGroup) -> TokenStream {
+    match *transport_group {
+      TransportGroup::Custom(ref tt) => {
+        quote::quote!(<#tt as lucia::network::transport::Transport<DRSR>>::Params)
       }
+      TransportGroup::Http => quote::quote!(lucia::network::HttpParams),
       TransportGroup::Stub => quote::quote!(()),
-      TransportGroup::Tcp => {
-        quote::quote!(lucia::network::TcpParams)
-      }
-      TransportGroup::Udp => {
-        quote::quote!(lucia::network::UdpParams)
-      }
-      TransportGroup::WebSocket => {
-        quote::quote!(lucia::network::WsParams)
-      }
+      TransportGroup::Tcp => quote::quote!(lucia::network::TcpParams),
+      TransportGroup::Udp => quote::quote!(lucia::network::UdpParams),
+      TransportGroup::WebSocket => quote::quote!(lucia::network::WsParams),
     }
   }
 }
@@ -54,7 +49,7 @@ impl<'attrs, 'module, 'others>
     FirParamsItemValues<'module>,
     FirReqDataItemValues<'module>,
     FirResDataItemValues<'others>,
-    SirEndpointAttr<'attrs>,
+    SirPkaAttr<'attrs>,
     Option<FirAfterSendingItemValues<'module>>,
     Option<FirAuxItemValues<'module>>,
     Option<FirBeforeSendingItemValues<'module>>,
@@ -63,12 +58,12 @@ impl<'attrs, 'module, 'others>
   type Error = crate::Error;
 
   fn try_from(
-    (camel_case_id, fpiv, freqdiv, fresdiv, sea, fasiv_opt, faiv_opt, fbsiv_opt): (
+    (camel_case_id, fpiv, freqdiv, fresdiv, spa, fasiv_opt, faiv_opt, fbsiv_opt): (
       &'others mut String,
       FirParamsItemValues<'module>,
       FirReqDataItemValues<'module>,
       FirResDataItemValues<'others>,
-      SirEndpointAttr<'attrs>,
+      SirPkaAttr<'attrs>,
       Option<FirAfterSendingItemValues<'module>>,
       Option<FirAuxItemValues<'module>>,
       Option<FirBeforeSendingItemValues<'module>>,
@@ -78,7 +73,7 @@ impl<'attrs, 'module, 'others>
     let FirReqDataItemValues { freqdiv_ident, freqdiv_params, freqdiv_where_predicates, .. } =
       freqdiv;
     let FirResDataItemValues { res_ident } = fresdiv;
-    let SirEndpointAttr { api, ref data_formats, ref error, ref transport_groups } = sea;
+    let SirPkaAttr { api, ref data_formats, ref error, ref transport_groups } = spa;
     let camel_case_pkg_ident = &{
       let idx = camel_case_id.len();
       camel_case_id.push_str("Pkg");
@@ -98,7 +93,7 @@ impl<'attrs, 'module, 'others>
           elem,
           &fpiv,
           &freqdiv,
-          &sea,
+          &spa,
         ))
       })
       .transpose()?
@@ -109,7 +104,7 @@ impl<'attrs, 'module, 'others>
     for data_format in data_formats {
       let DataFormatElems { dfe_ext_req_ctnt_wrapper, dfe_ext_res_ctnt_wrapper, .. } =
         data_format.elems();
-      for &transport_group in transport_groups {
+      for transport_group in transport_groups {
         let before_sending_defaults = data_format.before_sending_defaults(transport_group);
         let fasiv_fn_name_ident_iter =
           fasiv_opt.as_ref().map(|el| &el.fasiv_item.sig.ident).into_iter();
@@ -121,6 +116,7 @@ impl<'attrs, 'module, 'others>
         let tp = Self::transport_params(transport_group);
         let (lts, tys) = Self::pkg_params(&freqdiv, &fpiv);
         package_impls.push(quote::quote!(
+          #[async_trait::async_trait]
           impl<
             #(#lts,)*
             #(#tys,)*
@@ -138,6 +134,7 @@ impl<'attrs, 'module, 'others>
             lucia::data_format::#dfe_ext_res_ctnt_wrapper<
               #res_ident
             >: lucia::dnsn::Deserialize<DRSR>,
+            DRSR: Send + Sync,
           {
             type Api = #api;
             type Error = #error;
@@ -149,30 +146,31 @@ impl<'attrs, 'module, 'others>
             >;
             type PackageParams = #fpiv_ty;
 
-            fn after_sending(
+            async fn after_sending(
               &mut self,
               _api: &mut Self::Api,
               _ext_res_params: &mut <#tp as lucia::network::transport::TransportParams>::ExternalResponseParams,
             ) -> Result<(), Self::Error> {
-              #( #fasiv_fn_name_ident_iter(#fasiv_fn_call_idents)?; )*
+              #( #fasiv_fn_name_ident_iter(#fasiv_fn_call_idents).await?; )*
               Ok(())
             }
 
-            fn before_sending(
+            async fn before_sending(
               &mut self,
               _api: &mut Self::Api,
               _ext_req_params: &mut <#tp as lucia::network::transport::TransportParams>::ExternalRequestParams,
+              _req_bytes: &[u8],
             ) -> Result<(), Self::Error> {
               #before_sending_defaults
-              #( #fbsiv_fn_name_ident_iter(#fbsiv_fn_call_idents)?; )*
+              #( #fbsiv_fn_name_ident_iter(#fbsiv_fn_call_idents).await?; )*
               Ok(())
             }
 
-            fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent {
+            fn ext_req_content(&self) -> &Self::ExternalRequestContent {
               &self.content
             }
 
-            fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent {
+            fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
               &mut self.content
             }
 
@@ -192,7 +190,8 @@ impl<'attrs, 'module, 'others>
     Ok(Self {
       auxs: saiv_tts,
       package: quote::quote!(
-        /// Package containing all the expected parameters and data necessary to perform a request.
+        /// Package containing all the expected parameters and data necessary to manage and issue
+        /// a request.
         ///
         /// For more information, please see the official API's documentation.
         #[derive(Debug)]

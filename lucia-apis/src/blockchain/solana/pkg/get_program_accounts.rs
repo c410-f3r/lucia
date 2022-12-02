@@ -15,23 +15,21 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetProgramAccountsReqData<'bytes, 'filter, S>(
     #[pkg::field(name = "pk")] S,
-    #[pkg::field(name = "config")] Option<GetProgramAccountsConfigReqData<'bytes, 'filter>>,
+    #[pkg::field(name = "config")] Option<GetProgramAccountsConfig<'bytes, 'filter>>,
   )
   where
-    S: AsRef<str>;
+    S: AsRef<str> + Send;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetProgramAccountsResData = Vec<GetProgramAccountsResElem>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[lucia_macros::pkg_doc]
-  pub struct GetProgramAccountsConfigReqData<'bytes, 'filter> {
+  pub struct GetProgramAccountsConfig<'bytes, 'filter> {
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<AccountEncoding>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]

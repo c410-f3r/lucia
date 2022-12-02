@@ -2,23 +2,6 @@ use crate::pkg::{data_format_elems::DataFormatElems, transport_group::TransportG
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::{Lit, Meta, NestedMeta};
 
-macro_rules! http_method_and_mime_type {
-  ($method:ident, $mime_type:ident) => {
-    quote::quote!(
-      _ext_req_params.method = lucia::network::HttpMethod::$method;
-      _ext_req_params.mime_type = Some(lucia::network::HttpMimeType::$mime_type);
-    )
-  };
-}
-
-macro_rules! http_mime_type {
-  ($mime_type:ident) => {
-    quote::quote!(
-      _ext_req_params.mime_type = Some(lucia::network::HttpMimeType::$mime_type);
-    )
-  };
-}
-
 #[derive(Debug)]
 pub(crate) enum DataFormat {
   Json,
@@ -28,36 +11,39 @@ pub(crate) enum DataFormat {
 }
 
 impl DataFormat {
-  pub(crate) fn before_sending_defaults(&self, tg: TransportGroup) -> TokenStream {
+  pub(crate) fn before_sending_defaults(&self, tg: &TransportGroup) -> TokenStream {
+    macro_rules! http_method_and_mime_type {
+      ($method:ident, $mime_type:ident) => {
+        quote::quote!(
+          _ext_req_params.method = lucia::network::HttpMethod::$method;
+          _ext_req_params.mime_type = Some(lucia::network::HttpMimeType::$mime_type);
+        )
+      };
+    }
+    macro_rules! http_mime_type {
+      ($mime_type:ident) => {
+        quote::quote!(
+          _ext_req_params.mime_type = Some(lucia::network::HttpMimeType::$mime_type);
+        )
+      };
+    }
+    macro_rules! rslt {
+      ($http_tt:expr) => {
+        match *tg {
+          TransportGroup::Http => $http_tt,
+          TransportGroup::Custom(_)
+          | TransportGroup::Stub
+          | TransportGroup::Tcp
+          | TransportGroup::Udp
+          | TransportGroup::WebSocket => TokenStream::new(),
+        }
+      };
+    }
     match *self {
-      DataFormat::Json => match tg {
-        TransportGroup::Http => http_mime_type!(Json),
-        TransportGroup::Stub
-        | TransportGroup::Tcp
-        | TransportGroup::Udp
-        | TransportGroup::WebSocket => TokenStream::new(),
-      },
-      DataFormat::JsonRpc(_) => match tg {
-        TransportGroup::Http => http_method_and_mime_type!(Post, Json),
-        TransportGroup::Stub
-        | TransportGroup::Tcp
-        | TransportGroup::Udp
-        | TransportGroup::WebSocket => TokenStream::new(),
-      },
-      DataFormat::Xml => match tg {
-        TransportGroup::Http => http_mime_type!(Xml),
-        TransportGroup::Stub
-        | TransportGroup::Tcp
-        | TransportGroup::Udp
-        | TransportGroup::WebSocket => TokenStream::new(),
-      },
-      DataFormat::Yaml => match tg {
-        TransportGroup::Http => http_mime_type!(Yaml),
-        TransportGroup::Stub
-        | TransportGroup::Tcp
-        | TransportGroup::Udp
-        | TransportGroup::WebSocket => TokenStream::new(),
-      },
+      DataFormat::Json => rslt!(http_mime_type!(Json)),
+      DataFormat::JsonRpc(_) => rslt!(http_method_and_mime_type!(Post, Json)),
+      DataFormat::Xml => rslt!(http_mime_type!(Xml)),
+      DataFormat::Yaml => rslt!(http_mime_type!(Yaml)),
     }
   }
 

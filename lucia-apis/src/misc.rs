@@ -24,7 +24,7 @@ _create_blockchain_constants!(
   pub transaction_hash_str: MaxTransactionHashStr = 90
 );
 
-/// Useful when a request returns an optional field that needs to be unwrapped in a
+/// Useful when a request returns an optional field but the actual usage is within a
 /// [core::result::Result] context.
 #[inline]
 #[track_caller]

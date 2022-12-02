@@ -15,12 +15,12 @@ pub(crate) mod pkg {
     #[pkg::aux_data]
     fn send_transaction_data(
       &mut self,
-      config: Option<SendTransactionConfigReqData>,
+      config: Option<SendTransactionConfig>,
       tx: &TransactionInput,
     ) -> crate::Result<SendTransactionReqData> {
       self.byte_buffer.clear();
       bincode::serialize_into(&mut self.byte_buffer, tx)?;
-      let encoded = if let Some(SendTransactionConfigReqData {
+      let encoded = if let Some(SendTransactionConfig {
         encoding: Some(SendTransactionEncoding::Base64),
         ..
       }) = config
@@ -36,14 +36,13 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
-  pub struct SendTransactionReqData(String, Option<SendTransactionConfigReqData>);
+  pub struct SendTransactionReqData(String, Option<SendTransactionConfig>);
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[lucia_macros::pkg_doc]
-  pub struct SendTransactionConfigReqData {
+  pub struct SendTransactionConfig {
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<SendTransactionEncoding>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -64,7 +63,6 @@ pub(crate) mod pkg {
     Base64,
   }
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type SendTransactionResData = SolanaTransactionHashStr;
 }

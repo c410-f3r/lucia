@@ -15,7 +15,7 @@ pub(crate) mod pkg {
   impl<DRSR> JsonPlaceholderHttpPackagesAux<DRSR> {}
 
   #[pkg::before_sending]
-  fn before_sending(
+  async fn before_sending(
     params: &mut GenericParams<'_>,
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
@@ -24,16 +24,13 @@ pub(crate) mod pkg {
   }
 
   #[pkg::params]
-  #[lucia_macros::pkg_doc]
   pub type UsersGenericParams<'any> = GenericParams<'any>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct UsersReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type UsersResData = GenericResData;
 

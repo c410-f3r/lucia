@@ -7,7 +7,7 @@ use crate::pkg::{
     fir_params_items_values::FirParamsItemValues, fir_req_data_item_values::FirReqDataItemValues,
   },
   misc::{from_camel_case_to_snake_case, split_params, EMPTY_GEN_PARAMS},
-  sir::sir_pkg_attr::SirEndpointAttr,
+  sir::sir_pkg_attr::SirPkaAttr,
 };
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::{
@@ -81,19 +81,19 @@ impl<'attrs, 'module, 'others>
     &'others FirAuxItemValues<'module>,
     &'others FirParamsItemValues<'module>,
     &'others FirReqDataItemValues<'module>,
-    &'others SirEndpointAttr<'attrs>,
+    &'others SirPkaAttr<'attrs>,
   )> for SirAuxItemValues
 {
   type Error = crate::Error;
 
   fn try_from(
-    (camel_case_id, pkg_ident, faiv, fpiv, freqdiv, sea): (
+    (camel_case_id, pkg_ident, faiv, fpiv, freqdiv, spa): (
       &'others mut String,
       &'others Ident,
       &'others FirAuxItemValues<'module>,
       &'others FirParamsItemValues<'module>,
       &'others FirReqDataItemValues<'module>,
-      &'others SirEndpointAttr<'attrs>,
+      &'others SirPkaAttr<'attrs>,
     ),
   ) -> Result<Self, Self::Error> {
     let mut snake_case_id = from_camel_case_to_snake_case(camel_case_id);
@@ -235,7 +235,7 @@ impl<'attrs, 'module, 'others>
       pkgs_aux_method_ret_values,
     );
     Self::push_dt_methods_returning_pkg(
-      &sea.data_formats,
+      &spa.data_formats,
       fpiv,
       freqdiv,
       pkg_ident,

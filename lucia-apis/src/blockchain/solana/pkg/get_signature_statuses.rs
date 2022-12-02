@@ -14,16 +14,14 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct GetSignatureStatusesReqData<'signatures, S>(
     #[pkg::field(name = "signatures")] &'signatures [S],
-    #[pkg::field(name = "config")] Option<GetSignatureStatusesConfigReqData>,
+    #[pkg::field(name = "config")] Option<GetSignatureStatusesConfig>,
   )
   where
-    S: AsRef<str>;
+    S: AsRef<str> + Send + Sync;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type GetSignatureStatusesResData =
     JsonRpcResponseResultWithContext<Vec<Option<GetSignatureStatusesResElem>>>;
@@ -31,7 +29,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[lucia_macros::pkg_doc]
-  pub struct GetSignatureStatusesConfigReqData {
+  pub struct GetSignatureStatusesConfig {
     search_transaction_history: bool,
   }
 

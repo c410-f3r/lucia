@@ -15,7 +15,7 @@ use fir::{
 };
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
-use sir::{sir_final_values::SirFinalValues, sir_pkg_attr::SirEndpointAttr};
+use sir::{sir_final_values::SirFinalValues, sir_pkg_attr::SirPkaAttr};
 use syn::{
   parse_macro_input,
   punctuated::Punctuated,
@@ -25,6 +25,7 @@ use syn::{
 
 use crate::{
   item_with_attr_span::ItemWithAttrSpan,
+  misc::push_doc,
   pkg::{fir::fir_after_sending_item_values::FirAfterSendingItemValues, misc::unit_type},
 };
 
@@ -62,21 +63,19 @@ pub(crate) fn pkg(
   let fbsiv = fiv.before_sending.map(FirBeforeSendingItemValues::try_from).transpose()?;
   let faiv = fiv.aux.map(FirAuxItemValues::try_from).transpose()?;
   let fresdiv = FirResDataItemValues::try_from(fiv.res_data)?;
-  let sea = SirEndpointAttr::try_from(FirPkgAttr::try_from(&*attr_args)?)?;
+  let spa = SirPkaAttr::try_from(FirPkgAttr::try_from(&*attr_args)?)?;
   let SirFinalValues { auxs, package, package_impls } = SirFinalValues::try_from((
     &mut camel_case_id,
     fpiv,
     freqdiv,
     fresdiv,
-    sea,
+    spa,
     fasiv,
     faiv,
     fbsiv,
   ))?;
   if let Some(content) = item_mod.content.as_mut() {
     content.1.push(syn::Item::Verbatim(quote::quote!(
-      /// Auto-generated type representing nothing, which means that the corresponding
-      /// request does not expect any additional parameter.
       #params_item_unit_opt
 
       #(#auxs)*
@@ -89,7 +88,14 @@ pub(crate) fn pkg(
 
 fn params_item_unit_fn(camel_case_id: &mut String) -> Item {
   Item::Type(ItemType {
-    attrs: Vec::new(),
+    attrs: {
+      let mut attrs = Vec::new();
+      push_doc(
+        &mut attrs,
+        "Corresponding package does not expect any additional custom parameter.",
+      );
+      attrs
+    },
     vis: Visibility::Public(VisPublic { pub_token: Pub(Span::mixed_site()) }),
     type_token: Type(Span::mixed_site()),
     ident: {

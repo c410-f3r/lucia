@@ -1,6 +1,5 @@
 use crate::{
-  dnsn::Serialize,
-  misc::log_req,
+  misc::manage_before_sending_related,
   network::{transport::Transport, TransportGroup, WsParams},
   package::{Package, PackagesAux},
 };
@@ -49,12 +48,12 @@ where
     P: Package<DRSR, WsParams> + Send + Sync,
   {
     pkgs_aux.byte_buffer.clear();
-    pkg.ext_req_ctnt_mut().to_bytes(&mut pkgs_aux.byte_buffer, &mut pkgs_aux.drsr)?;
+    manage_before_sending_related(pkg, pkgs_aux, self).await?;
     <Self as SinkExt<_>>::send(self, Message::Binary(pkgs_aux.byte_buffer.clone()))
       .await
       .map_err(Into::into)?;
     pkgs_aux.byte_buffer.clear();
-    log_req(pkg, pkgs_aux, self);
+    pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
     Ok(())
   }
 

@@ -1,8 +1,11 @@
-use proc_macro2::Span;
-use syn::{Meta, NestedMeta};
+use crate::pkg::misc::single_elem;
+use proc_macro2::{Span, TokenStream};
+use quote::ToTokens;
+use syn::{punctuated::Punctuated, Meta, NestedMeta, Path, PathSegment, Token};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub(crate) enum TransportGroup {
+  Custom(TokenStream),
   Http,
   Stub,
   Tcp,
@@ -14,23 +17,38 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for TransportGroup {
   type Error = crate::Error;
 
   fn try_from(from: &'attrs NestedMeta) -> Result<Self, Self::Error> {
-    let path = if let NestedMeta::Meta(Meta::Path(ref elem)) = *from {
-      elem
-    } else {
-      return Err(crate::Error::UnknownTransport(Span::mixed_site()));
-    };
-    let mut iter = path.segments.iter();
-    let first = iter.next().ok_or_else(|| crate::Error::UnknownTransport(Span::mixed_site()))?;
-    if iter.next().is_some() {
-      return Err(crate::Error::UnknownTransport(first.ident.span()));
+    let err = |span| Err(crate::Error::UnknownTransport(span));
+    match *from {
+      NestedMeta::Meta(Meta::Path(ref path)) => {
+        let ps = single_path_segment(path)?;
+        Ok(match ps.ident.to_string().as_str() {
+          "http" => Self::Http,
+          "stub" => Self::Stub,
+          "tcp" => Self::Tcp,
+          "udp" => Self::Udp,
+          "ws" => Self::WebSocket,
+          _ => return err(ps.ident.span()),
+        })
+      }
+      NestedMeta::Meta(Meta::List(ref meta_list)) => {
+        let ps = single_path_segment(&meta_list.path)?;
+        if ps.ident.to_string().as_str() == "custom" {
+          if let NestedMeta::Meta(Meta::Path(ref path)) = *single_nested(&meta_list.nested)? {
+            return Ok(Self::Custom(path.to_token_stream()));
+          }
+        }
+        err(ps.ident.span())
+      }
+      NestedMeta::Lit(_) | NestedMeta::Meta(_) => err(Span::mixed_site()),
     }
-    Ok(match first.ident.to_string().as_str() {
-      "http" => TransportGroup::Http,
-      "stub" => TransportGroup::Stub,
-      "tcp" => TransportGroup::Tcp,
-      "udp" => TransportGroup::Udp,
-      "ws" => TransportGroup::WebSocket,
-      _ => return Err(crate::Error::UnknownTransport(first.ident.span())),
-    })
   }
+}
+
+fn single_nested(nested: &Punctuated<NestedMeta, Token![,]>) -> crate::Result<&NestedMeta> {
+  single_elem(nested.iter()).ok_or_else(|| crate::Error::UnknownTransport(Span::mixed_site()))
+}
+
+fn single_path_segment(path: &Path) -> crate::Result<&PathSegment> {
+  single_elem(path.segments.iter())
+    .ok_or_else(|| crate::Error::UnknownTransport(Span::mixed_site()))
 }

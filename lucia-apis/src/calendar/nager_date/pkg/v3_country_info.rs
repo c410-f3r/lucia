@@ -14,7 +14,7 @@ pub(crate) mod pkg {
   impl<DRSR> NagerDateHttpPackagesAux<DRSR> {}
 
   #[pkg::before_sending]
-  fn before_sending(
+  async fn before_sending(
     params: &mut V3CountryInfoParams<'_>,
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
@@ -23,7 +23,6 @@ pub(crate) mod pkg {
   }
 
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::params]
   pub struct V3CountryInfoParams<'any> {
     country: &'any str,
@@ -31,11 +30,9 @@ pub(crate) mod pkg {
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
   #[pkg::req_data]
   pub struct V3CountryInfoReqData;
 
-  #[lucia_macros::pkg_doc]
   #[pkg::res_data]
   pub type V3CountryInfoResData = Box<V3CountryInfoElemResData>;
 

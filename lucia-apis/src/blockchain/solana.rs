@@ -7,41 +7,27 @@
 //! use lucia::{dnsn::SerdeJson, network::HttpParams};
 //! use lucia_apis::{blockchain::solana::Solana, misc::PackagesAux};
 //!
-//! let mut pkgs_aux = PackagesAux::from_minimum(Solana, SerdeJson, HttpParams::from_url("URL")?);
+//! let mut pkgs_aux =
+//!   PackagesAux::from_minimum(Solana::new(None), SerdeJson, HttpParams::from_url("URL")?);
 //! let _ = pkgs_aux.get_slot().data(None, None).build();
 //! # Ok(()) }
 //! ```
 
-#[allow(missing_docs)]
 mod account;
-#[allow(missing_docs)]
 mod block;
-#[allow(missing_docs)]
 mod filter;
 #[cfg(all(test, feature = "_integration-tests"))]
 mod integration_tests;
-#[allow(missing_docs)]
 mod notification;
 mod pkg;
 #[allow(missing_docs)]
 pub mod program;
-#[allow(missing_docs)]
 mod reward;
 #[cfg(feature = "serde")]
 mod short_vec;
-#[allow(missing_docs)]
 mod slot_update;
 #[allow(missing_docs)]
 mod transaction;
-
-pub use account::*;
-pub use block::*;
-pub use filter::*;
-pub use notification::*;
-pub use pkg::*;
-pub use reward::*;
-pub use slot_update::*;
-pub use transaction::*;
 
 use crate::{
   blockchain::{
@@ -50,12 +36,22 @@ use crate::{
   },
   misc::PackagesAux,
 };
+pub use account::*;
 use arrayvec::ArrayString;
+pub use block::*;
+pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
+  misc::RequestThrottling,
   network::{transport::Transport, HttpParams, WsParams},
   package::Package,
+  Api,
 };
+pub use notification::*;
+pub use pkg::*;
+pub use reward::*;
+pub use slot_update::*;
+pub use transaction::*;
 
 pub(crate) const MAX_TRANSACTION_ACCOUNTS_NUM: usize = 240;
 
@@ -76,10 +72,31 @@ _create_blockchain_constants!(
 );
 
 #[derive(Debug)]
-#[doc = _generic_dummy_api_doc!()]
-pub struct Solana;
+#[doc = _generic_api_doc!()]
+pub struct Solana {
+  /// If some, tells that each request must respect calling intervals.
+  pub rt: Option<RequestThrottling>,
+}
+
+#[async_trait::async_trait]
+impl Api for Solana {
+  type Error = crate::Error;
+
+  #[inline]
+  async fn before_sending(&mut self) -> Result<(), Self::Error> {
+    if let Some(ref mut rt) = self.rt {
+      rt.rc.update_params(&rt.rl).await?;
+    }
+    Ok(())
+  }
+}
 
 impl Solana {
+  /// If desired, it is possible to instantiate directly instead of using this method.
+  pub fn new(rt: Option<RequestThrottling>) -> Self {
+    Self { rt }
+  }
+
   /// Make successive HTTP requests over a period defined in `cto` until the transaction is
   /// successful or expired.
   #[inline]

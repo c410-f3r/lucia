@@ -1,5 +1,5 @@
 create_fir_custom_item_values!(
-  "Please see the official API's documentation to get more information about the parameters of this request.",
+  "Custom local parameters used before and after the issuing of a request.",
   FirParamsItemValues,
   fpiv_fields_attrs,
   fpiv_ident,

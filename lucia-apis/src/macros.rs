@@ -121,6 +121,7 @@ macro_rules! _create_generic_test {
         cb(pkgs_aux, trans, rslt)
       }
       crate::misc::_init_tracing();
+      let _ = dotenv::dotenv().ok();
       let mut pair = $pair;
       let (pkg, pkgs_aux) = pair.parts_mut();
       let rslt = parts_cb_infer(pkg, pkgs_aux, $parts_cb).await;
@@ -199,8 +200,8 @@ macro_rules! _create_tokio_tungstenite_test {
   };
 }
 
-macro_rules! _generic_dummy_api_doc {
+macro_rules! _generic_api_doc {
   () => {
-    "Marker used to group a set of packages related to this API. Does not contain any meaningful inner data."
+    "Used to group a set of packages related to this API as well as any additional instance parameters."
   };
 }

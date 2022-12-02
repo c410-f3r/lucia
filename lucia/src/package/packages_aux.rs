@@ -1,6 +1,5 @@
 use crate::{
   data_format::{JsonRequest, JsonRpcRequest, XmlRequest, YamlRequest},
-  misc::RequestThrottling,
   network::transport::TransportParams,
   Id,
 };
@@ -30,8 +29,6 @@ where
   pub ext_req_params: TP::ExternalRequestParams,
   /// External Response Parameters.
   pub ext_res_params: TP::ExternalResponseParams,
-  /// If some, tells that each request must respect calling intervals.
-  pub rt: Option<RequestThrottling>,
   built_requests: Id,
 }
 
@@ -43,15 +40,7 @@ where
   #[inline]
   pub fn from_minimum(api: API, drsr: DRSR, tp: TP) -> Self {
     let (ext_req_params, ext_res_params) = tp.into_parts();
-    Self {
-      api,
-      byte_buffer: Vec::new(),
-      drsr,
-      ext_req_params,
-      ext_res_params,
-      rt: None,
-      built_requests: 0,
-    }
+    Self { api, byte_buffer: Vec::new(), drsr, ext_req_params, ext_res_params, built_requests: 0 }
   }
 
   /// The number of constructed requests that is not necessarily equal the number of sent requests.

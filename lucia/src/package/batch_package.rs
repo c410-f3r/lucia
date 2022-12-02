@@ -4,6 +4,7 @@ use crate::{
   package::Package,
   Id,
 };
+use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::{borrow::Borrow, marker::PhantomData};
 
@@ -40,7 +41,7 @@ where
     if self.0 .0.is_empty() {
       return Ok(());
     }
-    Self::is_sorted(self.0 .0.iter().map(|elem| elem.ext_req_ctnt().borrow()))?;
+    Self::is_sorted(self.0 .0.iter().map(|elem| elem.ext_req_content().borrow()))?;
     let mut pkgs_idx = 0;
     let mut responses_are_not_sorted = false;
     P::ExternalResponseContent::seq_from_bytes(
@@ -87,21 +88,23 @@ where
 
   // First try indexing and then falls back to binary search
   fn search_slice(idx: usize, eresc_id: Id, pkgs: &[P]) -> crate::Result<usize> {
-    if pkgs.get(idx).map(|pkg| *pkg.ext_req_ctnt().borrow() == eresc_id).unwrap_or_default() {
+    if pkgs.get(idx).map(|pkg| *pkg.ext_req_content().borrow() == eresc_id).unwrap_or_default() {
       return Ok(idx);
     }
     pkgs
-      .binary_search_by(|req| req.ext_req_ctnt().borrow().cmp(&eresc_id))
+      .binary_search_by(|req| req.ext_req_content().borrow().cmp(&eresc_id))
       .ok()
       .ok_or(crate::Error::ResponseIdIsNotPresentInTheOfSentBatchPackages(eresc_id))
   }
 }
 
+#[async_trait::async_trait]
 impl<'slice, DRSR, P, TP> Package<DRSR, TP> for BatchPackage<'slice, DRSR, P, TP>
 where
   BatchElems<'slice, DRSR, P, TP>: Serialize<DRSR>,
-  P: Package<DRSR, TP>,
-  TP: TransportParams,
+  DRSR: Send + Sync,
+  P: Package<DRSR, TP> + Send + Sync,
+  TP: TransportParams + Send + Sync,
 {
   type Api = P::Api;
   type Error = P::Error;
@@ -110,36 +113,37 @@ where
   type PackageParams = ();
 
   #[inline]
-  fn after_sending(
+  async fn after_sending(
     &mut self,
     api: &mut Self::Api,
     ext_res_params: &mut TP::ExternalResponseParams,
   ) -> Result<(), Self::Error> {
     for elem in self.0 .0.iter_mut() {
-      elem.after_sending(api, ext_res_params)?;
+      elem.after_sending(api, ext_res_params).await?;
     }
     Ok(())
   }
 
   #[inline]
-  fn before_sending(
+  async fn before_sending(
     &mut self,
     api: &mut Self::Api,
     ext_req_params: &mut TP::ExternalRequestParams,
+    req_bytes: &[u8],
   ) -> Result<(), Self::Error> {
     for elem in self.0 .0.iter_mut() {
-      elem.before_sending(api, ext_req_params)?;
+      elem.before_sending(api, ext_req_params, req_bytes).await?;
     }
     Ok(())
   }
 
   #[inline]
-  fn ext_req_ctnt(&self) -> &Self::ExternalRequestContent {
+  fn ext_req_content(&self) -> &Self::ExternalRequestContent {
     &self.0
   }
 
   #[inline]
-  fn ext_req_ctnt_mut(&mut self) -> &mut Self::ExternalRequestContent {
+  fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
     &mut self.0
   }
 
@@ -179,7 +183,8 @@ mod serde_json {
     where
       BB: ByteBuffer,
     {
-      serde_json::Serializer::new(bytes).collect_seq(self.0.iter().map(|el| el.ext_req_ctnt()))?;
+      serde_json::Serializer::new(bytes)
+        .collect_seq(self.0.iter().map(|el| el.ext_req_content()))?;
       Ok(())
     }
   }

@@ -6,14 +6,14 @@ use proc_macro2::{Ident, Span};
 use syn::{punctuated::Punctuated, Path, PathArguments, PathSegment};
 
 #[derive(Debug)]
-pub(crate) struct SirEndpointAttr<'attrs> {
+pub(crate) struct SirPkaAttr<'attrs> {
   pub(crate) api: &'attrs Path,
   pub(crate) data_formats: Vec<DataFormat>,
   pub(crate) error: Cow<'attrs, Path>,
   pub(crate) transport_groups: Vec<TransportGroup>,
 }
 
-impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirEndpointAttr<'attrs> {
+impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirPkaAttr<'attrs> {
   type Error = crate::Error;
 
   fn try_from(fea: FirPkgAttr<'attrs>) -> Result<Self, Self::Error> {

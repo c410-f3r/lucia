@@ -13,7 +13,6 @@ pub mod blockchain;
 pub mod calendar;
 mod error;
 pub mod exchange;
-pub mod gaming;
 pub mod misc;
 pub mod test_data;
 
