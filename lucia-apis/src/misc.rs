@@ -9,6 +9,7 @@ pub(crate) const _MAX_NUMBER_LEN: usize = 31;
 
 pub(crate) type _MaxAssetAbbr = arrayvec::ArrayString<_MAX_ASSET_ABBR_LEN>;
 pub(crate) type _MaxAssetName = arrayvec::ArrayString<16>;
+pub(crate) type _MaxAssetFullName = arrayvec::ArrayString<48>;
 pub(crate) type _MaxNumberStr = arrayvec::ArrayString<_MAX_NUMBER_LEN>;
 pub(crate) type _MaxPairAbbr = arrayvec::ArrayString<{ 2 * _MAX_ASSET_ABBR_LEN + 1 }>;
 pub(crate) type _MaxUrl = arrayvec::ArrayString<96>;
@@ -57,6 +58,17 @@ where
 }
 
 #[cfg(feature = "serde")]
+pub(crate) fn _deserialize_from_str<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+where
+  T: core::str::FromStr,
+  T::Err: core::fmt::Display,
+  D: serde::Deserializer<'de>,
+{
+  let s: &str = serde::Deserialize::deserialize(deserializer)?;
+  T::from_str(s).map_err(serde::de::Error::custom)
+}
+
+#[cfg(feature = "serde")]
 #[inline]
 pub(crate) fn _deserialize_ignore_any<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
@@ -65,6 +77,23 @@ where
 {
   use serde::Deserialize;
   serde::de::IgnoredAny::deserialize(deserializer).map(|_| T::default())
+}
+
+#[cfg(feature = "serde")]
+#[inline]
+pub(crate) fn _deserialize_opt_considering_empty_str<'de, D, T>(
+  deserializer: D,
+) -> Result<Option<T>, D::Error>
+where
+  D: serde::Deserializer<'de>,
+  T: serde::Deserialize<'de>,
+{
+  use serde::de::IntoDeserializer;
+  use serde::Deserialize;
+  match <Option<&str>>::deserialize(deserializer)? {
+    None | Some("") => Ok(None),
+    Some(s) => T::deserialize(s.into_deserializer()).map(Some),
+  }
 }
 
 #[cfg(test)]

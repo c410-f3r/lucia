@@ -9,7 +9,7 @@
 //!
 //! let mut pkgs_aux =
 //!   PackagesAux::from_minimum(KuCoin::new(None)?, SerdeJson, HttpParams::from_url("URL")?);
-//! let _ = pkgs_aux.v1_currencies().build();
+//! let _ = pkgs_aux.v1_get_currencies().build();
 //! # Ok(()) }
 //! ```
 
@@ -19,11 +19,10 @@ mod ku_coin_credentials;
 mod pkg;
 
 use crate::misc::PackagesAux;
-use arrayvec::ArrayString;
 use core::time::Duration;
 pub use ku_coin_credentials::*;
 use lucia::{
-  misc::{GenericTime, RequestLimit, RequestThrottling},
+  misc::{RequestLimit, RequestThrottling},
   network::HttpParams,
   Api,
 };
@@ -36,6 +35,7 @@ pub(crate) type KuCoinHttpPackagesAux<DRSR> = PackagesAux<KuCoin, DRSR, HttpPara
 pub struct KuCoin {
   credentials: Option<KuCoinCredentials>,
   orders_rt: RequestThrottling,
+  order_book_rt: RequestThrottling,
 }
 
 impl KuCoin {
@@ -43,6 +43,7 @@ impl KuCoin {
   pub fn new(credentials: Option<KuCoinCredentials>) -> crate::Result<Self> {
     Ok(Self {
       credentials,
+      order_book_rt: RequestThrottling::from_rl(RequestLimit::new(30, Duration::from_secs(3))?)?,
       orders_rt: RequestThrottling::from_rl(RequestLimit::new(45, Duration::from_secs(3))?)?,
     })
   }
@@ -86,18 +87,4 @@ impl KuCoin {
 
 impl Api for KuCoin {
   type Error = crate::Error;
-}
-
-/// Almost all responses are wrapped in "code" and "data".
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
-pub struct GenericDataResponse<T> {
-  /// System code
-  pub code: ArrayString<8>,
-  /// Actual data
-  pub data: T,
-}
-
-pub(crate) fn _timestamp() -> crate::Result<i64> {
-  Ok(GenericTime::now()?.timestamp()?.as_millis().try_into()?)
 }

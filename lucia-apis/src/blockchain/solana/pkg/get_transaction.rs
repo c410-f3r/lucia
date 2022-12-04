@@ -15,7 +15,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetTransactionReqData<S>(
+  pub struct GetTransactionReq<S>(
     #[pkg::field(name = "hash")] S,
     #[pkg::field(name = "config")] Option<GetTransactionConfig>,
   )
@@ -23,14 +23,16 @@ pub(crate) mod pkg {
     S: AsRef<str> + Send;
 
   #[pkg::res_data]
-  pub type GetTransactionResData = TransactionOutput;
+  pub type GetTransactionRes = TransactionOutput;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetTransactionConfig {
+    /// Commitment
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
+    /// Transaction encoding
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<TransactionEncoding>,
   }

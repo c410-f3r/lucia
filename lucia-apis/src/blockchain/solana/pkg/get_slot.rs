@@ -13,7 +13,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetSlotReqData(
+  pub struct GetSlotReq(
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     #[pkg::field(name = "commitment")]
     pub Option<Commitment>,
@@ -23,5 +23,5 @@ pub(crate) mod pkg {
   );
 
   #[pkg::res_data]
-  pub type GetSlotResData = u64;
+  pub type GetSlotRes = u64;
 }

@@ -13,18 +13,19 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetMinimumBalanceForRentExemptionReqData(
+  pub struct GetMinimumBalanceForRentExemptionReq(
     #[pkg::field(name = "data_len")] usize,
     #[pkg::field(name = "config")] Option<GetMinimumBalanceForRentExemptionConfig>,
   );
 
   #[pkg::res_data]
-  pub type GetMinimumBalanceForRentExemptionResData = u64;
+  pub type GetMinimumBalanceForRentExemptionRes = u64;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetMinimumBalanceForRentExemptionConfig {
+    /// Commitment
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
   }

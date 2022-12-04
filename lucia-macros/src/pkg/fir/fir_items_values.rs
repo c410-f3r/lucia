@@ -6,7 +6,8 @@ use crate::{
     misc::{manage_unique_attribute, take_unique_pkg_attr},
   },
 };
-use syn::{spanned::Spanned, Item, ItemMod};
+use proc_macro2::Span;
+use syn::Item;
 
 #[derive(Debug)]
 pub(crate) struct FirItemsValues<'module> {
@@ -18,13 +19,10 @@ pub(crate) struct FirItemsValues<'module> {
   pub(crate) res_data: ItemWithAttrSpan<(), &'module mut Item>,
 }
 
-impl<'module> TryFrom<&'module mut ItemMod> for FirItemsValues<'module> {
+impl<'module> TryFrom<(&'module mut Vec<Item>, Span)> for FirItemsValues<'module> {
   type Error = crate::Error;
 
-  fn try_from(item_mod: &'module mut ItemMod) -> Result<Self, Self::Error> {
-    let item_mod_span = item_mod.span();
-    let items = &mut item_mod.content.as_mut().ok_or(crate::Error::WrongPkgPlace(item_mod_span))?.1;
-
+  fn try_from((items, mod_span): (&'module mut Vec<Item>, Span)) -> Result<Self, Self::Error> {
     let mut after_sending = None;
     let mut aux = None;
     let mut before_sending = None;
@@ -52,11 +50,11 @@ impl<'module> TryFrom<&'module mut ItemMod> for FirItemsValues<'module> {
           manage_unique_attribute(params.as_ref(), span)?;
           params = Some(ItemWithAttrSpan::from(((), &mut *item, span)));
         }
-        FirItemAttrTy::ReqData => {
+        FirItemAttrTy::Req => {
           manage_unique_attribute(req_data.as_ref(), span)?;
           req_data = Some(ItemWithAttrSpan::from(((), &mut *item, span)));
         }
-        FirItemAttrTy::ResData => {
+        FirItemAttrTy::Res => {
           manage_unique_attribute(res_data.as_ref(), span)?;
           res_data = Some(ItemWithAttrSpan::from(((), &mut *item, span)));
         }
@@ -68,8 +66,8 @@ impl<'module> TryFrom<&'module mut ItemMod> for FirItemsValues<'module> {
       aux,
       before_sending,
       params,
-      req_data: req_data.ok_or_else(|| crate::Error::AbsentReqOrRes(item_mod.ident.span()))?,
-      res_data: res_data.ok_or_else(|| crate::Error::AbsentReqOrRes(item_mod.ident.span()))?,
+      req_data: req_data.ok_or(crate::Error::AbsentReqOrRes(mod_span))?,
+      res_data: res_data.ok_or(crate::Error::AbsentReqOrRes(mod_span))?,
     })
   }
 }

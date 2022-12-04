@@ -84,6 +84,9 @@ mod serde_xml_rs {
     where
       BB: ByteBuffer,
     {
+      if core::mem::size_of::<D>() == 0 {
+        return Ok(());
+      }
       serde_xml_rs::to_writer(bytes, self)?;
       Ok(())
     }

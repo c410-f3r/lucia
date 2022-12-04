@@ -13,7 +13,7 @@ pub(crate) mod sub {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct AccountSubscribeReqData<S>(
+  pub struct AccountSubscribeReq<S>(
     #[pkg::field(name = "pk")] S,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     #[pkg::field(name = "config")]
@@ -23,14 +23,16 @@ pub(crate) mod sub {
     S: AsRef<str> + Send;
 
   #[pkg::res_data]
-  pub type AccountSubscribeResData = u64;
+  pub type AccountSubscribeRes = u64;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct AccountSubscribeConfig {
+    /// Account encoding.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<AccountEncoding>,
+    /// Commitment.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
   }
@@ -51,12 +53,12 @@ pub(crate) mod unsub {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct AccountUnsubscribeReqData(
+  pub struct AccountUnsubscribeReq(
     #[cfg_attr(feature = "serde", serde(serialize_with = "crate::misc::_serde_ser_as_tuple"))]
     #[pkg::field(name = "id")]
     u64,
   );
 
   #[pkg::res_data]
-  pub type AccountUnsubscribeResData = bool;
+  pub type AccountUnsubscribeRes = bool;
 }

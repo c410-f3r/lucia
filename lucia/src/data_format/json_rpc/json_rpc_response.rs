@@ -94,6 +94,7 @@ impl<R> PartialOrd for JsonRpcResponse<R> {
 #[cfg(feature = "serde")]
 mod serde {
   use crate::data_format::JsonRpcResponse;
+  use serde::{de::Visitor, ser::SerializeStruct};
 
   impl<'de, R> serde::Deserialize<'de> for JsonRpcResponse<R>
   where
@@ -106,7 +107,7 @@ mod serde {
     {
       struct CustomVisitor<'de, T>(core::marker::PhantomData<&'de T>);
 
-      impl<'de, R> serde::de::Visitor<'de> for CustomVisitor<'de, R>
+      impl<'de, R> Visitor<'de> for CustomVisitor<'de, R>
       where
         R: serde::Deserialize<'de>,
       {
@@ -205,7 +206,6 @@ mod serde {
     where
       S: serde::ser::Serializer,
     {
-      use serde::ser::SerializeStruct;
       let mut state = serializer.serialize_struct(" ", 3)?;
       state.serialize_field("jsonrpc", "2.0")?;
       match self.result {

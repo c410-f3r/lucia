@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::test_data::json_placeholder::{
-    pkg::params_management, GenericParams, GenericResData, JsonPlaceholderHttpPackagesAux,
+    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPackagesAux,
   };
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
@@ -29,20 +29,25 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct CommentsReqData;
+  pub struct CommentsReq;
 
   #[pkg::res_data]
-  pub type CommentsResData = GenericResData;
+  pub type CommentsRes = GenericRes;
 
+  /// Comment
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct CommentsElemResData {
+  pub struct Comment {
+    /// Post id
     pub post_id: u32,
+    /// Id
     pub id: u32,
+    /// Name
     pub name: ArrayString<81>,
+    /// Email
     pub email: ArrayString<33>,
+    /// Body
     pub body: String,
   }
 }

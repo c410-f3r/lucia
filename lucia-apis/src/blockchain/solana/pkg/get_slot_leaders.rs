@@ -13,11 +13,8 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetSlotLeadersReqData(
-    #[pkg::field(name = "start")] u64,
-    #[pkg::field(name = "len")] u64,
-  );
+  pub struct GetSlotLeadersReq(#[pkg::field(name = "start")] u64, #[pkg::field(name = "len")] u64);
 
   #[pkg::res_data]
-  pub type GetSlotLeadersResData = Vec<SolanaAddressHashStr>;
+  pub type GetSlotLeadersRes = Vec<SolanaAddressHashStr>;
 }

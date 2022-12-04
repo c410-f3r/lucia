@@ -22,17 +22,19 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct V3AvailableCountriesReqData;
+  pub struct V3AvailableCountriesReq;
 
   #[pkg::res_data]
-  pub type V3AvailableCountriesResData = Vec<V3AvailableCountriesElemResData>;
+  pub type V3AvailableCountriesRes = Vec<V3AvailableCountriesResElem>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct V3AvailableCountriesElemResData {
+  #[doc = _generic_res_data_elem_doc!()]
+  pub struct V3AvailableCountriesResElem {
+    /// ISO 3166-1 alpha-2.
     pub country_code: ArrayString<2>,
+    /// English name
     pub name: ArrayString<22>,
   }
 }

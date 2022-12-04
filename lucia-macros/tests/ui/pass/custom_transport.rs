@@ -58,10 +58,10 @@ type Nothing = ();
 #[lucia_macros::pkg(api(super::Nothing), data_format(json), transport(custom(crate::CustomTransport)))]
 mod pkg {
   #[pkg::req_data]
-  struct ReqData;
+  struct Req;
 
   #[pkg::res_data]
-  struct ResData;
+  struct Res;
 }
 
 fn main() {

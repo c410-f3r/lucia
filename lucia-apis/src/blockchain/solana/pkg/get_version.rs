@@ -14,13 +14,13 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetVersionReqData;
+  pub struct GetVersionReq;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "kebab-case"))]
   #[derive(Debug)]
   #[pkg::res_data]
-  pub struct GetVersionResData {
+  pub struct GetVersionRes {
     /// Software version of solana-core.
     pub solana_core: ArrayString<16>,
     /// Unique identifier of the current software's feature set.

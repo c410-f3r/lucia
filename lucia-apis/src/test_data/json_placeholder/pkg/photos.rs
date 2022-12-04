@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::test_data::json_placeholder::{
-    pkg::params_management, GenericParams, GenericResData, JsonPlaceholderHttpPackagesAux,
+    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPackagesAux,
   };
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
@@ -29,20 +29,25 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct PhotosReqData;
+  pub struct PhotosReq;
 
   #[pkg::res_data]
-  pub type PhotosResData = GenericResData;
+  pub type PhotosRes = GenericRes;
 
+  /// Photo
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct PhotosElemResData {
+  pub struct Photo {
+    /// Album id.
     pub album_id: u32,
+    /// Id.
     pub id: u32,
+    /// Title
     pub title: ArrayString<86>,
+    /// URL
     pub url: ArrayString<38>,
+    /// Thumbnail URL
     pub thumbnail_url: ArrayString<38>,
   }
 }

@@ -15,7 +15,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetBalanceReqData<S>(
+  pub struct GetBalanceReq<S>(
     #[pkg::field(name = "pk")] S,
     #[pkg::field(name = "config")] Option<GetBalanceConfig>,
   )
@@ -23,14 +23,16 @@ pub(crate) mod pkg {
     S: AsRef<str> + Send;
 
   #[pkg::res_data]
-  pub type GetBalanceResData = JsonRpcResponseResultWithContext<u64>;
+  pub type GetBalanceRes = JsonRpcResponseResultWithContext<u64>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetBalanceConfig {
+    /// Commitment.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
+    /// Data slice.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub data_slice: Option<DataSlice>,
   }

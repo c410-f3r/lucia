@@ -23,8 +23,8 @@ pub(crate) enum FirItemAttrTy {
   Aux,
   BeforeSending,
   Params,
-  ReqData,
-  ResData,
+  Req,
+  Res,
 }
 
 impl Parse for FirItemAttr {
@@ -53,9 +53,9 @@ impl Parse for FirItemAttr {
     } else if lookahead.peek(keywords::params) {
       inner_attr::<keywords::params>(content, |_| Ok(FirItemAttrTy::Params))?
     } else if lookahead.peek(keywords::req_data) {
-      inner_attr::<keywords::req_data>(content, |_| Ok(FirItemAttrTy::ReqData))?
+      inner_attr::<keywords::req_data>(content, |_| Ok(FirItemAttrTy::Req))?
     } else if lookahead.peek(keywords::res_data) {
-      inner_attr::<keywords::res_data>(content, |_| Ok(FirItemAttrTy::ResData))?
+      inner_attr::<keywords::res_data>(content, |_| Ok(FirItemAttrTy::Res))?
     } else {
       return Err(lookahead.error());
     })

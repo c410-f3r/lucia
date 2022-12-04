@@ -34,6 +34,9 @@ mod miniserde {
     where
       BB: ByteBuffer,
     {
+      if core::mem::size_of::<D>() == 0 {
+        return Ok(());
+      }
       miniserde_serialize(bytes, &self.data)
     }
   }
@@ -52,6 +55,9 @@ mod serde_json {
     where
       BB: ByteBuffer,
     {
+      if core::mem::size_of::<D>() == 0 {
+        return Ok(());
+      }
       serde_json::to_writer(bytes, &self.data)?;
       Ok(())
     }

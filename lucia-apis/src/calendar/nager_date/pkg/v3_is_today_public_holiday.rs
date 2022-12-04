@@ -6,8 +6,6 @@
 )]
 pub(crate) mod pkg {
   use crate::calendar::nager_date::NagerDateHttpPackagesAux;
-  use alloc::vec::Vec;
-  use arrayvec::ArrayString;
   use lucia::network::{HttpReqParams, HttpResParams, StatusCode};
 
   #[pkg::aux]
@@ -49,20 +47,8 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct V3IsTodayPublicHolidayReqData;
+  pub struct V3IsTodayPublicHolidayReq;
 
   #[pkg::res_data]
-  pub type V3IsTodayPublicHolidayResData = Box<V3IsTodayPublicHolidayElemResData>;
-
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct V3IsTodayPublicHolidayElemResData {
-    pub common_name: ArrayString<12>,
-    pub official_name: ArrayString<26>,
-    pub country_code: ArrayString<12>,
-    pub region: ArrayString<6>,
-    pub borders: Option<Vec<V3IsTodayPublicHolidayElemResData>>,
-  }
+  pub type V3IsTodayPublicHolidayRes = ();
 }

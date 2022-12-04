@@ -6,10 +6,10 @@ mod pkg {
   }
 
   #[pkg::req_data]
-  struct ReqData;
+  struct Req;
 
   #[pkg::res_data]
-  struct ResData;
+  struct Res;
 }
 
 fn main() {

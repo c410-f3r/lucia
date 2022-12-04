@@ -1,5 +1,5 @@
 mod account_subscription;
-mod aux;
+mod common;
 mod get_account_info;
 mod get_balance;
 mod get_block;
@@ -26,7 +26,7 @@ mod slot_subscription;
 mod slot_updates_subscription;
 
 pub use account_subscription::{sub::*, unsub::*};
-pub use aux::*;
+pub use common::*;
 pub use get_account_info::pkg::*;
 pub use get_balance::pkg::*;
 pub use get_block::pkg::*;

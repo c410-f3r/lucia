@@ -13,6 +13,12 @@
 //! # Ok(()) }
 //! ```
 
+macro_rules! generic_config_doc {
+  () => {
+    "Additional set of optional parameters used by the corresponding request."
+  };
+}
+
 mod account;
 mod block;
 mod filter;
@@ -20,18 +26,16 @@ mod filter;
 mod integration_tests;
 mod notification;
 mod pkg;
-#[allow(missing_docs)]
 pub mod program;
 mod reward;
 #[cfg(feature = "serde")]
 mod short_vec;
 mod slot_update;
-#[allow(missing_docs)]
 mod transaction;
 
 use crate::{
   blockchain::{
-    solana::pkg::{GetSignatureStatusesReqData, GetSignatureStatusesResElem},
+    solana::pkg::{GetSignatureStatusesReq, GetSignatureStatusesResElem},
     ConfirmTransactionOptions,
   },
   misc::PackagesAux,
@@ -109,13 +113,13 @@ impl Solana {
   where
     DRSR: Send + Sync,
     T: Transport<DRSR, Params = HttpParams> + Send + Sync,
-    for<'signs> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReqData<'signs, &'tx_hash str>>>:
+    for<'signs> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'signs, &'tx_hash str>>>:
       Package<
         DRSR,
         T::Params,
         Api = Solana,
         Error = crate::Error,
-        ExternalResponseContent = JsonRpcResponse<GetSignatureStatusesResData>,
+        ExternalResponseContent = JsonRpcResponse<GetSignatureStatusesRes>,
       >,
   {
     macro_rules! call {
@@ -175,8 +179,8 @@ impl Solana {
   #[inline]
   pub fn spl_token_normal_account(
     account_data: &AccountData,
-  ) -> crate::Result<&program::spl_token::Account> {
-    if let Some(program::spl_token::GenericAccount::Account(ref elem)) =
+  ) -> crate::Result<&program::spl_token::TokenAccount> {
+    if let Some(program::spl_token::GenericAccount::TokenAccount(ref elem)) =
       Self::spl_token_account(account_data)
     {
       Ok(elem)

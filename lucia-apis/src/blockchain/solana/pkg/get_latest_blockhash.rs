@@ -11,7 +11,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetLatestBlockhashReqData(
+  pub struct GetLatestBlockhashReq(
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     #[pkg::field(name = "commitment")]
     pub Option<Commitment>,
@@ -24,18 +24,20 @@ pub(crate) mod pkg {
   impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
 
   #[pkg::res_data]
-  pub type GetLatestBlockhashResData = JsonRpcResponseResultWithContext<GetLatestBlockhashResElem>;
+  pub type GetLatestBlockhashRes = JsonRpcResponseResultWithContext<GetLatestBlockhashResElem>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = _generic_res_data_elem_doc!()]
   pub struct GetLatestBlockhashResElem {
+    /// Block Base58 identifier.
     #[cfg_attr(
       feature = "serde",
       serde(deserialize_with = "crate::misc::deserialize_array_from_base58")
     )]
     pub blockhash: SolanaBlockhash,
+    /// Last block height at which the blockhash will be valid
     pub last_valid_block_height: u64,
   }
 }

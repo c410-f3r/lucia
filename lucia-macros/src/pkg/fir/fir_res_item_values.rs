@@ -3,11 +3,11 @@ use proc_macro2::Ident;
 use syn::Item;
 
 #[derive(Debug)]
-pub(crate) struct FirResDataItemValues<'module> {
+pub(crate) struct FirResItemValues<'module> {
   pub(crate) res_ident: &'module Ident,
 }
 
-impl<'module> TryFrom<ItemWithAttrSpan<(), &'module mut Item>> for FirResDataItemValues<'module> {
+impl<'module> TryFrom<ItemWithAttrSpan<(), &'module mut Item>> for FirResItemValues<'module> {
   type Error = crate::Error;
 
   fn try_from(from: ItemWithAttrSpan<(), &'module mut Item>) -> Result<Self, Self::Error> {
@@ -32,8 +32,8 @@ impl<'module> TryFrom<ItemWithAttrSpan<(), &'module mut Item>> for FirResDataIte
       | _ => return Err(crate::Error::NoEnumStructOrType(from.span)),
     };
     push_doc_if_inexistent(attrs, "Expected data response returned by the server.");
-    if !res_ident.to_string().ends_with("ResData") {
-      return Err(crate::Error::BadResData(res_ident.span()));
+    if !res_ident.to_string().ends_with("Res") {
+      return Err(crate::Error::BadRes(res_ident.span()));
     }
     if !generics.params.is_empty() {
       return Err(crate::Error::ResponsesCanNotHaveTypeParams(res_ident.span()));

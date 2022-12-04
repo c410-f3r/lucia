@@ -8,9 +8,12 @@ use alloc::{vec, vec::Vec};
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct CompiledInstructionInput {
+  /// Index in regards to the block array of programs.
   pub program_id_index: u8,
+  /// Indexes in regards to the block array of accounts.
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
   pub accounts: Vec<u8>,
+  /// Opaque bytes
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
   pub data: Vec<u8>,
 }
@@ -20,8 +23,11 @@ pub struct CompiledInstructionInput {
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct InstructionInput {
+  /// List of necessary accounts
   pub accounts: Vec<InstructionAccountInput>,
+  /// Opaque data
   pub data: Vec<u8>,
+  /// Base58 identifier
   pub program_id: SolanaAddressHash,
 }
 
@@ -51,28 +57,36 @@ impl From<InstructionInput> for solana_program::instruction::Instruction {
   }
 }
 
+/// Account information.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct InstructionAccountInput {
+  /// Base58 identifier.
   pub pubkey: SolanaAddressHash,
+  /// Signed the transaction.
   pub is_signer: bool,
+  /// Had state modified.
   pub is_writable: bool,
 }
 
 impl InstructionAccountInput {
+  /// Account is not a signer nor writable.
   pub fn none(pubkey: SolanaAddressHash) -> Self {
     Self { pubkey, is_signer: false, is_writable: false }
   }
 
+  /// Account is signer but not writable.
   pub fn sign(pubkey: SolanaAddressHash) -> Self {
     Self { pubkey, is_signer: true, is_writable: false }
   }
 
-  pub fn sign_and_write(pubkey: SolanaAddressHash) -> Self {
+  /// Account is signer and writable
+  pub fn sign_and_writable(pubkey: SolanaAddressHash) -> Self {
     Self { pubkey, is_signer: true, is_writable: true }
   }
 
+  /// Account is writable but not signer.
   pub fn write(pubkey: SolanaAddressHash) -> Self {
     Self { pubkey, is_signer: false, is_writable: true }
   }
@@ -98,19 +112,26 @@ impl From<InstructionAccountInput> for solana_program::instruction::AccountMeta 
   }
 }
 
+/// Message
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct MessageInput {
+  /// Header
   pub header: MessageHeaderInput,
+  /// All block accounts
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
   pub account_keys: Vec<SolanaAddressHash>,
+  /// Recent blockhash
   pub recent_blockhash: SolanaBlockhash,
+  /// All block instructions
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
   pub instructions: Vec<CompiledInstructionInput>,
 }
 
 impl MessageInput {
+  /// Takes all the necessary parameters to validate and transform data into a suitable format for
+  /// submission.
   #[inline]
   pub fn with_params(
     instructions: &[InstructionInput],
@@ -237,25 +258,34 @@ impl MessageInput {
   }
 }
 
+/// Header containing overall account information.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct MessageHeaderInput {
+  /// Number of required signatures
   pub num_required_signatures: u8,
+  /// Number of readonly signed accounts
   pub num_readonly_signed_accounts: u8,
+  /// Number of readonly unsigned accounts.
   pub num_readonly_unsigned_accounts: u8,
 }
 
+/// Transport format suitable for user input.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct TransactionInput {
   #[cfg_attr(feature = "serde", serde(with = "crate::blockchain::solana::short_vec"))]
+  /// Signatures
   pub signatures: Vec<SolanaSignatureHash>,
+  /// Message
   pub message: MessageInput,
 }
 
 impl TransactionInput {
+  /// Takes all the necessary parameters to validate and transform data into a suitable format for
+  /// submission.
   #[cfg(feature = "ed25519-dalek")]
   #[inline]
   pub fn new<'keypair, BB>(
@@ -301,6 +331,7 @@ impl TransactionInput {
     Ok(this)
   }
 
+  /// Checks if all signatures are actually signed.
   #[inline]
   pub fn check_signatures(&self) -> crate::Result<()> {
     let default = SolanaSignatureHash::default();

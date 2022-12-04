@@ -17,5 +17,5 @@ pub(crate) mod fir_item_attr;
 pub(crate) mod fir_items_values;
 pub(crate) mod fir_params_items_values;
 pub(crate) mod fir_pkg_attr;
-pub(crate) mod fir_req_data_item_values;
-pub(crate) mod fir_res_data_item_values;
+pub(crate) mod fir_req_item_values;
+pub(crate) mod fir_res_item_values;

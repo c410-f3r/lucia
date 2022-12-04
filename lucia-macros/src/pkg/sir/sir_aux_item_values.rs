@@ -4,7 +4,7 @@ mod sir_items_values_pushers;
 use crate::pkg::{
   fir::{
     fir_aux_item_values::FirAuxItemValues, fir_custom_item_values::FirCustomItemValuesRef,
-    fir_params_items_values::FirParamsItemValues, fir_req_data_item_values::FirReqDataItemValues,
+    fir_params_items_values::FirParamsItemValues, fir_req_item_values::FirReqItemValues,
   },
   misc::{from_camel_case_to_snake_case, split_params, EMPTY_GEN_PARAMS},
   sir::sir_pkg_attr::SirPkaAttr,
@@ -80,7 +80,7 @@ impl<'attrs, 'module, 'others>
     &'others Ident,
     &'others FirAuxItemValues<'module>,
     &'others FirParamsItemValues<'module>,
-    &'others FirReqDataItemValues<'module>,
+    &'others FirReqItemValues<'module>,
     &'others SirPkaAttr<'attrs>,
   )> for SirAuxItemValues
 {
@@ -92,7 +92,7 @@ impl<'attrs, 'module, 'others>
       &'others Ident,
       &'others FirAuxItemValues<'module>,
       &'others FirParamsItemValues<'module>,
-      &'others FirReqDataItemValues<'module>,
+      &'others FirReqItemValues<'module>,
       &'others SirPkaAttr<'attrs>,
     ),
   ) -> Result<Self, Self::Error> {
@@ -256,7 +256,7 @@ impl<'attrs, 'module, 'others>
 struct BuilderCommonValues<'any> {
   faiv: &'any FirAuxItemValues<'any>,
   fpiv: Option<&'any FirParamsItemValues<'any>>,
-  freqdiv: Option<&'any FirReqDataItemValues<'any>>,
+  freqdiv: Option<&'any FirReqItemValues<'any>>,
   ident: &'any Ident,
 }
 

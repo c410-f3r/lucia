@@ -27,6 +27,10 @@ pub enum Error {
 
   // Features
   //
+  // KuCoin
+  /// Unsuccessful request explained in the contained string.
+  KuCoinUnsuccessfulRequest(String),
+
   // Solana
   /// Returned data from counterpart is everything but a spl-token account
   #[cfg(feature = "solana")]
