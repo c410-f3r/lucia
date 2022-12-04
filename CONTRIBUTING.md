@@ -60,11 +60,11 @@ pub struct MyNewGamingApi;
 mod my_endpoint {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
-  pub struct MyEndpointReqData(i32);
+  pub struct MyEndpointReq(i32);
 
   #[derive(Debug)]
   #[pkg::res_data]
-  pub struct MyEndpointResData(i32);
+  pub struct MyEndpointRes(i32);
 }
 ```
 

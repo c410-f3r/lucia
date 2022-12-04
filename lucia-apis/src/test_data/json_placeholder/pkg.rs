@@ -18,32 +18,44 @@ use lucia::{
   network::{HttpMethod, HttpReqParams},
 };
 
+/// Generic response used by all packages.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(untagged))]
 #[derive(Debug)]
-#[lucia_macros::pkg_doc]
-pub enum GenericResData {
-  Album(AlbumsElemResData),
-  Albums(Vec<AlbumsElemResData>),
-  Comment(CommentsElemResData),
-  Comments(Vec<CommentsElemResData>),
-  Photo(Box<PhotosElemResData>),
-  Photos(Vec<PhotosElemResData>),
-  Post(PostsElemResData),
-  Posts(Vec<PostsElemResData>),
-  Todo(TodosElemResData),
-  Todos(Vec<TodosElemResData>),
-  User(UsersElemResData),
-  Users(Vec<UsersElemResData>),
+pub enum GenericRes {
+  /// One album.
+  Album(Box<Album>),
+  /// Multiple albums.
+  Albums(Vec<Album>),
+  /// One comment.
+  Comment(Box<Comment>),
+  /// Multiple comments.
+  Comments(Vec<Comment>),
+  /// One photo.
+  Photo(Box<Photo>),
+  /// Multiple photos.
+  Photos(Vec<Photo>),
+  /// One post.
+  Post(Box<Post>),
+  /// Multiple posts.
+  Posts(Vec<Post>),
+  /// One todo.
+  Todo(Box<Todo>),
+  /// Multiple todos.
+  Todos(Vec<Todo>),
+  /// One user.
+  User(Box<User>),
+  /// Multiple users.
+  Users(Vec<User>),
 }
 
+/// Generic parameters used by all packages.
 #[derive(Debug)]
-#[lucia_macros::pkg_doc]
 pub struct GenericParams<'any> {
-  pub id_opt: Option<u32>,
-  pub method: HttpMethod,
-  pub nested_opt: Option<&'any str>,
-  pub query: &'any [(&'any str, &'any (dyn DebugDisplay + Sync))],
+  id_opt: Option<u32>,
+  method: HttpMethod,
+  nested_opt: Option<&'any str>,
+  query: &'any [(&'any str, &'any (dyn DebugDisplay + Sync))],
 }
 
 impl<'any> GenericParams<'any> {

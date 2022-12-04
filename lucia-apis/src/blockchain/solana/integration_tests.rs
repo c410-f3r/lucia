@@ -2,7 +2,7 @@ use crate::blockchain::solana::{
   AccountEncoding, AccountSubscribeConfig, Commitment, DataSlice, Filter, GenericTransaction,
   GetAccountInfoConfig, GetBlockConfig, GetProgramAccountsConfig, GetTokenAccountsByOwnerConfig,
   GetTransactionConfig, InstructionJsonParsedInfo, Memcmp, MemcmpEncodedBytes, MessageInput,
-  MintOrProgramId, Solana, SolanaAddressHash, TransactionDetailsReqData, TransactionEncoding,
+  MintOrProgramId, Solana, SolanaAddressHash, TransactionDetails, TransactionEncoding,
   TransactionInput,
 };
 use alloc::vec::Vec;
@@ -69,7 +69,7 @@ _create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async
         commitment: Some(Commitment::Finalized),
         encoding: Some(TransactionEncoding::JsonParsed),
         rewards: Some(true),
-        transaction_details: Some(TransactionDetailsReqData::Full),
+        transaction_details: Some(TransactionDetails::Full),
       }),
     )
     .build();

@@ -20,3 +20,16 @@ pub enum TransactionEncoding {
   /// Json representation with additional metadata.
   JsonParsed,
 }
+
+/// Level of transaction.
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(Debug)]
+pub enum TransactionDetails {
+  /// Signatures and metadata
+  Full,
+  /// Only signatures
+  Signatures,
+  /// No additional data
+  None,
+}

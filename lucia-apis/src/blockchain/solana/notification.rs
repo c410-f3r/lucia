@@ -23,6 +23,5 @@ pub struct SlotsUpdatesNotification {
   /// Unix timestamp of the update.
   pub timestamp: i64,
   /// Slot update
-  #[cfg_attr(feature = "serde", serde(rename = "type"))]
-  pub ty: SlotUpdate,
+  pub r#type: SlotUpdate,
 }

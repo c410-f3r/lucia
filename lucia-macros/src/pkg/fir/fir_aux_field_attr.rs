@@ -25,7 +25,7 @@ impl Parse for FirAuxFieldAttr {
       let _ = content.parse::<keywords::aux_params>()?;
       Self::AuxParams
     } else {
-      return Err(crate::Error::BadField(endpoint.span()).into());
+      return Err(crate::Error::BadAux(endpoint.span()).into());
     })
   }
 }

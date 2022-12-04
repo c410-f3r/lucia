@@ -17,30 +17,45 @@ pub use v3_public_holidays::pkg::*;
 use alloc::vec::Vec;
 use arrayvec::ArrayString;
 
+/// The type of a public holiday
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[derive(Debug)]
-#[lucia_macros::pkg_doc]
-pub enum PublicHolidayTyResData {
+pub enum V3HolidayTy {
+  /// Authorities are closed
   Authorities,
+  /// Bank holiday, banks and offices are closed
   Bank,
+  /// Optional festivity, no paid day off
   Observance,
+  /// Majority of people take a day off
   Optional,
+  /// Public holiday
   Public,
+  /// School holiday, schools are closed
   School,
 }
 
+/// Used by all the endpoints that return holydays.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
-#[lucia_macros::pkg_doc]
-pub struct V3PublicHolidayElemResData {
+pub struct V3PublicHolidayResElem {
+  /// The date.
   pub date: ArrayString<10>,
+  /// Local name.
   pub local_name: Option<ArrayString<72>>,
+  /// English name.
   pub name: Option<ArrayString<72>>,
+  /// ISO 3166-1 alpha-2.
   pub country_code: Option<ArrayString<2>>,
+  /// Is this public holiday every year on the same date.
   pub fixed: bool,
+  /// Is this public holiday in every county (federal state).
   pub global: bool,
+  /// ISO-3166-2 - Federal states.
   pub counties: Option<Vec<ArrayString<8>>>,
+  /// The launch year of the public holiday
   pub launch_year: Option<i32>,
-  pub types: Option<Vec<PublicHolidayTyResData>>,
+  /// A list of types the public holiday it is valid
+  pub types: Option<Vec<V3HolidayTy>>,
 }

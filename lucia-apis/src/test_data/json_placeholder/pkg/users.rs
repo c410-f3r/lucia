@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::test_data::json_placeholder::{
-    pkg::params_management, GenericParams, GenericResData, JsonPlaceholderHttpPackagesAux,
+    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPackagesAux,
   };
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
@@ -29,54 +29,72 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct UsersReqData;
+  pub struct UsersReq;
 
   #[pkg::res_data]
-  pub type UsersResData = GenericResData;
+  pub type UsersRes = GenericRes;
 
+  /// User
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct UsersAddressResData {
-    pub street: ArrayString<17>,
-    pub suite: ArrayString<10>,
-    pub city: ArrayString<14>,
-    pub zipcode: ArrayString<11>,
-    pub geo: UsersGeoResData,
+  pub struct User {
+    /// Id
+    pub id: u32,
+    /// Name
+    pub name: ArrayString<24>,
+    /// Username
+    pub username: ArrayString<16>,
+    /// Email
+    pub email: ArrayString<25>,
+    /// Address
+    pub address: UserAddress,
+    /// Phone
+    pub phone: ArrayString<21>,
+    /// Website
+    pub website: ArrayString<14>,
+    /// Company
+    pub company: UserCompany,
   }
 
+  /// User address
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct UsersCompanyResData {
+  pub struct UserAddress {
+    /// Street
+    pub street: ArrayString<17>,
+    /// Suite
+    pub suite: ArrayString<10>,
+    /// City
+    pub city: ArrayString<14>,
+    /// Zip-code
+    pub zipcode: ArrayString<11>,
+    /// User geographic parameters
+    pub geo: UserGeoParams,
+  }
+
+  /// User company
+  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+  #[derive(Debug)]
+  pub struct UserCompany {
+    /// Name
     pub name: ArrayString<18>,
+    /// What the company does.
     pub catch_phrase: ArrayString<40>,
+    /// Tags
     pub bs: ArrayString<36>,
   }
 
+  /// User geographic parameters.
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct UsersElemResData {
-    pub id: u32,
-    pub name: ArrayString<24>,
-    pub username: ArrayString<16>,
-    pub email: ArrayString<25>,
-    pub address: UsersAddressResData,
-    pub phone: ArrayString<21>,
-    pub website: ArrayString<14>,
-    pub company: UsersCompanyResData,
-  }
-
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct UsersGeoResData {
+  pub struct UserGeoParams {
+    /// Latitude
     pub lat: ArrayString<9>,
+    /// Longitude
     pub lng: ArrayString<9>,
   }
 }

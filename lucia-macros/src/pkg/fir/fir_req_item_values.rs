@@ -1,6 +1,6 @@
 create_fir_custom_item_values!(
   "Expected data request that will be sent to the server.",
-  FirReqDataItemValues,
+  FirReqItemValues,
   freqdiv_fields_attrs,
   freqdiv_ident,
   freqdiv_item,
@@ -8,8 +8,8 @@ create_fir_custom_item_values!(
   freqdiv_ty,
   freqdiv_where_predicates,
   |this| {
-    if !this.freqdiv_ident.to_string().ends_with("ReqData") {
-      return Err(crate::Error::BadReqData(this.freqdiv_ident.span()));
+    if !this.freqdiv_ident.to_string().ends_with("Req") {
+      return Err(crate::Error::BadReq(this.freqdiv_ident.span()));
     }
     Ok(())
   },

@@ -53,7 +53,7 @@ impl KuCoinCredentials {
     let mut mac = Hmac::<Sha256>::new_from_slice(self.api_secret.as_str().as_bytes())?;
     mac.update(ArrayString::<20>::try_from(format_args!("{}", timestamp))?.as_bytes());
     mac.update(<&str>::from(req_params.method).as_bytes());
-    mac.update(req_params.url.path().as_bytes());
+    mac.update(req_params.url.href().as_bytes());
     mac.update(body);
     let input = mac.finalize().into_bytes();
     encode_to_base64(input.as_slice())

@@ -14,19 +14,24 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetClusterNodesReqData;
+  pub struct GetClusterNodesReq;
 
   #[pkg::res_data]
-  pub type GetClusterNodesResData = Vec<GetClusterNodesResElem>;
+  pub type GetClusterNodesRes = Vec<GetClusterNodesResElem>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[derive(Debug, PartialEq)]
-  #[lucia_macros::pkg_doc]
+  #[doc = _generic_res_data_elem_doc!()]
   pub struct GetClusterNodesResElem {
+    /// Gossip network address.
     pub gossip: ArrayString<21>,
+    /// Node Base58 public key.
     pub pubkey: SolanaAddressHashStr,
+    /// JSON RPC network address of the node.
     pub rpc: Option<ArrayString<21>>,
+    /// TPU network address.
     pub tpu: Option<ArrayString<21>>,
+    /// The software version of the node.
     pub version: Option<ArrayString<16>>,
   }
 }

@@ -5,18 +5,29 @@ use syn::{
   AttrStyle, Attribute, Path, PathArguments, PathSegment,
 };
 
-pub(crate) fn has_at_least_one_doc(attrs: &[Attribute]) -> bool {
-  attrs.iter().any(|attr| {
-    if let Some(last) = attr.path.segments.last() {
-      last.ident == "doc"
-    } else {
-      false
+pub(crate) fn attrs_by_names<'attrs, const N: usize>(
+  attrs: &'attrs [Attribute],
+  names: [&str; N],
+) -> [Option<&'attrs Attribute>; N] {
+  let mut rslt = [None; N];
+  for attr in attrs {
+    let Some(last) = attr.path.segments.last() else { continue; };
+    let s = last.ident.to_string();
+    for (name, rslt_attr) in names.iter().zip(&mut rslt) {
+      if rslt_attr.is_some() {
+        continue;
+      }
+      if name == &s {
+        *rslt_attr = Some(attr);
+        break;
+      }
     }
-  })
+  }
+  rslt
 }
 
-pub(crate) fn push_allow_missing_docs(attrs: &mut Vec<Attribute>) {
-  push_attr(attrs, ["allow"], quote::quote!((missing_docs)));
+pub(crate) fn has_at_least_one_doc(attrs: &[Attribute]) -> bool {
+  attrs_by_names(attrs, ["doc"])[0].is_some()
 }
 
 pub(crate) fn push_doc(attrs: &mut Vec<Attribute>, doc: &str) {
@@ -53,4 +64,23 @@ fn push_attr<'any>(
     },
     tokens,
   })
+}
+
+#[cfg(test)]
+mod tests {
+  use crate::misc::{attrs_by_names, push_attr};
+  use proc_macro2::TokenStream;
+
+  #[test]
+  fn has_names_in_attrs_has_correct_output() {
+    let mut attrs = Vec::new();
+    push_attr(&mut attrs, ["foo"], TokenStream::new());
+    push_attr(&mut attrs, ["baz"], TokenStream::new());
+    assert_eq!(
+      attrs_by_names(&attrs, ["foo", "bar", "baz"]),
+      [Some(&attrs[0]), None, Some(&attrs[1])]
+    );
+    let attrs = Vec::new();
+    assert_eq!(attrs_by_names(&attrs, ["foo", "bar", "baz"]), [None, None, None]);
+  }
 }

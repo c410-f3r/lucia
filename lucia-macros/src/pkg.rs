@@ -11,7 +11,7 @@ use fir::{
   fir_aux_item_values::FirAuxItemValues,
   fir_before_sending_item_values::FirBeforeSendingItemValues, fir_items_values::FirItemsValues,
   fir_params_items_values::FirParamsItemValues, fir_pkg_attr::FirPkgAttr,
-  fir_req_data_item_values::FirReqDataItemValues, fir_res_data_item_values::FirResDataItemValues,
+  fir_req_item_values::FirReqItemValues, fir_res_item_values::FirResItemValues,
 };
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
@@ -35,11 +35,15 @@ pub(crate) fn pkg(
 ) -> crate::Result<proc_macro::TokenStream> {
   let attr_args = parse_macro_input::parse::<AttributeArgs>(attrs)?;
   let mut item_mod: ItemMod = parse_macro_input::parse(item)?;
-  let fiv = FirItemsValues::try_from(&mut item_mod)?;
-  let freqdiv = FirReqDataItemValues::try_from(fiv.req_data)?;
+  let items_stub = &mut Vec::new();
+  let fiv = FirItemsValues::try_from((
+    item_mod.content.as_mut().map(|el| &mut el.1).unwrap_or(items_stub),
+    item_mod.ident.span(),
+  ))?;
+  let freqdiv = FirReqItemValues::try_from(fiv.req_data)?;
   let mut camel_case_id = {
     let mut string = freqdiv.freqdiv_ident.to_string();
-    if let Some(idx) = string.rfind("ReqData") {
+    if let Some(idx) = string.rfind("Req") {
       string.truncate(idx);
     }
     string
@@ -62,7 +66,7 @@ pub(crate) fn pkg(
   let fasiv = fiv.after_sending.map(FirAfterSendingItemValues::try_from).transpose()?;
   let fbsiv = fiv.before_sending.map(FirBeforeSendingItemValues::try_from).transpose()?;
   let faiv = fiv.aux.map(FirAuxItemValues::try_from).transpose()?;
-  let fresdiv = FirResDataItemValues::try_from(fiv.res_data)?;
+  let fresdiv = FirResItemValues::try_from(fiv.res_data)?;
   let spa = SirPkaAttr::try_from(FirPkgAttr::try_from(&*attr_args)?)?;
   let SirFinalValues { auxs, package, package_impls } = SirFinalValues::try_from((
     &mut camel_case_id,

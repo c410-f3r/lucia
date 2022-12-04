@@ -24,7 +24,7 @@ impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirPkaAttr<'attrs> {
       .map(|elem| elem.try_into())
       .collect::<crate::Result<Vec<_>>>()?;
     if data_formats.is_empty() {
-      return Err(crate::Error::EmptyDataFormats);
+      return Err(crate::Error::MandatoryOuterAttrsAreNotPresent);
     }
     Ok(Self {
       api: fea.api,

@@ -13,10 +13,10 @@ pub(crate) mod sub {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct SlotsUpdatesSubscribeReqData;
+  pub struct SlotsUpdatesSubscribeReq;
 
   #[pkg::res_data]
-  pub type SlotsUpdatesSubscribeResData = u64;
+  pub type SlotsUpdatesSubscribeRes = u64;
 }
 
 #[lucia_macros::pkg(
@@ -34,12 +34,12 @@ pub(crate) mod unsub {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct SlotsUpdatesUnsubscribeReqData(
+  pub struct SlotsUpdatesUnsubscribeReq(
     #[cfg_attr(feature = "serde", serde(serialize_with = "crate::misc::_serde_ser_as_tuple"))]
     #[pkg::field(name = "id")]
     u64,
   );
 
   #[pkg::res_data]
-  pub type SlotsUpdatesUnsubscribeResData = bool;
+  pub type SlotsUpdatesUnsubscribeRes = bool;
 }

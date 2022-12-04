@@ -84,6 +84,9 @@ mod serde_yaml {
     where
       BB: ByteBuffer,
     {
+      if core::mem::size_of::<D>() == 0 {
+        return Ok(());
+      }
       serde_yaml::to_writer(bytes, self)?;
       Ok(())
     }

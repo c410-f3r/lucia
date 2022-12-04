@@ -16,7 +16,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetTokenAccountBalanceReqData<S>(
+  pub struct GetTokenAccountBalanceReq<S>(
     #[pkg::field(name = "pk")] S,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     #[pkg::field(name = "config")]
@@ -26,12 +26,13 @@ pub(crate) mod pkg {
     S: AsRef<str> + Send;
 
   #[pkg::res_data]
-  pub type GetTokenAccountBalanceResData = JsonRpcResponseResultWithContext<AccountBalance>;
+  pub type GetTokenAccountBalanceRes = JsonRpcResponseResultWithContext<AccountBalance>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetTokenAccountBalanceConfig {
+    /// Commitment
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
   }

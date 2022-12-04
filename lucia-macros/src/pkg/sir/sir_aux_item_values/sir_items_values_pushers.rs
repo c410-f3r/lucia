@@ -2,7 +2,7 @@ use crate::pkg::{
   data_format::DataFormat,
   fir::{
     fir_aux_item_values::FirAuxItemValues, fir_params_items_values::FirParamsItemValues,
-    fir_req_data_item_values::FirReqDataItemValues,
+    fir_req_item_values::FirReqItemValues,
   },
   misc::{EMPTY_GEN_ARGS, EMPTY_PATH_SEGS, EMPTY_WHERE_PREDS},
   sir::sir_aux_item_values::{
@@ -46,14 +46,14 @@ impl SirAuxItemValues {
   pub(super) fn push_dt_methods_returning_pkg(
     data_formats: &[DataFormat],
     fpiv: &FirParamsItemValues<'_>,
-    freqdiv: &FirReqDataItemValues<'_>,
+    freqdiv: &FirReqItemValues<'_>,
     pkg_ident: &Ident,
     saiv_tts: &mut Vec<TokenStream>,
     impl_values: BuilderCommonValues<'_>,
   ) {
     let mut do_push = |aux_call: &TokenStream, fn_ident: &Ident, wrapper_ident: &Ident| {
       let FirParamsItemValues { fpiv_params, .. } = *fpiv;
-      let FirReqDataItemValues { freqdiv_ident, freqdiv_params, .. } = *freqdiv;
+      let FirReqItemValues { freqdiv_ident, freqdiv_params, .. } = *freqdiv;
       let fpiv_params_iter = fpiv_params.iter();
       let method = quote::quote!(
         /// Final building method that creates a package with all the necessary values.

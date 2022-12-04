@@ -17,26 +17,26 @@ pub(crate) mod pkg {
       &mut self,
       config: Option<GetFeeForMessageConfig>,
       message: &MessageInput,
-    ) -> crate::Result<GetFeeForMessageReqData> {
+    ) -> crate::Result<GetFeeForMessageReq> {
       self.byte_buffer.clear();
       bincode::serialize_into(&mut self.byte_buffer, message)?;
       let string = base64::encode(&self.byte_buffer);
       self.byte_buffer.clear();
-      Ok(GetFeeForMessageReqData(string, config))
+      Ok(GetFeeForMessageReq(string, config))
     }
   }
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetFeeForMessageReqData(String, Option<GetFeeForMessageConfig>);
+  pub struct GetFeeForMessageReq(String, Option<GetFeeForMessageConfig>);
 
   #[pkg::res_data]
-  pub type GetFeeForMessageResData = JsonRpcResponseResultWithContext<Option<u64>>;
+  pub type GetFeeForMessageRes = JsonRpcResponseResultWithContext<Option<u64>>;
 
-  /// Optional request configurations.
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
+  #[doc = generic_config_doc!()]
   pub struct GetFeeForMessageConfig {
     /// Commitment
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]

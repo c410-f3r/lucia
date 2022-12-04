@@ -5,7 +5,9 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::blockchain::solana::{Block, Commitment, SolanaHttpPackagesAux, TransactionEncoding};
+  use crate::blockchain::solana::{
+    Block, Commitment, SolanaHttpPackagesAux, TransactionDetails, TransactionEncoding,
+  };
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
@@ -13,35 +15,29 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetBlockReqData(
+  pub struct GetBlockReq(
     #[pkg::field(name = "slot")] u64,
     #[pkg::field(name = "config")] Option<GetBlockConfig>,
   );
 
   #[pkg::res_data]
-  pub type GetBlockResData = Option<Block>;
+  pub type GetBlockRes = Option<Block>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetBlockConfig {
+    /// Commitment
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    /// Transaction encoding.
     pub encoding: Option<TransactionEncoding>,
+    /// Rewards
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub rewards: Option<bool>,
+    /// Transaction details
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    pub transaction_details: Option<TransactionDetailsReqData>,
-  }
-
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub enum TransactionDetailsReqData {
-    Full,
-    Signatures,
-    None,
+    pub transaction_details: Option<TransactionDetails>,
   }
 }

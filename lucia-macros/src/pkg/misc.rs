@@ -1,9 +1,9 @@
 use proc_macro2::Span;
 use quote::ToTokens;
 use syn::{
-  parse::Parse, punctuated::Punctuated, token::Paren, AngleBracketedGenericArguments, Attribute,
-  GenericArgument, GenericParam, Generics, PathArguments, PathSegment, Token, Type, TypePath,
-  TypeTuple, WherePredicate,
+  parse::Parse, punctuated::Punctuated, spanned::Spanned, token::Paren,
+  AngleBracketedGenericArguments, Attribute, GenericArgument, GenericParam, Generics,
+  PathArguments, PathSegment, Token, Type, TypePath, TypeTuple, WherePredicate,
 };
 
 pub(crate) const EMPTY_GEN_ARGS: &Punctuated<GenericArgument, Token![,]> = &Punctuated::new();
@@ -77,7 +77,7 @@ pub(crate) fn is_unit_type(ty_tuple: &TypeTuple) -> bool {
 
 pub(crate) fn manage_unique_attribute<T>(opt: Option<&T>, span: Span) -> crate::Result<()> {
   if opt.is_some() {
-    Err(crate::Error::DuplicatedAttribute(span))
+    Err(crate::Error::DuplicatedGlobalPkgAttr(span))
   } else {
     Ok(())
   }
@@ -117,11 +117,13 @@ where
   let mut iter = attrs.iter().enumerate().filter_map(|(idx, attr)| {
     attr.path.segments.first().map_or(false, |segment| segment.ident == "pkg").then_some(idx)
   });
-  let idx_opt = iter.next();
-  if iter.next().is_some() {
-    return Err(crate::Error::DuplicatedPkg);
+  let Some(idx) = iter.next() else { return Ok(None) };
+  let has_more_than_one = iter.next().is_some();
+  let attr = attrs.remove(idx);
+  if has_more_than_one {
+    return Err(crate::Error::DuplicatedLocalPkgAttr(attr.span()));
   }
-  Ok(idx_opt.map(|idx| syn::parse2(attrs.remove(idx).into_token_stream())).transpose()?)
+  Ok(Some(syn::parse2(attr.into_token_stream())?))
 }
 
 pub(crate) fn unit_type() -> Type {

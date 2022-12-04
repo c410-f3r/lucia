@@ -35,14 +35,14 @@ mod my_endpoint {
 
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
-  pub struct MyEndpointReqData<'any> {
+  pub struct MyEndpointReq<'any> {
     pub foo: i64,
     pub bar: &'any str,
   }
 
   #[derive(Debug, serde::Deserialize)]
   #[pkg::res_data]
-  pub struct MyEndpointResData {
+  pub struct MyEndpointRes {
     pub data: i32,
   }
 }
@@ -66,7 +66,7 @@ pub async fn fetch_my_endpoint() -> lucia::Result<i32> {
 
 Each request has one or more data formats or protocols attached specifically to an API.
 
-They are what will be serialized and deserialized so order to create yet another data format, it is necessary to implement `Deserialize` and `Serialize` according to the desired serializer.
+They are what will be serialized and deserialized so in order to create yet another data format, it is necessary to implement `Deserialize` and `Serialize` according to the desired serializer.
 
 | Name | URL |
 |---|---|

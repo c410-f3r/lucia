@@ -58,4 +58,4 @@ do
 	$rt check-with-features lucia-apis $feature
 done
 
-$rt test-generic lucia-macros
+$rt test-with-features lucia-macros ""

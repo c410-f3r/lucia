@@ -16,7 +16,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetAccountInfoReqData<S>(
+  pub struct GetAccountInfoReq<S>(
     #[pkg::field(name = "pk")] S,
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     #[pkg::field(name = "config")]
@@ -26,16 +26,19 @@ pub(crate) mod pkg {
     S: AsRef<str> + Send;
 
   #[pkg::res_data]
-  pub type GetAccountInfoResData = JsonRpcResponseResultWithContext<Option<Account>>;
+  pub type GetAccountInfoRes = JsonRpcResponseResultWithContext<Option<Account>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetAccountInfoConfig {
+    /// Account encoding.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub encoding: Option<AccountEncoding>,
+    /// Commitment.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub commitment: Option<Commitment>,
+    /// Data slice.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     pub data_slice: Option<DataSlice>,
   }

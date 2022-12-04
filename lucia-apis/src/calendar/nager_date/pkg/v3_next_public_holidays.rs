@@ -5,7 +5,7 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::calendar::nager_date::{NagerDateHttpPackagesAux, V3PublicHolidayElemResData};
+  use crate::calendar::nager_date::{NagerDateHttpPackagesAux, V3PublicHolidayResElem};
   use alloc::vec::Vec;
   use lucia::network::HttpReqParams;
 
@@ -30,14 +30,8 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct V3NextPublicHolidaysReqData;
+  pub struct V3NextPublicHolidaysReq;
 
   #[pkg::res_data]
-  pub type V3NextPublicHolidaysResData = Vec<V3PublicHolidayElemResData>;
-
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct V3NextPublicHolidaysElemResData {}
+  pub type V3NextPublicHolidaysRes = Vec<V3PublicHolidayResElem>;
 }

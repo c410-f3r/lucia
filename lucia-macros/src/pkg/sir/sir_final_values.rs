@@ -4,8 +4,8 @@ use crate::pkg::{
     fir_after_sending_item_values::FirAfterSendingItemValues,
     fir_aux_item_values::FirAuxItemValues,
     fir_before_sending_item_values::FirBeforeSendingItemValues,
-    fir_params_items_values::FirParamsItemValues, fir_req_data_item_values::FirReqDataItemValues,
-    fir_res_data_item_values::FirResDataItemValues,
+    fir_params_items_values::FirParamsItemValues, fir_req_item_values::FirReqItemValues,
+    fir_res_item_values::FirResItemValues,
   },
   misc::split_params,
   sir::{sir_aux_item_values::SirAuxItemValues, sir_pkg_attr::SirPkaAttr},
@@ -22,7 +22,7 @@ pub(crate) struct SirFinalValues {
 
 impl SirFinalValues {
   fn pkg_params<'any>(
-    freqdiv: &'any FirReqDataItemValues<'any>,
+    freqdiv: &'any FirReqItemValues<'any>,
     fpiv: &'any FirParamsItemValues<'any>,
   ) -> (impl Iterator<Item = &'any GenericParam>, impl Iterator<Item = &'any GenericParam>) {
     let (a_lts, a_tys) = split_params(fpiv.fpiv_params);
@@ -47,8 +47,8 @@ impl<'attrs, 'module, 'others>
   TryFrom<(
     &'others mut String,
     FirParamsItemValues<'module>,
-    FirReqDataItemValues<'module>,
-    FirResDataItemValues<'others>,
+    FirReqItemValues<'module>,
+    FirResItemValues<'others>,
     SirPkaAttr<'attrs>,
     Option<FirAfterSendingItemValues<'module>>,
     Option<FirAuxItemValues<'module>>,
@@ -61,8 +61,8 @@ impl<'attrs, 'module, 'others>
     (camel_case_id, fpiv, freqdiv, fresdiv, spa, fasiv_opt, faiv_opt, fbsiv_opt): (
       &'others mut String,
       FirParamsItemValues<'module>,
-      FirReqDataItemValues<'module>,
-      FirResDataItemValues<'others>,
+      FirReqItemValues<'module>,
+      FirResItemValues<'others>,
       SirPkaAttr<'attrs>,
       Option<FirAfterSendingItemValues<'module>>,
       Option<FirAuxItemValues<'module>>,
@@ -70,9 +70,8 @@ impl<'attrs, 'module, 'others>
     ),
   ) -> Result<Self, Self::Error> {
     let FirParamsItemValues { ref fpiv_ty, fpiv_params, fpiv_where_predicates, .. } = fpiv;
-    let FirReqDataItemValues { freqdiv_ident, freqdiv_params, freqdiv_where_predicates, .. } =
-      freqdiv;
-    let FirResDataItemValues { res_ident } = fresdiv;
+    let FirReqItemValues { freqdiv_ident, freqdiv_params, freqdiv_where_predicates, .. } = freqdiv;
+    let FirResItemValues { res_ident } = fresdiv;
     let SirPkaAttr { api, ref data_formats, ref error, ref transport_groups } = spa;
     let camel_case_pkg_ident = &{
       let idx = camel_case_id.len();

@@ -5,18 +5,23 @@ use crate::blockchain::solana::{
 };
 use alloc::{string::String, vec::Vec};
 
+/// A transaction can be represented in various formats.
 #[allow(clippy::large_enum_variant)]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
 #[derive(Debug)]
 pub enum GenericTransaction {
+  /// Encoded bytes.
   Base64(String, TransactionEncoding),
+  /// Decoded bytes as JSON.
   Json(TransactionJson<SolanaAddressHashStr, CompiledInstructionJson>),
+  /// Decoded bytes as JSON with additional metadata.
   JsonParsed(TransactionJson<MessageJsonAccountKey, InstructionJson>),
 }
 
+/// An instruction wasn't successful.
 #[allow(
-    // Probably little will be gained boxing a variant of 28 bytes
+  // Probably little will be gained boxing a variant of 28 bytes
   variant_size_differences
 )]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
@@ -189,7 +194,7 @@ pub enum InstructionError {
   // conversions must also be added
 }
 
-/// Reasons a transaction might be rejected.
+/// Some possible reasons a transaction was rejected.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[derive(Debug)]
 pub enum TransactionError {
@@ -246,6 +251,7 @@ pub enum TransactionError {
   /// not be unlocked.
   SanitizeFailure,
 
+  /// Cluster is in maintenance state.
   ClusterMaintenance,
 
   /// Transaction processing left an account with an outstanding borrowed reference
@@ -267,36 +273,57 @@ pub enum TransactionError {
   WouldExceedMaxAccountDataCostLimit,
 }
 
+/// Transaction metadata.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct TransactionMeta {
+  /// Error filled if unsuccessful.
   pub err: Option<TransactionError>,
+  /// Lamports changed by this transaction;
   pub fee: u64,
+  /// List of inner instructions or null if inner instruction recording was not enabled during
+  /// this transaction.
   pub inner_instructions: Vec<InnerInstructionJson>,
+  /// Lost of string log messages or null if log message recording was not enabled during this
+  /// transaction.
   pub log_messages: Option<Vec<String>>,
+  /// Debited or credited lamports of all accounts before applying the transaction.
   pub post_balances: Vec<u64>,
+  /// Debited or credited tokens of all accounts before applying the transaction.
   pub post_token_balances: Option<Vec<TransactionTokenBalance>>,
+  /// Debited or credited lamports of all accounts after applying the transaction.
   pub pre_balances: Vec<u64>,
+  /// Debited or credited tokens of all accounts after applying the transaction.
   pub pre_token_balances: Option<Vec<TransactionTokenBalance>>,
 }
 
+/// Transaction output of a RPC request.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct TransactionOutput {
+  /// Estimated production time, as Unix timestamp
   pub block_time: Option<i64>,
+  /// Transaction metadata
   pub meta: Option<TransactionMeta>,
+  /// The slot this transaction was processed in.
   pub slot: u64,
+  /// Generic transaction
   pub transaction: GenericTransaction,
 }
 
+/// Pre and pos transaction balance information.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
 pub struct TransactionTokenBalance {
+  /// Index in regards to the block array of accounts.
   pub account_index: u8,
+  /// Base58 identifier.
   pub mint: SolanaAddressHashStr,
+  /// Base58 identifier.
   pub owner: SolanaAddressHashStr,
+  /// Token balance.
   pub ui_token_amount: AccountBalance,
 }

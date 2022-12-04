@@ -87,6 +87,19 @@ macro_rules! _create_blockchain_constants {
   };
 }
 
+macro_rules! _generic_api_doc {
+  () => {
+    "Used to group a set of packages related to this API as well as any additional instance parameters."
+  };
+}
+
+macro_rules! _generic_res_data_elem_doc {
+  () => {
+    "Element that makes up most of the expected data response returned by the server."
+  };
+}
+
+#[cfg(test)]
 macro_rules! _create_generic_test {
   ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr $(, $(#[$attrs:meta])+)?) => {
     $($(#[$attrs])+)?
@@ -130,6 +143,7 @@ macro_rules! _create_generic_test {
   };
 }
 
+#[cfg(test)]
 macro_rules! _create_http_test {
   ($api:expr, $cp_drsr:expr, $test:ident, $cb:expr $(, $(#[$attrs:meta])+)?) => {
     mod $test {
@@ -168,6 +182,7 @@ macro_rules! _create_http_test {
   };
 }
 
+#[cfg(test)]
 macro_rules! _create_tokio_tungstenite_test {
   (
     $url:expr,
@@ -197,11 +212,5 @@ macro_rules! _create_tokio_tungstenite_test {
       }
       $(, $(#[$attrs])+)?
     }
-  };
-}
-
-macro_rules! _generic_api_doc {
-  () => {
-    "Used to group a set of packages related to this API as well as any additional instance parameters."
   };
 }

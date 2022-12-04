@@ -15,7 +15,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct GetSignatureStatusesReqData<'signatures, S>(
+  pub struct GetSignatureStatusesReq<'signatures, S>(
     #[pkg::field(name = "signatures")] &'signatures [S],
     #[pkg::field(name = "config")] Option<GetSignatureStatusesConfig>,
   )
@@ -23,12 +23,12 @@ pub(crate) mod pkg {
     S: AsRef<str> + Send + Sync;
 
   #[pkg::res_data]
-  pub type GetSignatureStatusesResData =
+  pub type GetSignatureStatusesRes =
     JsonRpcResponseResultWithContext<Vec<Option<GetSignatureStatusesResElem>>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = generic_config_doc!()]
   pub struct GetSignatureStatusesConfig {
     search_transaction_history: bool,
   }
@@ -36,11 +36,15 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
+  #[doc = _generic_res_data_elem_doc!()]
   pub struct GetSignatureStatusesResElem {
+    /// Commitment
     pub confirmation_status: Commitment,
+    /// Number of blocks since signature confirmation.
     pub confirmations: Option<usize>,
+    /// Filled if the transaction failed.
     pub err: Option<TransactionError>,
+    /// The slot the transaction was processed
     pub slot: u64,
   }
 }

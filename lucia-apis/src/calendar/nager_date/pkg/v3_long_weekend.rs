@@ -34,19 +34,23 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct V3LongWeekendReqData;
+  pub struct V3LongWeekendReq;
 
   #[pkg::res_data]
-  pub type V3LongWeekendResData = Vec<V3LongWeekendElemResData>;
+  pub type V3LongWeekendRes = Vec<V3LongWeekendResElem>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
-  #[lucia_macros::pkg_doc]
-  pub struct V3LongWeekendElemResData {
+  #[doc = _generic_res_data_elem_doc!()]
+  pub struct V3LongWeekendResElem {
+    /// Start date.
     pub start_date: ArrayString<10>,
+    /// End date.
     pub end_date: ArrayString<10>,
+    /// Number os days.
     pub day_count: u8,
+    /// A working day that is sandwiched between a holiday and a weekend.
     pub need_bridge_day: bool,
   }
 }

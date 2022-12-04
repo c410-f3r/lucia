@@ -7,14 +7,14 @@ Convenient macros that enable the fast creation of arbitrary endpoints based on 
 mod my_endpoint {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
-  pub struct MyEndpointReqData<'any> {
+  pub struct MyEndpointReq<'any> {
     pub foo: i64,
     pub bar: &'any str,
   }
 
   #[derive(Debug, serde::Deserialize)]
   #[pkg::res_data]
-  pub struct MyEndpointResData {
+  pub struct MyEndpointRes {
     pub data: i32,
   }
 }

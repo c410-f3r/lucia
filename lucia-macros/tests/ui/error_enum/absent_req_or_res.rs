@@ -5,7 +5,7 @@ mod a {
 #[lucia_macros::pkg]
 mod b {
   #[pkg::req_data]
-  struct ReqData(
+  struct Req(
     i32
   );
 }
@@ -13,7 +13,7 @@ mod b {
 #[lucia_macros::pkg]
 mod c {
   #[pkg::res_data]
-  struct ResData;
+  struct Res;
 }
 
 fn main() {

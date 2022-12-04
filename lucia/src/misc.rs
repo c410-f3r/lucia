@@ -18,12 +18,11 @@ pub use debug_display::*;
 pub use from_bytes::*;
 pub use generic_time::*;
 pub use pair::*;
+pub use query_writer::QueryWriter;
 pub use request_counter::*;
 pub use request_limit::*;
 pub use request_throttling::*;
 pub use url::*;
-
-pub(crate) use query_writer::QueryWriter;
 
 use crate::{
   dnsn::Serialize,
