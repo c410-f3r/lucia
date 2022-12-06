@@ -8,7 +8,7 @@ miniserde = { default-features = false, optional = true, version = "0.1" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
 serde_yaml = { default-features = false, optional = true, version = "0.9" }
-serde-xml-rs = { default-features = false, optional = true, version = "0.5" }
+serde-xml-rs = { default-features = false, optional = true, version = "0.6" }
 
 # Etc
 
