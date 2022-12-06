@@ -16,14 +16,12 @@
 mod integration_tests;
 mod pkg;
 
-use crate::misc::PackagesAux;
-use lucia::{network::HttpParams, Api};
+use lucia::Api;
 pub use pkg::*;
-
-pub(crate) type NagerDateHttpPackagesAux<DRSR> = PackagesAux<NagerDate, DRSR, HttpParams>;
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http))]
 pub struct NagerDate;
 
 impl Api for NagerDate {

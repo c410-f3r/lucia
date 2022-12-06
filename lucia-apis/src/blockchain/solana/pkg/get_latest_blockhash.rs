@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
-    Commitment, JsonRpcResponseResultWithContext, SolanaBlockhash, SolanaHttpPackagesAux,
+    Commitment, JsonRpcResponseResultWithContext, SolanaBlockhash, SolanaHttpPkgsAux,
   };
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
@@ -21,7 +21,7 @@ pub(crate) mod pkg {
   );
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
   #[pkg::res_data]
   pub type GetLatestBlockhashRes = JsonRpcResponseResultWithContext<GetLatestBlockhashResElem>;

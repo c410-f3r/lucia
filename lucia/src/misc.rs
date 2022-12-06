@@ -13,7 +13,14 @@ mod request_limit;
 mod request_throttling;
 mod url;
 
+use crate::{
+  dnsn::Serialize,
+  network::transport::Transport,
+  package::{Package, PackagesAux},
+  Api,
+};
 pub use byte_buffer::*;
+use core::time::Duration;
 pub use debug_display::*;
 pub use from_bytes::*;
 pub use generic_time::*;
@@ -23,14 +30,6 @@ pub use request_counter::*;
 pub use request_limit::*;
 pub use request_throttling::*;
 pub use url::*;
-
-use crate::{
-  dnsn::Serialize,
-  network::transport::Transport,
-  package::{Package, PackagesAux},
-  Api,
-};
-use core::time::Duration;
 
 /// Sleeps for the specified amount of time.
 ///

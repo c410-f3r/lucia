@@ -8,7 +8,7 @@ use lucia::network::transport::TransportParams;
 
 struct CustomTransport;
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for CustomTransport
 where
   DRSR: Send + Sync,

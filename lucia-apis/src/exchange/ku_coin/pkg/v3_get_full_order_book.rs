@@ -1,13 +1,13 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPackagesAux, ResponseWrapper},
+    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper},
     misc::{_MaxNumberStr, into_rslt},
   };
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -35,13 +35,13 @@ pub(crate) mod pkg {
   pub struct V3GetFullOrderBookReq;
 
   #[pkg::res_data]
-  pub type V3GetFullOrderBookRes = ResponseWrapper<V3GetFullOrderBookResElem>;
+  pub type V3GetFullOrderBookRes = ResponseWrapper<V3FullOrderBook>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V3GetFullOrderBookResElem {
+  pub struct V3FullOrderBook {
     /// Selling offers of base asset.
     pub asks: Vec<(_MaxNumberStr, _MaxNumberStr)>,
     /// Buying offers of base asset.

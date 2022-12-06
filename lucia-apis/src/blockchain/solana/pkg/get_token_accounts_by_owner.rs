@@ -7,11 +7,11 @@
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
     Account, AccountEncoding, Commitment, DataSlice, JsonRpcResponseResultWithContext,
-    MintOrProgramId, SolanaAddressHashStr, SolanaHttpPackagesAux,
+    MintOrProgramId, SolanaAddressHashStr, SolanaHttpPkgsAux,
   };
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]

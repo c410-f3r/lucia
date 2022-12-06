@@ -3,6 +3,7 @@ use crate::{
   network::{transport::Transport, TransportGroup, WsParams},
   package::{Package, PackagesAux},
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
@@ -30,7 +31,7 @@ pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for TokioTungstenite
 where
   DRSR: Send + Sync,

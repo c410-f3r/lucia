@@ -1,6 +1,7 @@
 use crate::{
   data_format::JsonRpcRequest, network::transport::TransportParams, package::Package, Id,
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 use core::{
   borrow::Borrow,
@@ -33,7 +34,7 @@ impl<H, P> PackageWithHelper<H, P> {
   }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR, H, P, TP> Package<DRSR, TP> for PackageWithHelper<H, P>
 where
   H: Send + Sync,

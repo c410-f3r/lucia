@@ -1,5 +1,6 @@
-use crate::pkg::{
-  data_format::DataFormat, fir::fir_pkg_attr::FirPkgAttr, transport_group::TransportGroup,
+use crate::{
+  pkg::{data_format::DataFormat, fir::fir_pkg_attr::FirPkgAttr},
+  transport_group::TransportGroup,
 };
 use alloc::borrow::Cow;
 use proc_macro2::{Ident, Span};
@@ -20,7 +21,6 @@ impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirPkaAttr<'attrs> {
     let data_formats = fea
       .data_formats
       .into_iter()
-      .flatten()
       .map(|elem| elem.try_into())
       .collect::<crate::Result<Vec<_>>>()?;
     if data_formats.is_empty() {
@@ -44,7 +44,6 @@ impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirPkaAttr<'attrs> {
       transport_groups: fea
         .transports
         .into_iter()
-        .flatten()
         .map(|elem| elem.try_into())
         .collect::<crate::Result<_>>()?,
     })

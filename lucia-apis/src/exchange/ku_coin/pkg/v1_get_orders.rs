@@ -2,8 +2,8 @@
 pub(crate) mod pkg {
   use crate::{
     exchange::ku_coin::{
-      manage_paginated_params, KuCoin, KuCoinHttpPackagesAux, Order, OrderSide, PaginatedResponse,
-      ResponseWrapper,
+      manage_paginated_params, KuCoin, KuCoinHttpPkgsAux, OrderSide, PaginatedResponse,
+      ResponseWrapper, V1Order,
     },
     misc::into_rslt,
   };
@@ -11,7 +11,7 @@ pub(crate) mod pkg {
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -48,7 +48,7 @@ pub(crate) mod pkg {
   pub struct V1GetOrdersReq;
 
   #[pkg::res_data]
-  pub type V1GetOrdersRes = ResponseWrapper<PaginatedResponse<Order>>;
+  pub type V1GetOrdersRes = ResponseWrapper<PaginatedResponse<V1Order>>;
 
   /// Order trading status.
   #[derive(Clone, Copy, Debug)]

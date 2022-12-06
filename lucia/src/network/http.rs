@@ -166,7 +166,7 @@ impl HttpHeaders {
   /// Pushes a new pair of `key` and `value` at the end of the internal buffer.
   #[inline]
   pub fn push_str(&mut self, key: &str, value: &str) -> crate::Result<()> {
-    self.push_fmt(format_args!("{}", key), format_args!("{}", value))?;
+    self.push_fmt(format_args!("{key}"), format_args!("{value}"))?;
     Ok(())
   }
 

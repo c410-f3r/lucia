@@ -3,6 +3,7 @@ use crate::{
   network::{http::HttpMethod, transport::Transport, HttpParams, TransportGroup},
   package::{Package, PackagesAux},
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 use surf::{
   http::headers::{CONTENT_TYPE, USER_AGENT},
@@ -23,7 +24,7 @@ use surf::{
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for Client
 where
   DRSR: Send + Sync,

@@ -5,10 +5,10 @@
   transport(ws)
 )]
 pub(crate) mod sub {
-  use crate::blockchain::solana::SolanaWsPackagesAux;
+  use crate::blockchain::solana::SolanaWsPkgsAux;
 
   #[pkg::aux]
-  impl<DRSR> SolanaWsPackagesAux<DRSR> {}
+  impl<DRSR> SolanaWsPkgsAux<DRSR> {}
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
@@ -26,10 +26,10 @@ pub(crate) mod sub {
   transport(ws)
 )]
 pub(crate) mod unsub {
-  use crate::blockchain::solana::SolanaWsPackagesAux;
+  use crate::blockchain::solana::SolanaWsPkgsAux;
 
   #[pkg::aux]
-  impl<DRSR> SolanaWsPackagesAux<DRSR> {}
+  impl<DRSR> SolanaWsPkgsAux<DRSR> {}
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]

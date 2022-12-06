@@ -6,13 +6,13 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoinHttpPackagesAux, ResponseWrapper},
+    exchange::ku_coin::{KuCoinHttpPkgsAux, ResponseWrapper},
     misc::{_MaxAssetAbbr, _MaxNumberStr, _MaxPairAbbr},
   };
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -36,13 +36,13 @@ pub(crate) mod pkg {
   pub struct V2GetSymbolsReq;
 
   #[pkg::res_data]
-  pub type V2GetSymbolsRes = ResponseWrapper<Vec<V2GetSymbolsResElem>>;
+  pub type V2GetSymbolsRes = ResponseWrapper<Vec<V2Symbol>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V2GetSymbolsResElem {
+  pub struct V2Symbol {
     /// Left-hand-side asset.
     pub base_currency: _MaxAssetAbbr,
     /// Order increment of the left-hand-side asset.

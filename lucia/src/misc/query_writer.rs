@@ -31,14 +31,14 @@ where
     Ok(self)
   }
 
-  /// Same as [write_opt] but for optional fields.
+  /// Same as [write] but for optional fields.
   #[inline]
   pub fn write_opt<T, U>(self, param: &str, opt: U) -> crate::Result<Self>
   where
     T: Display,
     U: Borrow<Option<T>>,
   {
-    if let &Some(ref value) = opt.borrow() {
+    if let Some(value) = opt.borrow() {
       self.write(param, value)
     } else {
       Ok(self)

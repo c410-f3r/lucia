@@ -6,13 +6,13 @@
 )]
 pub(crate) mod pkg {
   use crate::test_data::json_placeholder::{
-    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPackagesAux,
+    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPkgsAux,
   };
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> JsonPlaceholderHttpPackagesAux<DRSR> {}
+  impl<DRSR> JsonPlaceholderHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(

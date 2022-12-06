@@ -87,7 +87,7 @@ impl InstructionAccountInput {
   }
 
   /// Account is writable but not signer.
-  pub fn write(pubkey: SolanaAddressHash) -> Self {
+  pub fn writable(pubkey: SolanaAddressHash) -> Self {
     Self { pubkey, is_signer: false, is_writable: true }
   }
 }

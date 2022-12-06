@@ -18,7 +18,7 @@ jobs:
           components: clippy,rustfmt
           override: true
           profile: minimal
-          toolchain: 1.65
+          toolchain: nightly-2022-12-03
 
       - uses: actions-rs/install@v0.1
         with:
@@ -39,6 +39,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: rustup default 1.65
+      - run: rustup default nightly-2022-12-03
       - run: solana config set --url http:localhost:8899
       - run: .scripts/ci.sh

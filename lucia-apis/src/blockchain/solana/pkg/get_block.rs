@@ -6,11 +6,11 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
-    Block, Commitment, SolanaHttpPackagesAux, TransactionDetails, TransactionEncoding,
+    Block, Commitment, SolanaHttpPkgsAux, TransactionDetails, TransactionEncoding,
   };
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]

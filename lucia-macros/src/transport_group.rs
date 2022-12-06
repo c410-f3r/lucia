@@ -1,4 +1,4 @@
-use crate::pkg::misc::single_elem;
+use crate::misc::single_elem;
 use proc_macro2::{Span, TokenStream};
 use quote::ToTokens;
 use syn::{punctuated::Punctuated, Meta, NestedMeta, Path, PathSegment, Token};

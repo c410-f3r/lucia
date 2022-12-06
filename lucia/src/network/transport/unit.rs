@@ -3,6 +3,7 @@ use crate::{
   network::{transport::Transport, TransportGroup},
   package::{Package, PackagesAux},
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 
 /// Does absolutely nothing. Good for demonstration purposes.
@@ -15,7 +16,7 @@ use alloc::boxed::Box;
 ///     .await?;
 /// # Ok(()) }
 /// ```
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for ()
 where
   DRSR: Send + Sync,

@@ -6,13 +6,13 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoinHttpPackagesAux, ResponseWrapper},
+    exchange::ku_coin::{KuCoinHttpPkgsAux, ResponseWrapper},
     misc::{MaxAddressHashStr, _MaxAssetAbbr, _MaxAssetFullName, _MaxAssetName, _MaxNumberStr},
   };
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(req_params: &mut HttpReqParams) -> crate::Result<()> {
@@ -26,13 +26,13 @@ pub(crate) mod pkg {
   pub struct V1GetCurrenciesReq;
 
   #[pkg::res_data]
-  pub type V1GetCurrenciesRes = ResponseWrapper<Vec<V1GetCurrenciesResElem>>;
+  pub type V1GetCurrenciesRes = ResponseWrapper<Vec<V1Currency>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V1GetCurrenciesResElem {
+  pub struct V1Currency {
     /// Number of confirmed blocks for a transaction to be considered fully valid.
     pub confirms: Option<u16>,
     /// Blockchain or network address.

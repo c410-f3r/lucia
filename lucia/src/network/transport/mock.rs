@@ -8,9 +8,10 @@ use crate::{
   network::{transport::Transport, TransportGroup},
   package::{Package, PackagesAux},
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
+use alloc::boxed::Box;
 use alloc::{
   borrow::{Cow, ToOwned},
-  boxed::Box,
   collections::VecDeque,
   vec::Vec,
 };
@@ -78,7 +79,7 @@ where
   }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for Mock<T>
 where
   DRSR: Send + Sync,

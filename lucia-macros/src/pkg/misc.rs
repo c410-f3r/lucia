@@ -92,14 +92,6 @@ pub(crate) fn parts_from_generics(
   )
 }
 
-pub(crate) fn single_elem<T>(mut iter: impl Iterator<Item = T>) -> Option<T> {
-  let first = iter.next()?;
-  if iter.next().is_some() {
-    return None;
-  }
-  Some(first)
-}
-
 pub(crate) fn split_params(
   params: &Punctuated<GenericParam, Token![,]>,
 ) -> (impl Iterator<Item = &GenericParam>, impl Iterator<Item = &GenericParam>) {

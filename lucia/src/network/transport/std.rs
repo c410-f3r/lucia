@@ -6,13 +6,14 @@ use crate::{
   },
   package::{Package, PackagesAux},
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 use std::{
   io::{Read, Write},
   net::{TcpStream, UdpSocket},
 };
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for TcpStream
 where
   DRSR: Send + Sync,
@@ -46,7 +47,7 @@ where
   }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for UdpSocket
 where
   DRSR: Send + Sync,
