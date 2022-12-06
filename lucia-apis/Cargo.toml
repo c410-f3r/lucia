@@ -34,7 +34,7 @@ reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11
 serde = { default-features = false, features = ["alloc"], version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 surf = { default-features = false, features = ["h1-client-rustls"], version = "2.0" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.23" }
 tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], version = "0.17" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
