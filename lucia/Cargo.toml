@@ -25,7 +25,7 @@ reqwest = { default-features = false, optional = true, version = "0.11" }
 surf = { default-features = false, optional = true, version = "2.0" }
 
 futures = { default-features = false, optional = true, version = "0.3" }
-tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], optional = true, version = "0.17" }
+tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], optional = true, version = "0.18" }
 tungstenite = { default-features = false, optional = true, version = "0.17" }
 
 [dev-dependencies]

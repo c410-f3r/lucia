@@ -23,7 +23,7 @@ crypto-common = { default-features = false, optional = true, version = "0.1" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 hex = { default-features = false, optional = true, version = "0.4" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.17" }
+tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.18" }
 
 [dev-dependencies]
 async-std = { default-features = false, features = ["attributes", "default"], version = "1.0" }
@@ -35,7 +35,7 @@ serde = { default-features = false, features = ["alloc"], version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 surf = { default-features = false, features = ["h1-client-rustls"], version = "2.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], version = "0.17" }
+tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], version = "0.18" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
 [features]
