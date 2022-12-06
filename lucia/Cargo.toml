@@ -8,7 +8,7 @@ miniserde = { default-features = false, optional = true, version = "0.1" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
 serde_yaml = { default-features = false, optional = true, version = "0.9" }
-serde-xml-rs = { default-features = false, optional = true, version = "0.5" }
+serde-xml-rs = { default-features = false, optional = true, version = "0.6" }
 
 # Etc
 
@@ -25,8 +25,8 @@ reqwest = { default-features = false, optional = true, version = "0.11" }
 surf = { default-features = false, optional = true, version = "2.0" }
 
 futures = { default-features = false, optional = true, version = "0.3" }
-tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], optional = true, version = "0.17" }
-tungstenite = { default-features = false, optional = true, version = "0.17" }
+tokio-tungstenite = { default-features = false, features = ["connect", "__rustls-tls"], optional = true, version = "0.18" }
+tungstenite = { default-features = false, optional = true, version = "0.18" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
@@ -46,6 +46,7 @@ serde-xml-rs = ["serde", "dep:serde-xml-rs", "std"]
 
 arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
 async-std = ["dep:async-std", "async-std?/default"]
+async-fn-in-trait = []
 default = []
 macros = ["dep:lucia-macros"]
 std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]

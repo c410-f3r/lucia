@@ -6,12 +6,12 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
-    Account, AccountEncoding, Commitment, DataSlice, Filter, SolanaHttpPackagesAux,
+    Account, AccountEncoding, Commitment, DataSlice, Filter, SolanaHttpPkgsAux,
   };
   use arrayvec::ArrayString;
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]

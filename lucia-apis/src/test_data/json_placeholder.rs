@@ -23,15 +23,12 @@
 mod integration_tests;
 mod pkg;
 
-use crate::misc::PackagesAux;
-use lucia::{network::HttpParams, Api};
+use lucia::Api;
 pub use pkg::*;
-
-pub(crate) type JsonPlaceholderHttpPackagesAux<DRSR> =
-  PackagesAux<JsonPlaceholder, DRSR, HttpParams>;
 
 #[doc = _generic_api_doc!()]
 #[derive(Debug)]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http))]
 pub struct JsonPlaceholder;
 
 impl Api for JsonPlaceholder {

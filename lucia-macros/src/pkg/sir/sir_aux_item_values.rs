@@ -1,13 +1,16 @@
 mod sir_items_values_creators;
 mod sir_items_values_pushers;
 
-use crate::pkg::{
-  fir::{
-    fir_aux_item_values::FirAuxItemValues, fir_custom_item_values::FirCustomItemValuesRef,
-    fir_params_items_values::FirParamsItemValues, fir_req_item_values::FirReqItemValues,
+use crate::{
+  misc::{create_ident, extend_with_tmp_suffix},
+  pkg::{
+    fir::{
+      fir_aux_item_values::FirAuxItemValues, fir_custom_item_values::FirCustomItemValuesRef,
+      fir_params_items_values::FirParamsItemValues, fir_req_item_values::FirReqItemValues,
+    },
+    misc::{from_camel_case_to_snake_case, split_params, EMPTY_GEN_PARAMS},
+    sir::sir_pkg_attr::SirPkaAttr,
   },
-  misc::{from_camel_case_to_snake_case, split_params, EMPTY_GEN_PARAMS},
-  sir::sir_pkg_attr::SirPkaAttr,
 };
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::{
@@ -44,19 +47,6 @@ impl SirAuxItemValues {
       .chain(bcv.freqdiv.into_iter().flat_map(|el| el.freqdiv_where_predicates))
   }
 
-  fn create_ident(string: &mut String, suffix: &str) -> Ident {
-    let idx = Self::extend_with_tmp_suffix(string, suffix);
-    let ident = Ident::new(string, Span::mixed_site());
-    string.truncate(idx);
-    ident
-  }
-
-  fn extend_with_tmp_suffix(string: &mut String, suffix: &str) -> usize {
-    let idx = string.len();
-    string.push_str(suffix);
-    idx
-  }
-
   fn fn_params<'any>(
     faiv_user_method: Option<&'any ImplItemMethod>,
     fcivr: FirCustomItemValuesRef<'_, 'any>,
@@ -64,7 +54,7 @@ impl SirAuxItemValues {
     suffix: &str,
   ) -> crate::Result<(FnCommonValues<'any>, TokenStream, bool)> {
     if let Some(elem) = faiv_user_method {
-      let idx = Self::extend_with_tmp_suffix(snake_case_id, suffix);
+      let idx = extend_with_tmp_suffix(snake_case_id, [suffix]);
       let tuple = Self::create_manual_fn_params(elem, snake_case_id)?;
       snake_case_id.truncate(idx);
       Ok((tuple.0, tuple.1, false))
@@ -104,10 +94,10 @@ impl<'attrs, 'module, 'others>
       Self::fn_params(faiv.faiv_user_params_method, fpiv.into(), &mut snake_case_id, "_params")?;
 
     let data_builder_fn_name_ident = &Ident::new("data", Span::mixed_site());
-    let data_builder_ident = &Self::create_ident(camel_case_id, "DataBuilder");
-    let data_format_builder_ident = &Self::create_ident(camel_case_id, "DataFormatBuilder");
+    let data_builder_ident = &create_ident(camel_case_id, ["DataBuilder"]);
+    let data_format_builder_ident = &create_ident(camel_case_id, ["DataFormatBuilder"]);
     let params_builder_fn_name_ident = &Ident::new("params", Span::mixed_site());
-    let params_builder_ident = &Self::create_ident(camel_case_id, "ParamsBuilder");
+    let params_builder_ident = &create_ident(camel_case_id, ["ParamsBuilder"]);
     let pkgs_aux_fn_name_ident = &Ident::new(&snake_case_id, Span::mixed_site());
     let mut saiv_tts = Vec::new();
 

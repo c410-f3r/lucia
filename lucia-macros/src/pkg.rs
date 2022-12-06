@@ -5,7 +5,6 @@ mod fir;
 mod keywords;
 mod misc;
 mod sir;
-mod transport_group;
 
 use fir::{
   fir_aux_item_values::FirAuxItemValues,

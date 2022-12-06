@@ -6,12 +6,12 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
-    Commitment, JsonRpcResponseResultWithContext, MessageInput, SolanaHttpPackagesAux,
+    Commitment, JsonRpcResponseResultWithContext, MessageInput, SolanaHttpPkgsAux,
   };
   use alloc::string::String;
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {
     #[pkg::aux_data]
     fn get_fee_for_message_data(
       &mut self,

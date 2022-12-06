@@ -6,12 +6,12 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
-    Commitment, SolanaHttpPackagesAux, SolanaTransactionHashStr, TransactionInput,
+    Commitment, SolanaHttpPkgsAux, SolanaTransactionHashStr, TransactionInput,
   };
   use alloc::string::String;
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {
     #[pkg::aux_data]
     fn send_transaction_data(
       &mut self,

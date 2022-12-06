@@ -1,4 +1,4 @@
-use crate::pkg::{data_format_elems::DataFormatElems, transport_group::TransportGroup};
+use crate::{pkg::data_format_elems::DataFormatElems, transport_group::TransportGroup};
 use proc_macro2::{Ident, Span, TokenStream};
 use syn::{Lit, Meta, NestedMeta};
 

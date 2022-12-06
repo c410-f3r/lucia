@@ -1,7 +1,7 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper, V1Account, V1AccountTy},
+    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper, V1Account},
     misc::into_rslt,
   };
   use lucia::network::HttpReqParams;
@@ -12,33 +12,27 @@ pub(crate) mod pkg {
   #[pkg::before_sending]
   async fn before_sending(
     api: &mut KuCoin,
-    params: &mut V1GetAccountsParams<'_>,
+    params: &mut V1GetAccountParams<'_>,
     req_bytes: &[u8],
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
-    req_params.url.push_path(format_args!("/api/v1/accounts"))?;
-    let _ = req_params
-      .url
-      .query_writer()?
-      .write_opt("currency", params.currency)?
-      .write_opt("type", params.r#type)?;
+    req_params.url.push_path(format_args!("/api/v1/accounts/{}", params.account_id))?;
     into_rslt(api.credentials.as_mut())?.push_headers(req_bytes, req_params)?;
     Ok(())
   }
 
   #[derive(Debug)]
   #[pkg::params]
-  pub struct V1GetAccountsParams<'any> {
-    currency: Option<&'any str>,
-    r#type: Option<V1AccountTy>,
+  pub struct V1GetAccountParams<'any> {
+    account_id: &'any str,
   }
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[pkg::req_data]
-  pub struct V1GetAccountsReq;
+  pub struct V1GetAccountReq;
 
   #[pkg::res_data]
-  pub type V1GetAccountsRes = ResponseWrapper<Vec<V1Account>>;
+  pub type V1GetAccountRes = ResponseWrapper<V1Account>;
 }

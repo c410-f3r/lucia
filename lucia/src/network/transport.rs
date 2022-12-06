@@ -24,6 +24,7 @@ use crate::{
   package::{BatchElems, BatchPackage, Package, PackagesAux},
   Id,
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::borrow::Borrow;
@@ -36,7 +37,7 @@ use core::borrow::Borrow;
 /// # Types
 ///
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 pub trait Transport<DRSR> {
   /// Every transport has an [TransportGroup] identifier.
   const GROUP: TransportGroup;
@@ -119,7 +120,7 @@ pub trait Transport<DRSR> {
   }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for &mut T
 where
   DRSR: Send + Sync,

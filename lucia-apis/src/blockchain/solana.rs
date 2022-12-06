@@ -33,12 +33,9 @@ mod short_vec;
 mod slot_update;
 mod transaction;
 
-use crate::{
-  blockchain::{
-    solana::pkg::{GetSignatureStatusesReq, GetSignatureStatusesResElem},
-    ConfirmTransactionOptions,
-  },
-  misc::PackagesAux,
+use crate::blockchain::{
+  solana::pkg::{GetSignatureStatusesReq, GetSignatureStatusesResElem},
+  ConfirmTransactionOptions,
 };
 pub use account::*;
 use arrayvec::ArrayString;
@@ -47,7 +44,6 @@ pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
   misc::RequestThrottling,
-  network::{transport::Transport, HttpParams, WsParams},
   package::Package,
   Api,
 };
@@ -60,9 +56,7 @@ pub use transaction::*;
 pub(crate) const MAX_TRANSACTION_ACCOUNTS_NUM: usize = 240;
 
 pub(crate) type Epoch = u64;
-pub(crate) type SolanaHttpPackagesAux<DRSR> = PackagesAux<Solana, DRSR, HttpParams>;
 pub(crate) type SolanaProgramName = ArrayString<32>;
-pub(crate) type SolanaWsPackagesAux<DRSR> = PackagesAux<Solana, DRSR, WsParams>;
 
 _create_blockchain_constants!(
   pub address_hash: SolanaAddressHash = 32,
@@ -77,12 +71,13 @@ _create_blockchain_constants!(
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http, ws))]
 pub struct Solana {
   /// If some, tells that each request must respect calling intervals.
   pub rt: Option<RequestThrottling>,
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl Api for Solana {
   type Error = crate::Error;
 
@@ -106,13 +101,14 @@ impl Solana {
   #[inline]
   pub async fn confirm_transaction<'tx_hash, DRSR, T>(
     cto: ConfirmTransactionOptions,
-    pkgs_aux: &mut SolanaHttpPackagesAux<DRSR>,
+    pkgs_aux: &mut SolanaHttpPkgsAux<DRSR>,
     trans: &mut T,
     tx_hash: &'tx_hash str,
   ) -> crate::Result<bool>
   where
     DRSR: Send + Sync,
-    T: Transport<DRSR, Params = HttpParams> + Send + Sync,
+    T:
+      lucia::network::transport::Transport<DRSR, Params = lucia::network::HttpParams> + Send + Sync,
     for<'signs> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'signs, &'tx_hash str>>>:
       Package<
         DRSR,
@@ -125,11 +121,18 @@ impl Solana {
     macro_rules! call {
       () => {{
         let signatures = &[tx_hash];
-        let pkg = &mut pkgs_aux.get_signature_statuses().data(signatures, None).build();
         if let Some(Some(GetSignatureStatusesResElem {
           confirmation_status: Commitment::Finalized,
           ..
-        })) = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await?.result?.value.get(0)
+        })) = trans
+          .send_retrieve_and_decode_contained(
+            &mut pkgs_aux.get_signature_statuses().data(signatures, None).build(),
+            pkgs_aux,
+          )
+          .await?
+          .result?
+          .value
+          .get(0)
         {
           true
         } else {
@@ -174,8 +177,7 @@ impl Solana {
     }
   }
 
-  /// If existing, extracts the parsed spl token account ([program::spl_token::Account]) out of
-  /// a generic [AccountData].
+  /// If existing, extracts the parsed spl token account out of a generic [AccountData].
   #[inline]
   pub fn spl_token_normal_account(
     account_data: &AccountData,

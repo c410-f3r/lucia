@@ -2,8 +2,7 @@
 pub(crate) mod pkg {
   use crate::{
     exchange::ku_coin::{
-      KuCoin, KuCoinHttpPackagesAux, OrderSide, OrderStp, OrderTimeInForce, OrderType,
-      ResponseWrapper,
+      KuCoin, KuCoinHttpPkgsAux, OrderSide, OrderStp, OrderTimeInForce, OrderType, ResponseWrapper,
     },
     misc::into_rslt,
   };
@@ -14,7 +13,7 @@ pub(crate) mod pkg {
   };
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -80,7 +79,7 @@ pub(crate) mod pkg {
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   pub struct V1PlaceOrderLimit<'any> {
-    /// Cancels after the given seconds. Requires `time_in_force` to be [V1PlaceTimeInForce::GTT].
+    /// Cancels after the given seconds. Requires `time_in_force` to be [OrderTimeInForce::GTT].
     cancel_after: u32,
     /// If order will or will not be displayed in the order book.
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
@@ -88,7 +87,7 @@ pub(crate) mod pkg {
     /// Only a portion of the order is displayed in the order book
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     iceberg: Option<bool>,
-    /// Invalid when timeInForce is [V1PlaceTimeInForce::IOC] or [V1PlaceTimeInForce::FOK].
+    /// Invalid when `time_in_force` is [OrderTimeInForce::IOC] or [OrderTimeInForce::FOK].
     #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
     post_only: Option<bool>,
     /// Quote asset price.

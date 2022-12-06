@@ -5,11 +5,11 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::calendar::nager_date::{NagerDateHttpPackagesAux, V3PublicHolidayResElem};
+  use crate::calendar::nager_date::{NagerDateHttpPkgsAux, V3PublicHolidayResElem};
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> NagerDateHttpPackagesAux<DRSR> {}
+  impl<DRSR> NagerDateHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(req_params: &mut HttpReqParams) -> crate::Result<()> {

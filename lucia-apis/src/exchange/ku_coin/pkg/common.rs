@@ -1,8 +1,7 @@
-use crate::misc::{_MaxAssetAbbr, _MaxNumberStr, _MaxPairAbbr};
+use crate::misc::{_MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr};
 use arrayvec::ArrayString;
 use core::fmt::{Display, Formatter};
-use lucia::misc::GenericTime;
-use lucia::misc::QueryWriter;
+use lucia::misc::{GenericTime, QueryWriter};
 
 pub(crate) type KuCoinId = ArrayString<28>;
 
@@ -69,6 +68,29 @@ pub enum OrderTimeInForce {
   IOC,
 }
 
+/// KuCoin has three different types of accounts.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(Clone, Copy, Debug)]
+pub enum V1AccountTy {
+  /// Storage, withdrawal, and deposit of funds.
+  Main,
+  /// Borrow assets and leverage transactions.
+  Margin,
+  /// Trading of orders in the spot market.
+  Trade,
+}
+
+impl Display for V1AccountTy {
+  fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+    f.write_str(match *self {
+      Self::Main => "main",
+      Self::Margin => "margin",
+      Self::Trade => "trade",
+    })
+  }
+}
+
 /// Limit or market.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
@@ -80,12 +102,26 @@ pub enum OrderType {
   Market,
 }
 
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[derive(Debug)]
+#[doc = _generic_res_data_elem_doc!()]
+pub struct V1Account {
+  /// Funds available to withdraw or trade.
+  pub available: _MaxNumberStr,
+  /// Asset identifier
+  pub currency: Option<_MaxAssetName>,
+  /// Frozen amount.
+  pub holds: _MaxNumberStr,
+  /// Account type
+  pub r#type: Option<V1AccountTy>,
+}
+
 /// Order
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 #[derive(Debug)]
-pub struct Order {
-  /// Cancels after the given seconds. Requires `time_in_force` to be [V1PlaceTimeInForce::GTT].
+pub struct V1Order {
+  /// Cancels after the given seconds. Requires `time_in_force` to be [OrderTimeInForce::GTT].
   pub cancel_after: i64,
   /// Order cancellation transaction record
   pub cancel_exist: bool,
@@ -113,7 +149,7 @@ pub struct Order {
   pub id: KuCoinId,
   /// If true, the order is active, if false, the order is filled or cancelled
   pub is_active: Option<bool>,
-  /// Invalid when timeInForce is [V1PlaceTimeInForce::IOC] or [V1PlaceTimeInForce::FOK].
+  /// Invalid when `time_in_force` is [OrderTimeInForce::IOC] or [OrderTimeInForce::FOK].
   pub post_only: bool,
   /// Quote asset price.
   pub price: _MaxNumberStr,

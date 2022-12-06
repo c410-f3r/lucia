@@ -1,13 +1,13 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPackagesAux, Order, ResponseWrapper},
+    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper, V1Order},
     misc::into_rslt,
   };
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -22,8 +22,6 @@ pub(crate) mod pkg {
     Ok(())
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[pkg::params]
   pub struct V1GetOrderParams<'any> {
@@ -37,5 +35,5 @@ pub(crate) mod pkg {
   pub struct V1GetOrderReq;
 
   #[pkg::res_data]
-  pub type V1GetOrderRes = ResponseWrapper<Box<Order>>;
+  pub type V1GetOrderRes = ResponseWrapper<Box<V1Order>>;
 }

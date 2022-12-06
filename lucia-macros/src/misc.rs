@@ -26,6 +26,27 @@ pub(crate) fn attrs_by_names<'attrs, const N: usize>(
   rslt
 }
 
+pub(crate) fn create_ident<'suf>(
+  string: &mut String,
+  suffixes: impl IntoIterator<Item = &'suf str>,
+) -> Ident {
+  let idx = extend_with_tmp_suffix(string, suffixes);
+  let ident = Ident::new(string, Span::mixed_site());
+  string.truncate(idx);
+  ident
+}
+
+pub(crate) fn extend_with_tmp_suffix<'suf>(
+  string: &mut String,
+  suffixes: impl IntoIterator<Item = &'suf str>,
+) -> usize {
+  let idx = string.len();
+  for suffix in suffixes {
+    string.push_str(suffix);
+  }
+  idx
+}
+
 pub(crate) fn has_at_least_one_doc(attrs: &[Attribute]) -> bool {
   attrs_by_names(attrs, ["doc"])[0].is_some()
 }
@@ -38,6 +59,14 @@ pub(crate) fn push_doc_if_inexistent(attrs: &mut Vec<Attribute>, doc: &str) {
   if !has_at_least_one_doc(attrs) {
     push_doc(attrs, doc);
   }
+}
+
+pub(crate) fn single_elem<T>(mut iter: impl Iterator<Item = T>) -> Option<T> {
+  let first = iter.next()?;
+  if iter.next().is_some() {
+    return None;
+  }
+  Some(first)
 }
 
 fn push_attr<'any>(

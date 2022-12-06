@@ -1,14 +1,14 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPackagesAux, ResponseWrapper},
+    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper},
     misc::{_MaxUrl, into_rslt},
   };
   use arrayvec::{ArrayString, ArrayVec};
   use lucia::network::{HttpMethod, HttpReqParams};
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -45,13 +45,13 @@ pub(crate) mod pkg {
   pub struct V1BulletReq;
 
   #[pkg::res_data]
-  pub type V1BulletRes = ResponseWrapper<Box<V1BulletResElem>>;
+  pub type V1BulletRes = ResponseWrapper<Box<V1Bullet>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V1BulletResElem {
+  pub struct V1Bullet {
     /// Web-socket servers.
     pub instance_servers: ArrayVec<V1BulletInstanceServer, 4>,
     /// Web-socket token connection.

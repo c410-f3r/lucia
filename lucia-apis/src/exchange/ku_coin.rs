@@ -18,20 +18,20 @@ mod integration_tests;
 mod ku_coin_credentials;
 mod pkg;
 
-use crate::misc::PackagesAux;
+use arrayvec::ArrayString;
 use core::time::Duration;
 pub use ku_coin_credentials::*;
 use lucia::{
   misc::{RequestLimit, RequestThrottling},
-  network::HttpParams,
   Api,
 };
 pub use pkg::*;
 
-pub(crate) type KuCoinHttpPackagesAux<DRSR> = PackagesAux<KuCoin, DRSR, HttpParams>;
+pub(crate) type Chain = ArrayString<20>;
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http, ws))]
 pub struct KuCoin {
   credentials: Option<KuCoinCredentials>,
   orders_rt: RequestThrottling,
@@ -61,7 +61,7 @@ impl KuCoin {
     token_opt: Option<&str>,
   ) -> crate::Result<
     lucia::misc::Pair<
-      PackagesAux<KuCoin, &'drsr mut DRSR, lucia::network::WsParams>,
+      crate::misc::PackagesAux<KuCoin, &'drsr mut DRSR, lucia::network::WsParams>,
       lucia::network::transport::TokioTungstenite,
     >,
   > {
@@ -79,7 +79,11 @@ impl KuCoin {
     };
     rslt.map_err(lucia::Error::from)?;
     Ok(Pair::new(
-      PackagesAux::from_minimum(KuCoin::new(None)?, drsr, lucia::network::WsParams::default()),
+      crate::misc::PackagesAux::from_minimum(
+        KuCoin::new(None)?,
+        drsr,
+        lucia::network::WsParams::default(),
+      ),
       connect_async(url.as_str()).await.map_err(lucia::Error::from)?.0,
     ))
   }

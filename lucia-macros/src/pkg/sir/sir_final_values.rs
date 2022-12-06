@@ -1,14 +1,16 @@
-use crate::pkg::{
-  data_format_elems::DataFormatElems,
-  fir::{
-    fir_after_sending_item_values::FirAfterSendingItemValues,
-    fir_aux_item_values::FirAuxItemValues,
-    fir_before_sending_item_values::FirBeforeSendingItemValues,
-    fir_params_items_values::FirParamsItemValues, fir_req_item_values::FirReqItemValues,
-    fir_res_item_values::FirResItemValues,
+use crate::{
+  pkg::{
+    data_format_elems::DataFormatElems,
+    fir::{
+      fir_after_sending_item_values::FirAfterSendingItemValues,
+      fir_aux_item_values::FirAuxItemValues,
+      fir_before_sending_item_values::FirBeforeSendingItemValues,
+      fir_params_items_values::FirParamsItemValues, fir_req_item_values::FirReqItemValues,
+      fir_res_item_values::FirResItemValues,
+    },
+    misc::split_params,
+    sir::{sir_aux_item_values::SirAuxItemValues, sir_pkg_attr::SirPkaAttr},
   },
-  misc::split_params,
-  sir::{sir_aux_item_values::SirAuxItemValues, sir_pkg_attr::SirPkaAttr},
   transport_group::TransportGroup,
 };
 use proc_macro2::{Ident, Span, TokenStream};
@@ -115,7 +117,7 @@ impl<'attrs, 'module, 'others>
         let tp = Self::transport_params(transport_group);
         let (lts, tys) = Self::pkg_params(&freqdiv, &fpiv);
         package_impls.push(quote::quote!(
-          #[async_trait::async_trait]
+          #[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
           impl<
             #(#lts,)*
             #(#tys,)*

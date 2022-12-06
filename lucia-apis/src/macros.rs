@@ -23,8 +23,12 @@ macro_rules! try_with_solana_blockhashes {
             let $local_blockhash = {
               let pair_mut = &mut $pair;
               let (pkgs_aux, trans) = pair_mut.parts_mut();
-              let pkg = &mut pkgs_aux.get_latest_blockhash().data(None, None).build();
-              let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await?;
+              let res = trans
+                .send_retrieve_and_decode_contained(
+                  &mut pkgs_aux.get_latest_blockhash().data(None, None).build(),
+                  pkgs_aux,
+                )
+                .await?;
               res.result?.value.blockhash
             };
             if let Ok(elem) = $procedure {
@@ -38,8 +42,12 @@ macro_rules! try_with_solana_blockhashes {
             let $local_blockhash = {
               let pair_mut = &mut $pair;
               let (pkgs_aux, trans) = pair_mut.parts_mut();
-              let pkg = &mut pkgs_aux.get_latest_blockhash().data(None, None).build();
-              let res = trans.send_retrieve_and_decode_contained(pkg, pkgs_aux).await?;
+              let res = trans
+                .send_retrieve_and_decode_contained(
+                  &mut pkgs_aux.get_latest_blockhash().data(None, None).build(),
+                  pkgs_aux,
+                )
+                .await?;
               res.result?.value.blockhash
             };
             let last = $procedure?;
@@ -207,8 +215,7 @@ macro_rules! _create_tokio_tungstenite_test {
       |pkgs_aux, trans, subs| async move {
         let mut iter = subs.into_iter();
         let ids = &mut [$( pkgs_aux.$unsub().data(iter.next().unwrap()).build(), )+][..];
-        let batch_pkg = &mut lucia::package::BatchPackage::new(ids);
-        let _ = trans.send(batch_pkg, pkgs_aux).await.unwrap();
+        let _ = trans.send(&mut lucia::package::BatchPackage::new(ids), pkgs_aux).await.unwrap();
       }
       $(, $(#[$attrs])+)?
     }

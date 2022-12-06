@@ -1,11 +1,13 @@
 use syn::{punctuated::Punctuated, Meta, MetaList, NestedMeta, Path, Token};
 
+const EMPTY_NESTED_META: &Punctuated<NestedMeta, Token![,]> = &Punctuated::new();
+
 #[derive(Debug)]
 pub(crate) struct FirPkgAttr<'attrs> {
   pub(crate) api: &'attrs Path,
-  pub(crate) data_formats: Option<&'attrs Punctuated<NestedMeta, Token![,]>>,
+  pub(crate) data_formats: &'attrs Punctuated<NestedMeta, Token![,]>,
   pub(crate) error: Option<&'attrs Path>,
-  pub(crate) transports: Option<&'attrs Punctuated<NestedMeta, Token![,]>>,
+  pub(crate) transports: &'attrs Punctuated<NestedMeta, Token![,]>,
 }
 
 impl<'attrs> TryFrom<&'attrs [NestedMeta]> for FirPkgAttr<'attrs> {
@@ -45,15 +47,15 @@ impl<'attrs> TryFrom<&'attrs [NestedMeta]> for FirPkgAttr<'attrs> {
     }
     Ok(Self {
       api: api.ok_or(crate::Error::MandatoryOuterAttrsAreNotPresent)?,
-      data_formats,
+      data_formats: data_formats.unwrap_or(EMPTY_NESTED_META),
       error,
-      transports,
+      transports: transports.unwrap_or(EMPTY_NESTED_META),
     })
   }
 }
 
 fn first_nested_meta_path(meta_list: &MetaList) -> Option<&Path> {
-  let meta = if let Some(&NestedMeta::Meta(ref elem)) = meta_list.nested.first() {
+  let meta = if let Some(NestedMeta::Meta(elem)) = meta_list.nested.first() {
     elem
   } else {
     return None;

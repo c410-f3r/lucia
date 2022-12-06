@@ -4,6 +4,7 @@ use crate::{
   package::Package,
   Id,
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::{borrow::Borrow, marker::PhantomData};
@@ -98,7 +99,7 @@ where
   }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<'slice, DRSR, P, TP> Package<DRSR, TP> for BatchPackage<'slice, DRSR, P, TP>
 where
   BatchElems<'slice, DRSR, P, TP>: Serialize<DRSR>,

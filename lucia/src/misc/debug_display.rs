@@ -16,7 +16,7 @@ impl serde::Serialize for &'_ dyn DebugDisplay {
   where
     S: serde::Serializer,
   {
-    serializer.collect_str(&format_args!("{}", self))
+    serializer.collect_str(&format_args!("{self}"))
   }
 }
 
@@ -27,6 +27,6 @@ impl serde::Serialize for &'_ SyncDynDebugDisplay {
   where
     S: serde::Serializer,
   {
-    serializer.collect_str(&format_args!("{}", self))
+    serializer.collect_str(&format_args!("{self}"))
   }
 }

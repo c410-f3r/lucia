@@ -6,14 +6,14 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoinHttpPackagesAux, ResponseWrapper},
+    exchange::ku_coin::{Chain, KuCoinHttpPkgsAux, ResponseWrapper},
     misc::{MaxAddressHashStr, _MaxAssetAbbr, _MaxNumberStr},
   };
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
-  impl<DRSR> KuCoinHttpPackagesAux<DRSR> {}
+  impl<DRSR> KuCoinHttpPkgsAux<DRSR> {}
 
   #[pkg::before_sending]
   async fn before_sending(
@@ -46,19 +46,19 @@ pub(crate) mod pkg {
   pub struct V1GetWithdrawalsReq;
 
   #[pkg::res_data]
-  pub type V1GetWithdrawalsRes = ResponseWrapper<Vec<V1GetWithdrawalsResElem>>;
+  pub type V1GetWithdrawalsRes = ResponseWrapper<Vec<V1Withdrawal>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
   #[derive(Debug)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V1GetWithdrawalsResElem {
+  pub struct V1Withdrawal {
     /// Withdrawal address.
     pub address: MaxAddressHashStr,
     /// Withdrawal amount.
     pub amount: _MaxNumberStr,
     /// Blockchain or network of the asset.
-    pub chain: ArrayString<20>,
+    pub chain: Chain,
     /// Creation timestamp.
     pub created_at: i64,
     /// Asset identifier.

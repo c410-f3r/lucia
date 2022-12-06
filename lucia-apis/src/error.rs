@@ -6,15 +6,15 @@ use lucia::network::StatusCode;
 #[derive(Debug)]
 pub enum Error {
   // External
-  /// See [base64::DecodeError]
+  /// See [base64::DecodeError].
   #[cfg(feature = "solana")]
   Base64(base64::DecodeError),
-  /// See [bincode::Error]
+  /// See [bincode::Error].
   #[cfg(feature = "solana")]
   Bincode(bincode::Error),
-  /// See [arrayvec::CapacityError]
+  /// See [arrayvec::CapacityError].
   CapacityError(arrayvec::CapacityError<()>),
-  /// See [ed25519_dalek::SignatureError]
+  /// See [ed25519_dalek::SignatureError].
   #[cfg(feature = "ed25519-dalek")]
   Ed25519Dalek(ed25519_dalek::SignatureError),
   #[cfg(feature = "ku-coin")]
@@ -22,8 +22,11 @@ pub enum Error {
   InvalidLength(crypto_common::InvalidLength),
   /// See [lucia::Error].
   Lucia(lucia::Error),
-  /// See [core::num::TryFromIntError]
+  /// See [core::num::TryFromIntError].
   TryFromIntError(core::num::TryFromIntError),
+  #[cfg(feature = "std")]
+  /// See [std::env::VarError].
+  VarError(std::env::VarError),
 
   // Features
   //
@@ -109,6 +112,14 @@ impl From<core::num::TryFromIntError> for Error {
   #[inline]
   fn from(from: core::num::TryFromIntError) -> Self {
     Self::TryFromIntError(from)
+  }
+}
+
+#[cfg(feature = "std")]
+impl From<std::env::VarError> for Error {
+  #[inline]
+  fn from(from: std::env::VarError) -> Self {
+    Self::VarError(from)
   }
 }
 

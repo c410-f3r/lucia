@@ -9,6 +9,7 @@ use crate::{
   network::transport::TransportParams,
   Api,
 };
+#[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
 pub use batch_package::{BatchElems, BatchPackage};
 use core::fmt::Display;
@@ -22,7 +23,7 @@ pub use packages_aux::*;
 ///
 /// `DRSR`: DeserializeR/SerializeR
 /// `TP`: Transport Parameters
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 pub trait Package<DRSR, TP>
 where
   TP: TransportParams,
@@ -78,7 +79,7 @@ where
   fn pkg_params_mut(&mut self) -> &mut Self::PackageParams;
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR, TP> Package<DRSR, TP> for ()
 where
   TP: TransportParams,
@@ -110,7 +111,7 @@ where
   }
 }
 
-#[async_trait::async_trait]
+#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
 impl<DRSR, P, TP> Package<DRSR, TP> for &mut P
 where
   P: Package<DRSR, TP> + Send + Sync,

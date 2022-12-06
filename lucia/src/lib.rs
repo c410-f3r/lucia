@@ -1,4 +1,6 @@
 #![doc = include_str!("../README.md")]
+#![cfg_attr(feature = "async-fn-in-trait", allow(incomplete_features))]
+#![cfg_attr(feature = "async-fn-in-trait", feature(async_fn_in_trait, impl_trait_projections))]
 #![cfg_attr(not(feature = "std"), no_std)]
 
 extern crate alloc;

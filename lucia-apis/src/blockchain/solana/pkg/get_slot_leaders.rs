@@ -5,10 +5,10 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::blockchain::solana::{SolanaAddressHashStr, SolanaHttpPackagesAux};
+  use crate::blockchain::solana::{SolanaAddressHashStr, SolanaHttpPkgsAux};
 
   #[pkg::aux]
-  impl<DRSR> SolanaHttpPackagesAux<DRSR> {}
+  impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
   #[cfg_attr(feature = "serde", derive(serde::Serialize))]
   #[derive(Debug)]
