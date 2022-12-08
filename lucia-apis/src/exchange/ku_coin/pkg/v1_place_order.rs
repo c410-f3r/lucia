@@ -2,7 +2,7 @@
 pub(crate) mod pkg {
   use crate::{
     exchange::ku_coin::{
-      KuCoin, KuCoinHttpPkgsAux, OrderSide, OrderStp, OrderTimeInForce, OrderType, ResponseWrapper,
+      HttpResWrapper, KuCoin, KuCoinHttpPkgsAux, OrderSide, OrderStp, OrderTimeInForce, OrderType,
     },
     misc::into_rslt,
   };
@@ -42,7 +42,7 @@ pub(crate) mod pkg {
   }
 
   #[pkg::res_data]
-  pub type V1PlaceOrderRes = ResponseWrapper<V1PlaceOrderResElem>;
+  pub type V1PlaceOrderRes = HttpResWrapper<V1PlaceOrderResElem>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]

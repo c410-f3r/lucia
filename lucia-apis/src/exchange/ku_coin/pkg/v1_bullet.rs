@@ -1,7 +1,7 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper},
+    exchange::ku_coin::{HttpResWrapper, KuCoin, KuCoinHttpPkgsAux},
     misc::{_MaxUrl, into_rslt},
   };
   use arrayvec::{ArrayString, ArrayVec};
@@ -45,7 +45,7 @@ pub(crate) mod pkg {
   pub struct V1BulletReq;
 
   #[pkg::res_data]
-  pub type V1BulletRes = ResponseWrapper<Box<V1Bullet>>;
+  pub type V1BulletRes = HttpResWrapper<Box<V1Bullet>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]

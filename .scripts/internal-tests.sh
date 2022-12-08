@@ -17,7 +17,9 @@ cargo test --all-features --doc
 
 LUCIA=(
   # Deserialization/Serialization
+  borsh
   miniserde
+  "rkyv,_hack"
   serde
   serde_json
   serde_yaml
@@ -31,7 +33,8 @@ LUCIA=(
 
   # Tranport
   reqwest
-  "surf,_surf-hack"
+  "surf,_hack"
+  std
   tokio-tungstenite
 )
 

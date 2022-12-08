@@ -18,7 +18,6 @@ mod integration_tests;
 mod ku_coin_credentials;
 mod pkg;
 
-use arrayvec::ArrayString;
 use core::time::Duration;
 pub use ku_coin_credentials::*;
 use lucia::{
@@ -26,8 +25,6 @@ use lucia::{
   Api,
 };
 pub use pkg::*;
-
-pub(crate) type Chain = ArrayString<20>;
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
@@ -54,22 +51,19 @@ impl KuCoin {
   /// If private, then a token should be provided. Otherwise the connection will be assumed as
   /// public.
   #[cfg(feature = "tokio-tungstenite")]
-  pub async fn tokio_tungstenite<'drsr, DRSR>(
-    &mut self,
+  pub async fn tokio_tungstenite<DRSR>(
     bullet_url: &str,
-    drsr: &'drsr mut DRSR,
+    drsr: DRSR,
     token_opt: Option<&str>,
   ) -> crate::Result<
-    lucia::misc::Pair<
-      crate::misc::PackagesAux<KuCoin, &'drsr mut DRSR, lucia::network::WsParams>,
-      lucia::network::transport::TokioTungstenite,
-    >,
+    lucia::misc::Pair<KuCoinWsPkgsAux<DRSR>, lucia::network::transport::TokioTungstenite>,
   > {
     use core::fmt::Write;
-    use lucia::misc::Pair;
+    use futures::stream::StreamExt;
+    use lucia::misc::{GenericTime, Pair};
     use tokio_tungstenite::connect_async;
 
-    let id = _timestamp()?;
+    let id = GenericTime::now()?.timestamp()?.as_millis();
     let mut url = String::new();
     let rslt = if let Some(token) = token_opt {
       url
@@ -78,13 +72,15 @@ impl KuCoin {
       url.write_fmt(format_args!("{bullet_url}?connectId={id}&acceptUserMessage=true"))
     };
     rslt.map_err(lucia::Error::from)?;
+    let mut trans = connect_async(url.as_str()).await.map_err(lucia::Error::from)?.0;
+    let _ = trans.next().await;
     Ok(Pair::new(
       crate::misc::PackagesAux::from_minimum(
         KuCoin::new(None)?,
         drsr,
         lucia::network::WsParams::default(),
       ),
-      connect_async(url.as_str()).await.map_err(lucia::Error::from)?.0,
+      trans,
     ))
   }
 }

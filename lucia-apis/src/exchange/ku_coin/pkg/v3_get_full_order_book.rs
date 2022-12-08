@@ -1,7 +1,7 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper},
+    exchange::ku_coin::{HttpResWrapper, KuCoin, KuCoinHttpPkgsAux},
     misc::{_MaxNumberStr, into_rslt},
   };
   use lucia::network::HttpReqParams;
@@ -35,7 +35,7 @@ pub(crate) mod pkg {
   pub struct V3GetFullOrderBookReq;
 
   #[pkg::res_data]
-  pub type V3GetFullOrderBookRes = ResponseWrapper<V3FullOrderBook>;
+  pub type V3GetFullOrderBookRes = HttpResWrapper<V3FullOrderBook>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]

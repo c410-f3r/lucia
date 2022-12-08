@@ -2,8 +2,8 @@
 pub(crate) mod pkg {
   use crate::{
     exchange::ku_coin::{
-      manage_paginated_params, KuCoin, KuCoinHttpPkgsAux, OrderSide, PaginatedResponse,
-      ResponseWrapper, V1Order,
+      manage_paginated_params, HttpResWrapper, KuCoin, KuCoinHttpPkgsAux, OrderSide,
+      PaginatedResponse, V1Order,
     },
     misc::into_rslt,
   };
@@ -48,7 +48,7 @@ pub(crate) mod pkg {
   pub struct V1GetOrdersReq;
 
   #[pkg::res_data]
-  pub type V1GetOrdersRes = ResponseWrapper<PaginatedResponse<V1Order>>;
+  pub type V1GetOrdersRes = HttpResWrapper<PaginatedResponse<V1Order>>;
 
   /// Order trading status.
   #[derive(Clone, Copy, Debug)]

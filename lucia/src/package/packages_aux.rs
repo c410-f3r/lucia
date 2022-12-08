@@ -1,5 +1,7 @@
 use crate::{
-  data_format::{JsonRequest, JsonRpcRequest, XmlRequest, YamlRequest},
+  data_format::{
+    BorshRequest, JsonRequest, JsonRpcRequest, VerbatimRequest, XmlRequest, YamlRequest,
+  },
   network::transport::TransportParams,
   Id,
 };
@@ -51,6 +53,13 @@ where
     self.built_requests
   }
 
+  /// Constructs [BorshRequest] and also increases the number of requests.
+  #[inline]
+  pub fn borsh_request<D>(&mut self, data: D) -> BorshRequest<D> {
+    self.increase_requests_num();
+    BorshRequest { data }
+  }
+
   /// Constructs [JsonRequest] and also increases the number of requests.
   #[inline]
   pub fn json_request<D>(&mut self, data: D) -> JsonRequest<D> {
@@ -63,6 +72,13 @@ where
   pub fn json_rpc_request<P>(&mut self, method: &'static str, params: P) -> JsonRpcRequest<P> {
     self.increase_requests_num();
     JsonRpcRequest { id: self.built_requests, method, params }
+  }
+
+  /// Constructs [VerbatimRequest] and also increases the number of requests.
+  #[inline]
+  pub fn verbatim_request<D>(&mut self, data: D) -> VerbatimRequest<D> {
+    self.increase_requests_num();
+    VerbatimRequest { data }
   }
 
   /// Constructs [XmlRequest] and also increases the number of requests.

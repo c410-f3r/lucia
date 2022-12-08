@@ -1,8 +1,9 @@
-use crate::misc::{_MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr};
+use crate::misc::{ConcatArrayStr, _MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr};
 use arrayvec::ArrayString;
 use core::fmt::{Display, Formatter};
-use lucia::misc::{GenericTime, QueryWriter};
+use lucia::misc::QueryWriter;
 
+pub(crate) type Chain = ArrayString<20>;
 pub(crate) type KuCoinId = ArrayString<28>;
 
 /// Buy or sell
@@ -102,9 +103,50 @@ pub enum OrderType {
   Market,
 }
 
+/// If a web socket request is asking to subscribe or unsubscribe.
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(Clone, Copy, Debug)]
+pub enum WsReqTy {
+  /// Subscribe
+  Subscribe,
+  /// Unsubscribe.
+  Unsubscribe,
+}
+
+/// All responses are wrapped to provide additional metadata.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(untagged))]
+#[derive(Debug)]
+pub enum WsResWrapperSubject {
+  /// Account balance
+  #[cfg_attr(feature = "serde", serde(rename = "account.balance"))]
+  AccountBalance,
+  /// L2 market data
+  #[cfg_attr(feature = "serde", serde(rename = "trade.l2update"))]
+  TradeL2Update,
+  /// For example, tickers.
+  Other(String),
+}
+
+/// Value depending on the issued request type.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
+#[derive(Clone, Copy, Debug)]
+pub enum WsResWrapperTy {
+  /// Error
+  Error,
+  /// Message,
+  Message,
+  /// Subscribe.
+  Subscribe,
+  /// Welcome
+  Welcome,
+}
+
+/// Account has different types of balances.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[derive(Debug)]
-#[doc = _generic_res_data_elem_doc!()]
 pub struct V1Account {
   /// Funds available to withdraw or trade.
   pub available: _MaxNumberStr,
@@ -183,6 +225,30 @@ pub struct V1Order {
   pub visible_size: _MaxNumberStr,
 }
 
+/// Best and last values of the level 1 market data.
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug)]
+pub struct V1Ticker {
+  /// Sequence
+  #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::misc::_deserialize_from_str"))]
+  pub sequence: u64,
+  /// Best ask price
+  pub best_ask: _MaxNumberStr,
+  /// Last traded size
+  pub size: _MaxNumberStr,
+  /// Last traded price
+  pub price: _MaxNumberStr,
+  /// Best bid size
+  pub best_bid_size: _MaxNumberStr,
+  /// Best bid price
+  pub best_bid: _MaxNumberStr,
+  /// Best ask size
+  pub best_ask_size: _MaxNumberStr,
+  /// timestamp
+  pub time: u64,
+}
+
 /// For endpoints that return very large amounts of items.
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
@@ -202,33 +268,34 @@ pub struct PaginatedResponse<T> {
 
 /// All responses are wrapped to provide additional metadata.
 #[derive(Debug)]
-pub struct ResponseWrapper<T> {
+pub struct HttpResWrapper<T> {
   /// System code
-  pub code: ArrayString<8>,
+  pub code: u32,
   /// Actual data
   pub data: crate::Result<T>,
 }
 
 #[cfg(feature = "serde")]
 mod generic_data_response_serde {
-  use crate::exchange::ku_coin::ResponseWrapper;
+  use crate::exchange::ku_coin::HttpResWrapper;
+  use serde::{de, de::Error, Deserialize};
 
-  impl<'de, T> serde::Deserialize<'de> for ResponseWrapper<T>
+  impl<'de, T> Deserialize<'de> for HttpResWrapper<T>
   where
-    T: serde::Deserialize<'de> + 'de,
+    T: Deserialize<'de> + 'de,
   {
     #[inline]
-    fn deserialize<D>(deserializer: D) -> Result<ResponseWrapper<T>, D::Error>
+    fn deserialize<D>(deserializer: D) -> Result<HttpResWrapper<T>, D::Error>
     where
-      D: serde::de::Deserializer<'de>,
+      D: de::Deserializer<'de>,
     {
       struct CustomVisitor<'de, T>(core::marker::PhantomData<&'de T>);
 
-      impl<'de, T> serde::de::Visitor<'de> for CustomVisitor<'de, T>
+      impl<'de, T> de::Visitor<'de> for CustomVisitor<'de, T>
       where
-        T: serde::Deserialize<'de>,
+        T: Deserialize<'de>,
       {
-        type Value = ResponseWrapper<T>;
+        type Value = HttpResWrapper<T>;
 
         #[inline]
         fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
@@ -236,9 +303,9 @@ mod generic_data_response_serde {
         }
 
         #[inline]
-        fn visit_map<V>(self, mut map: V) -> Result<ResponseWrapper<T>, V::Error>
+        fn visit_map<V>(self, mut map: V) -> Result<HttpResWrapper<T>, V::Error>
         where
-          V: serde::de::MapAccess<'de>,
+          V: de::MapAccess<'de>,
         {
           let mut code = None;
           let mut data = None;
@@ -248,30 +315,30 @@ mod generic_data_response_serde {
             match key {
               Field::Code => {
                 if code.is_some() {
-                  return Err(serde::de::Error::duplicate_field("code"));
+                  return Err(de::Error::duplicate_field("code"));
                 }
-                code = Some(map.next_value()?);
+                code = Some(map.next_value::<&str>()?.parse().map_err(|err| Error::custom(err))?);
               }
               Field::Data => {
                 if data.is_some() {
-                  return Err(serde::de::Error::duplicate_field("data"));
+                  return Err(de::Error::duplicate_field("data"));
                 }
                 data = Some(map.next_value()?);
               }
               Field::Msg => {
                 if msg.is_some() {
-                  return Err(serde::de::Error::duplicate_field("msg"));
+                  return Err(de::Error::duplicate_field("msg"));
                 }
                 msg = Some(map.next_value()?);
               }
             }
           }
 
-          Ok(ResponseWrapper {
+          Ok(HttpResWrapper {
             code: if let Some(elem) = code {
               elem
             } else {
-              return Err(serde::de::Error::missing_field("code"));
+              return Err(de::Error::missing_field("code"));
             },
             data: if let Some(elem) = data {
               Ok(elem)
@@ -300,6 +367,33 @@ mod generic_data_response_serde {
   }
 }
 
+/// All WebSocket requests must have a pre-defined set of fields.
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct WsReq<'any> {
+  pub(crate) id: u64,
+  pub(crate) private_channel: bool,
+  pub(crate) response: bool,
+  pub(crate) topic: ConcatArrayStr<'any, 2>,
+  pub(crate) r#type: WsReqTy,
+}
+
+/// All responses are wrapped to provide additional metadata.
+#[derive(Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+pub struct WsResWrapper<D> {
+  /// Type
+  pub r#type: WsResWrapperTy,
+  /// Seme as the "topid" request parameter.
+  pub topic: String,
+  /// Subject
+  pub subject: WsResWrapperSubject,
+  /// Depends on the request
+  pub data: D,
+}
+
 pub(crate) fn manage_paginated_params(
   qw: QueryWriter<'_, String>,
   params: Option<[u32; 2]>,
@@ -308,8 +402,4 @@ pub(crate) fn manage_paginated_params(
     let _ = qw.write("currentPage", elem[0])?.write("pageSize", elem[1])?;
   }
   Ok(())
-}
-
-pub(crate) fn _timestamp() -> crate::Result<i64> {
-  Ok(GenericTime::now()?.timestamp()?.as_millis().try_into()?)
 }

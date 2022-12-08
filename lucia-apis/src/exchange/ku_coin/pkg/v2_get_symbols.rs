@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoinHttpPkgsAux, ResponseWrapper},
+    exchange::ku_coin::{HttpResWrapper, KuCoinHttpPkgsAux},
     misc::{_MaxAssetAbbr, _MaxNumberStr, _MaxPairAbbr},
   };
   use lucia::network::HttpReqParams;
@@ -36,7 +36,7 @@ pub(crate) mod pkg {
   pub struct V2GetSymbolsReq;
 
   #[pkg::res_data]
-  pub type V2GetSymbolsRes = ResponseWrapper<Vec<V2Symbol>>;
+  pub type V2GetSymbolsRes = HttpResWrapper<Vec<V2Symbol>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]

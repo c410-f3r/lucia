@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{Chain, KuCoinHttpPkgsAux, ResponseWrapper},
+    exchange::ku_coin::{Chain, HttpResWrapper, KuCoinHttpPkgsAux},
     misc::{_MaxAssetAbbr, _MaxNumberStr},
   };
   use lucia::network::HttpReqParams;
@@ -41,7 +41,7 @@ pub(crate) mod pkg {
   pub struct V1GetWithdrawalsQuotasReq;
 
   #[pkg::res_data]
-  pub type V1GetWithdrawalsQuotasRes = ResponseWrapper<Box<V1WithdrawalQuotas>>;
+  pub type V1GetWithdrawalsQuotasRes = HttpResWrapper<Box<V1WithdrawalQuotas>>;
 
   /// Withdrawal limits associated with an asset.
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]

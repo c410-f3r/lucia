@@ -32,9 +32,12 @@ jobs:
   integration-tests:
     container: projectserum/build:v0.24.2
     env:
-      KU_COIN_KEY: ${{ secrets.KU_COIN_KEY }}
-      KU_COIN_PW: ${{ secrets.KU_COIN_PW }}
-      KU_COIN_SECRET: ${{ secrets.KU_COIN_SECRET }}
+      KU_COIN_PROD_KEY: ${{ secrets.KU_COIN_PROD_KEY }}
+      KU_COIN_PROD_PW: ${{ secrets.KU_COIN_PROD_PW }}
+      KU_COIN_PROD_SECRET: ${{ secrets.KU_COIN_PROD_SECRET }}
+      KU_COIN_TEST_KEY: ${{ secrets.KU_COIN_TEST_KEY }}
+      KU_COIN_TEST_PW: ${{ secrets.KU_COIN_TEST_PW }}
+      KU_COIN_TEST_SECRET: ${{ secrets.KU_COIN_TEST_SECRET }}
     name: Integration tests
     runs-on: ubuntu-latest
     steps:

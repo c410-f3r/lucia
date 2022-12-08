@@ -109,8 +109,7 @@ macro_rules! _generic_res_data_elem_doc {
 
 #[cfg(test)]
 macro_rules! _create_generic_test {
-  ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr $(, $(#[$attrs:meta])+)?) => {
-    $($(#[$attrs])+)?
+  ($executor:ident, $test:ident, $pair:expr, $parts_cb:expr, $rslt_cb:expr) => {
     #[$executor::test]
     async fn $test() {
       fn parts_cb_infer<'pair, API, DRSR, O, T>(
@@ -153,58 +152,38 @@ macro_rules! _create_generic_test {
 
 #[cfg(test)]
 macro_rules! _create_http_test {
-  ($api:expr, $cp_drsr:expr, $test:ident, $cb:expr $(, $(#[$attrs:meta])+)?) => {
-    mod $test {
-      use super::*;
-
-      _create_generic_test! {
-        tokio,
-        reqwest,
-        {
-          let (drsr, ext_req_params) = $cp_drsr;
-          lucia::misc::Pair::new(
-            crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
-            reqwest::Client::default()
-          )
-        },
-        $cb,
-        |_, _, _| async {}
-        $(, $(#[$attrs])+)?
-      }
-
-      _create_generic_test! {
-        async_std,
-        surf,
-        {
-          let (drsr, ext_req_params) = $cp_drsr;
-          lucia::misc::Pair::new(
-            crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
-            surf::Client::default()
-          )
-        },
-        $cb,
-        |_, _, _| async {}
-        $(, $(#[$attrs])+)?
-      }
+  ($api:expr, $drsr_erp:expr, $test:ident, $cb:expr) => {
+    _create_generic_test! {
+      tokio,
+      $test,
+      {
+        let (drsr, ext_req_params) = $drsr_erp;
+        lucia::misc::Pair::new(
+          crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
+          reqwest::Client::default()
+        )
+      },
+      $cb,
+      |_, _, _| async {}
     }
   };
 }
 
 #[cfg(test)]
-macro_rules! _create_tokio_tungstenite_test {
+macro_rules! _create_ws_test {
   (
     $url:expr,
     $api:expr,
-    $cp_drsr:expr,
+    $drsr_erp:expr,
     $sub:ident,
     ($($unsub:ident),+),
-    $cb:expr $(, $(#[$attrs:meta])+)?
+    $cb:expr
   ) => {
     _create_generic_test! {
       tokio,
       $sub,
       {
-        let (drsr, ext_req_params) = $cp_drsr;
+        let (drsr, ext_req_params) = $drsr_erp;
         let (trans, _) = tokio_tungstenite::connect_async($url).await.unwrap();
         lucia::misc::Pair::new(
           crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
@@ -217,7 +196,6 @@ macro_rules! _create_tokio_tungstenite_test {
         let ids = &mut [$( pkgs_aux.$unsub().data(iter.next().unwrap()).build(), )+][..];
         let _ = trans.send(&mut lucia::package::BatchPackage::new(ids), pkgs_aux).await.unwrap();
       }
-      $(, $(#[$attrs])+)?
     }
   };
 }

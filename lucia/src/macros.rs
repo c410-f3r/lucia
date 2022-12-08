@@ -96,11 +96,7 @@ macro_rules! _debug {
 
 macro_rules! generic_data_format_doc {
   ($ty:literal) => {
-    concat!(
-      "Internal wrapper used in every generic ",
-      $ty,
-      " to manage different internal implementations."
-    )
+    concat!("Wrapper used in every generic ", $ty, " to manage different internal implementations.")
   };
 }
 

@@ -70,6 +70,8 @@ They are what will be serialized and deserialized so in order to create yet anot
 
 | Name | URL |
 |---|---|
+| Borsh | <https://borsh.io/> |
+| GraphQL | <https://spec.graphql.org/October2021/> |
 | JSON | <https://www.json.org/json-en.html> |
 | JSON-RPC 2.0 | <https://www.jsonrpc.org/> |
 | XML | <https://www.w3.org/TR/xml/> |
@@ -81,7 +83,9 @@ Can be applied to one or more different data formats.
 
 | Feature | URL |
 |---|---|
+| borsh | <https://docs.rs/borsh> |
 | miniserde | <https://docs.rs/miniserde> |
+| rkyv | <https://docs.rs/rkyv> |
 | serde_json | <https://docs.rs/serde_json> |
 | serde-xml-rs | <https://docs.rs/serde-xml-rs> |
 | serde-yaml | <https://docs.rs/serde_yaml> |

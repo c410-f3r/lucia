@@ -3,6 +3,13 @@ use crate::{data_format::JsonRpcResponseError, Id};
 use alloc::boxed::Box;
 use core::fmt::{Debug, Display, Formatter};
 
+#[cfg(feature = "rkyv")]
+type RkyvSer = rkyv::ser::serializers::CompositeSerializerError<
+  core::convert::Infallible,
+  rkyv::ser::serializers::AllocScratchError,
+  rkyv::ser::serializers::SharedSerializeMapError,
+>;
+
 /// All possible errors are grouped here
 #[derive(Debug)]
 pub enum Error {
@@ -22,6 +29,11 @@ pub enum Error {
   /// See [reqwest::Error]
   #[cfg(feature = "reqwest")]
   Reqwest(reqwest::Error),
+  /// A given type couldn't be deserialized.
+  RkyvDer(&'static str),
+  /// A given type couldn't be serialized.
+  #[cfg(feature = "rkyv")]
+  RkyvSer(RkyvSer),
   /// See [serde_json::Error]
   #[cfg(feature = "serde_json")]
   SerdeJson(serde_json::Error),
@@ -63,6 +75,8 @@ pub enum Error {
   TestTransportNoResponse,
   /// It is not possible to convert a `u16` into a HTTP status code
   UnknownHttpStatusCode(u16),
+  /// `lucia` can not perform this operation due to known limitations.
+  UnsupportedOperation,
   /// Only append is possible but overwritten is still viable through resetting.
   UrlCanNotOverwriteInitiallySetUrl,
 }
@@ -109,6 +123,22 @@ impl From<reqwest::Error> for Error {
   #[inline]
   fn from(from: reqwest::Error) -> Self {
     Self::Reqwest(from)
+  }
+}
+
+#[cfg(feature = "rkyv")]
+impl From<&'static str> for Error {
+  #[inline]
+  fn from(from: &'static str) -> Self {
+    Self::RkyvDer(from)
+  }
+}
+
+#[cfg(feature = "rkyv")]
+impl From<RkyvSer> for Error {
+  #[inline]
+  fn from(from: RkyvSer) -> Self {
+    Self::RkyvSer(from)
   }
 }
 

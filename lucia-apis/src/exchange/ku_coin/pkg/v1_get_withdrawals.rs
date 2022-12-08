@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{Chain, KuCoinHttpPkgsAux, ResponseWrapper},
+    exchange::ku_coin::{Chain, HttpResWrapper, KuCoinHttpPkgsAux, KuCoinId},
     misc::{MaxAddressHashStr, _MaxAssetAbbr, _MaxNumberStr},
   };
   use arrayvec::ArrayString;
@@ -46,7 +46,7 @@ pub(crate) mod pkg {
   pub struct V1GetWithdrawalsReq;
 
   #[pkg::res_data]
-  pub type V1GetWithdrawalsRes = ResponseWrapper<Vec<V1Withdrawal>>;
+  pub type V1GetWithdrawalsRes = HttpResWrapper<Vec<V1Withdrawal>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
@@ -66,7 +66,7 @@ pub(crate) mod pkg {
     /// Withdrawal fee.
     pub fee: _MaxNumberStr,
     /// Unique identity.
-    pub id: ArrayString<20>,
+    pub id: KuCoinId,
     /// Internal withdrawal or not.
     pub is_inner: bool,
     /// Address remark.
