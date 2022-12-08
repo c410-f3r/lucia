@@ -4,7 +4,10 @@ cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 
 # Deserializer/Serializer
 
+borsh = { default-features = false, features = ["std"], optional = true, version = "0.9" }
+bytecheck = { default-features = false, optional = true, version = "0.6" }
 miniserde = { default-features = false, optional = true, version = "0.1" }
+rkyv = { default-features = false, features = ["validation", "std"], optional = true, version = "0.7" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
 serde_yaml = { default-features = false, optional = true, version = "0.9" }
@@ -36,7 +39,9 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 # Deserializer/Serializer
 
+borsh = ["dep:borsh", "std"]
 miniserde = ["dep:miniserde", "std"]
+rkyv = ["dep:rkyv", "bytecheck"]
 serde = ["arrayvec?/serde", "cl-aux/serde", "dep:serde"]
 serde_json = ["serde", "dep:serde_json", "std"]
 serde_yaml = ["serde", "dep:serde_yaml", "std"]
@@ -50,9 +55,10 @@ async-fn-in-trait = []
 default = []
 macros = ["dep:lucia-macros"]
 std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
-_surf-hack = ["surf?/h1-client-no-tls"]
 tokio = ["std", "dep:tokio", "tokio?/time"]
 tracing = ["dep:tracing"]
+
+_hack = ["surf?/h1-client-no-tls", "rkyv?/size_32"]
 
 # Network
 

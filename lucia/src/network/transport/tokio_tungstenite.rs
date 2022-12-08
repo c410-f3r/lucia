@@ -1,10 +1,11 @@
 use crate::{
   misc::manage_before_sending_related,
-  network::{transport::Transport, TransportGroup, WsParams},
+  network::{transport::Transport, TransportGroup, WsParams, WsReqParamsTy},
   package::{Package, PackagesAux},
 };
 #[cfg(not(feature = "async-fn-in-trait"))]
 use alloc::boxed::Box;
+use alloc::string::String;
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
@@ -50,11 +51,15 @@ where
   {
     pkgs_aux.byte_buffer.clear();
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
-    <Self as SinkExt<_>>::send(self, Message::Binary(pkgs_aux.byte_buffer.clone()))
-      .await
-      .map_err(Into::into)?;
+    let vec = pkgs_aux.byte_buffer.clone();
+    let msg = match pkgs_aux.ext_req_params.ty {
+      WsReqParamsTy::Bytes => Message::Binary(vec),
+      WsReqParamsTy::String => Message::Text(String::from_utf8(vec).map_err(Into::into)?),
+    };
+    <Self as SinkExt<_>>::send(self, msg).await.map_err(Into::into)?;
     pkgs_aux.byte_buffer.clear();
     pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
+    pkgs_aux.ext_req_params.clear();
     Ok(())
   }
 

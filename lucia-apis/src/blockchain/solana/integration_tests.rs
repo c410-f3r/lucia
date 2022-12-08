@@ -358,7 +358,7 @@ _create_http_test!(Solana::new(None), http(), http_reqs_with_array, |pkgs_aux, t
     .unwrap();
 });
 
-_create_tokio_tungstenite_test!(
+_create_ws_test!(
   WS_URL,
   Solana::new(None),
   ws(),
@@ -383,7 +383,7 @@ _create_tokio_tungstenite_test!(
   }
 );
 
-_create_tokio_tungstenite_test!(
+_create_ws_test!(
   WS_URL,
   Solana::new(None),
   ws(),
@@ -399,7 +399,7 @@ _create_tokio_tungstenite_test!(
   }
 );
 
-_create_tokio_tungstenite_test!(
+_create_ws_test!(
   WS_URL,
   Solana::new(None),
   ws(),
@@ -415,7 +415,7 @@ _create_tokio_tungstenite_test!(
   }
 );
 
-_create_tokio_tungstenite_test!(
+_create_ws_test!(
   WS_URL,
   Solana::new(None),
   ws(),
@@ -431,7 +431,7 @@ _create_tokio_tungstenite_test!(
   }
 );
 
-_create_tokio_tungstenite_test!(
+_create_ws_test!(
   WS_URL,
   Solana::new(None),
   ws(),

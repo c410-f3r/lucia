@@ -4,8 +4,10 @@ use syn::{Lit, Meta, NestedMeta};
 
 #[derive(Debug)]
 pub(crate) enum DataFormat {
+  Borsh,
   Json,
   JsonRpc(String),
+  Verbatim,
   Xml,
   Yaml,
 }
@@ -40,8 +42,10 @@ impl DataFormat {
       };
     }
     match *self {
+      DataFormat::Borsh => TokenStream::new(),
       DataFormat::Json => rslt!(http_mime_type!(Json)),
       DataFormat::JsonRpc(_) => rslt!(http_method_and_mime_type!(Post, Json)),
+      DataFormat::Verbatim => TokenStream::new(),
       DataFormat::Xml => rslt!(http_mime_type!(Xml)),
       DataFormat::Yaml => rslt!(http_mime_type!(Yaml)),
     }
@@ -50,6 +54,12 @@ impl DataFormat {
   pub(crate) fn elems(&self) -> DataFormatElems {
     let ident_fn = |name| Ident::new(name, Span::mixed_site());
     match *self {
+      DataFormat::Borsh => DataFormatElems {
+        dfe_data_format_builder_fn: ident_fn("build_borsh"),
+        dfe_ext_req_ctnt_wrapper: ident_fn("BorshRequest"),
+        dfe_ext_res_ctnt_wrapper: ident_fn("BorshResponse"),
+        dfe_pkgs_aux_call: quote::quote!(borsh_request(data)),
+      },
       DataFormat::Json => DataFormatElems {
         dfe_data_format_builder_fn: ident_fn("build_json"),
         dfe_ext_req_ctnt_wrapper: ident_fn("JsonRequest"),
@@ -61,6 +71,12 @@ impl DataFormat {
         dfe_ext_req_ctnt_wrapper: ident_fn("JsonRpcRequest"),
         dfe_ext_res_ctnt_wrapper: ident_fn("JsonRpcResponse"),
         dfe_pkgs_aux_call: quote::quote!(json_rpc_request(#method, data)),
+      },
+      DataFormat::Verbatim => DataFormatElems {
+        dfe_data_format_builder_fn: ident_fn("build_verbatim"),
+        dfe_ext_req_ctnt_wrapper: ident_fn("VerbatimRequest"),
+        dfe_ext_res_ctnt_wrapper: ident_fn("VerbatimResponse"),
+        dfe_pkgs_aux_call: quote::quote!(verbatim_request(data)),
       },
       DataFormat::Xml => DataFormatElems {
         dfe_data_format_builder_fn: ident_fn("build_xml"),
@@ -108,15 +124,13 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for DataFormat {
         Err(crate::Error::UnknownDataFormat)
       }
     } else if let Meta::Path(ref elem) = *meta {
-      let first_path_seg_ident = first_path_seg_ident!(elem);
-      if first_path_seg_ident == "json" {
-        Ok(Self::Json)
-      } else if first_path_seg_ident == "xml" {
-        Ok(Self::Xml)
-      } else if first_path_seg_ident == "yaml" {
-        Ok(Self::Yaml)
-      } else {
-        Err(crate::Error::UnknownDataFormat)
+      match first_path_seg_ident!(elem).to_string().as_str() {
+        "borsh" => Ok(Self::Borsh),
+        "json" => Ok(Self::Json),
+        "xml" => Ok(Self::Xml),
+        "yaml" => Ok(Self::Yaml),
+        "verbatim" => Ok(Self::Verbatim),
+        _ => Err(crate::Error::UnknownDataFormat),
       }
     } else {
       Err(crate::Error::MandatoryOuterAttrsAreNotPresent)

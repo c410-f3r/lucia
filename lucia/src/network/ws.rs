@@ -1,5 +1,14 @@
 use crate::network::transport::TransportParams;
 
+/// How the WebSocket request should be issued.
+#[derive(Clone, Copy, Debug)]
+pub enum WsReqParamsTy {
+  /// As opaque bytes.
+  Bytes,
+  /// As a string.
+  String,
+}
+
 #[derive(Debug)]
 #[doc = generic_trans_params_doc!()]
 pub struct WsParams(WsReqParams, WsResParams);
@@ -17,13 +26,24 @@ impl TransportParams for WsParams {
 impl Default for WsParams {
   #[inline]
   fn default() -> Self {
-    Self(WsReqParams, WsResParams)
+    Self(WsReqParams { ty: WsReqParamsTy::Bytes }, WsResParams)
   }
 }
 
 #[derive(Debug)]
 #[doc = generic_trans_req_params_doc!("WebSocket")]
-pub struct WsReqParams;
+pub struct WsReqParams {
+  /// Type
+  pub ty: WsReqParamsTy,
+}
+
+impl WsReqParams {
+  /// Clears modified parameters.
+  #[inline]
+  pub fn clear(&mut self) {
+    self.ty = WsReqParamsTy::Bytes;
+  }
+}
 
 #[derive(Debug)]
 #[doc = generic_trans_res_params_doc!("WebSocket")]

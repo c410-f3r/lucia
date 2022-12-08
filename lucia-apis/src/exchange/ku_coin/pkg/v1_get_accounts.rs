@@ -1,7 +1,7 @@
 #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoin, KuCoinHttpPkgsAux, ResponseWrapper, V1Account, V1AccountTy},
+    exchange::ku_coin::{HttpResWrapper, KuCoin, KuCoinHttpPkgsAux, V1Account, V1AccountTy},
     misc::into_rslt,
   };
   use lucia::network::HttpReqParams;
@@ -40,5 +40,5 @@ pub(crate) mod pkg {
   pub struct V1GetAccountsReq;
 
   #[pkg::res_data]
-  pub type V1GetAccountsRes = ResponseWrapper<Vec<V1Account>>;
+  pub type V1GetAccountsRes = HttpResWrapper<Vec<V1Account>>;
 }

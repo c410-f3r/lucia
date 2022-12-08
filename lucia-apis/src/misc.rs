@@ -1,5 +1,8 @@
 //! Utility functions and structures
 
+mod concat_array_str;
+
+pub use concat_array_str::*;
 use core::any::type_name;
 use lucia::create_packages_aux_wrapper;
 
@@ -16,7 +19,7 @@ pub(crate) type _MaxUrl = arrayvec::ArrayString<96>;
 
 _create_blockchain_constants!(
   pub address_hash: MaxAddressHash = 32,
-  pub address_hash_str: MaxAddressHashStr = 46,
+  pub address_hash_str: MaxAddressHashStr = 66,
   pub block_hash: MaxBlockHash = 32,
   pub block_hash_str: MaxBlockHashStr = 67,
   pub signature_hash: MaxSignatureHash = 64,

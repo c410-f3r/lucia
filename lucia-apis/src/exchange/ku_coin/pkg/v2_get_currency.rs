@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{KuCoinHttpPkgsAux, ResponseWrapper},
+    exchange::ku_coin::{HttpResWrapper, KuCoinHttpPkgsAux},
     misc::{MaxAddressHashStr, _MaxAssetAbbr, _MaxAssetName, _MaxNumberStr},
   };
   use arrayvec::ArrayVec;
@@ -36,7 +36,7 @@ pub(crate) mod pkg {
   pub struct V2GetCurrencyReq;
 
   #[pkg::res_data]
-  pub type V2GetCurrencyRes = ResponseWrapper<Box<V2Currency>>;
+  pub type V2GetCurrencyRes = HttpResWrapper<Box<V2Currency>>;
 
   #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
   #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
@@ -44,7 +44,7 @@ pub(crate) mod pkg {
   #[doc = _generic_res_data_elem_doc!()]
   pub struct V2Currency {
     /// Blockchains or networks
-    pub chains: ArrayVec<V2CurrencyChain, 4>,
+    pub chains: ArrayVec<V2CurrencyChain, 6>,
     /// Immutable asset name
     pub currency: _MaxAssetAbbr,
     /// Mutable asset name

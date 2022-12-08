@@ -26,11 +26,14 @@ impl KuCoinCredentials {
   #[cfg(feature = "std")]
   #[inline]
   pub fn from_default_env_vars() -> crate::Result<Self> {
-    Self::new(
-      std::env::var("KU_COIN_KEY")?,
-      std::env::var("KU_COIN_PW")?,
-      std::env::var("KU_COIN_SECRET")?,
-    )
+    Self::from_env_vars("KU_COIN_KEY", "KU_COIN_PW", "KU_COIN_SECRET")
+  }
+
+  /// Loads environment variables that are expected to have credential values.
+  #[cfg(feature = "std")]
+  #[inline]
+  pub fn from_env_vars(api_key: &str, api_pw: &str, api_secret: &str) -> crate::Result<Self> {
+    Self::new(std::env::var(api_key)?, std::env::var(api_pw)?, std::env::var(api_secret)?)
   }
 
   /// Before signing requests, you must create API keys in the KuCoin website and provide them
