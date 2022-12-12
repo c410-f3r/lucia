@@ -93,19 +93,26 @@ impl<R> PartialOrd for JsonRpcResponse<R> {
 
 #[cfg(feature = "serde")]
 mod serde {
+  use core::marker::PhantomData;
+
   use crate::data_format::JsonRpcResponse;
   use serde::{de::Visitor, ser::SerializeStruct};
 
   impl<'de, R> serde::Deserialize<'de> for JsonRpcResponse<R>
   where
-    R: serde::Deserialize<'de> + 'de,
+    R: serde::Deserialize<'de>,
   {
     #[inline]
     fn deserialize<D>(deserializer: D) -> Result<JsonRpcResponse<R>, D::Error>
     where
       D: serde::de::Deserializer<'de>,
     {
-      struct CustomVisitor<'de, T>(core::marker::PhantomData<&'de T>);
+      struct CustomVisitor<'de, R>(
+        PhantomData<JsonRpcResponse<R>>,
+        PhantomData<JsonRpcResponse<&'de ()>>,
+      )
+      where
+        R: serde::Deserialize<'de>;
 
       impl<'de, R> Visitor<'de> for CustomVisitor<'de, R>
       where
@@ -192,7 +199,7 @@ mod serde {
       deserializer.deserialize_struct(
         "JsonRpcResponse",
         FIELDS,
-        CustomVisitor(core::marker::PhantomData),
+        CustomVisitor(PhantomData, PhantomData),
       )
     }
   }
@@ -219,7 +226,7 @@ mod serde {
     }
   }
 
-  #[derive(serde::Deserialize)]
+  #[derive(Debug, serde::Deserialize)]
   #[serde(field_identifier, rename_all = "lowercase")]
   enum Field {
     Error,
@@ -270,6 +277,48 @@ mod serde_json {
       BB: crate::misc::ByteBuffer,
     {
       serde_json::to_writer(bytes, self)?;
+      Ok(())
+    }
+  }
+}
+
+#[cfg(feature = "simd-json")]
+mod simd_json {
+  use crate::{data_format::JsonRpcResponse, dnsn::SimdJson};
+  use core::fmt::Display;
+
+  impl<R> crate::dnsn::Deserialize<SimdJson> for JsonRpcResponse<R>
+  where
+    R: for<'serde_de> serde::Deserialize<'serde_de>,
+  {
+    #[inline]
+    fn from_bytes(bytes: &[u8], _: &mut SimdJson) -> crate::Result<Self> {
+      Ok(simd_json::from_reader(bytes)?)
+    }
+
+    #[inline]
+    fn seq_from_bytes<E>(
+      _: &[u8],
+      _: &mut SimdJson,
+      _: impl FnMut(Self) -> Result<(), E>,
+    ) -> Result<(), E>
+    where
+      E: Display + From<crate::Error>,
+    {
+      Err(crate::Error::UnsupportedOperation.into())
+    }
+  }
+
+  impl<R> crate::dnsn::Serialize<SimdJson> for JsonRpcResponse<R>
+  where
+    R: serde::Serialize,
+  {
+    #[inline]
+    fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
+    where
+      BB: crate::misc::ByteBuffer,
+    {
+      simd_json::to_writer(bytes, self)?;
       Ok(())
     }
   }

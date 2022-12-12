@@ -32,7 +32,7 @@ pub fn api_types(
 /// Package
 ///
 /// A framework-like attribute placed in inline modules that creates all the mandatory elements
-/// and optional elements related to `lucia::package::Package`.
+/// and optional elements related to `lucia::pkg::Package`.
 ///
 /// ```rust
 /// struct SomeApi;

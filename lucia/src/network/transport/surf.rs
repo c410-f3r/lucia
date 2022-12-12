@@ -1,9 +1,9 @@
 use crate::{
   misc::manage_before_sending_related,
   network::{http::HttpMethod, transport::Transport, HttpParams, TransportGroup},
-  package::{Package, PackagesAux},
+  pkg::{Package, PkgsAux},
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 use surf::{
   http::headers::{CONTENT_TYPE, USER_AGENT},
@@ -14,17 +14,17 @@ use surf::{
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
 ///   network::{transport::Transport, HttpParams},
-///   package::PackagesAux,
+///   pkg::PkgsAux,
 /// };
 /// let _ = surf::Client::new()
 ///   .send_retrieve_and_decode_contained(
 ///     &mut (),
-///     &mut PackagesAux::from_minimum((), (), HttpParams::from_url("URL")?),
+///     &mut PkgsAux::from_minimum((), (), HttpParams::from_url("URL")?),
 ///   )
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for Client
 where
   DRSR: Send + Sync,
@@ -36,7 +36,7 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     DRSR: Send + Sync,
@@ -51,7 +51,7 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, HttpParams> + Send + Sync,
@@ -67,7 +67,7 @@ where
 async fn response<DRSR, P>(
   client: &Client,
   pkg: &mut P,
-  pkgs_aux: &mut PackagesAux<P::Api, DRSR, HttpParams>,
+  pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
 ) -> Result<surf::Response, P::Error>
 where
   DRSR: Send + Sync,
@@ -75,7 +75,7 @@ where
 {
   async fn manage_data<A, E, DRSR>(
     mut rb: RequestBuilder,
-    pkgs_aux: &mut PackagesAux<A, DRSR, HttpParams>,
+    pkgs_aux: &mut PkgsAux<A, DRSR, HttpParams>,
   ) -> Result<RequestBuilder, E>
   where
     DRSR: Send + Sync,

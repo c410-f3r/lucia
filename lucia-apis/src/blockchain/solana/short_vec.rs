@@ -49,7 +49,6 @@ where
   deserializer.deserialize_tuple(usize::MAX, visitor)
 }
 
-#[derive(Debug)]
 enum VisitError {
   Alias,
   ByteThreeContinues,

@@ -10,8 +10,7 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetSlotLeadersReq(#[pkg::field(name = "start")] u64, #[pkg::field(name = "len")] u64);
 

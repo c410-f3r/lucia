@@ -18,8 +18,7 @@ use alloc::vec::Vec;
 use arrayvec::ArrayString;
 
 /// The type of a public holiday
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub enum V3HolidayTy {
   /// Authorities are closed
   Authorities,
@@ -36,10 +35,9 @@ pub enum V3HolidayTy {
 }
 
 /// Used by all the endpoints that return holydays.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
-pub struct V3PublicHolidayResElem {
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct V3PublicHoliday {
   /// The date.
   pub date: ArrayString<10>,
   /// Local name.

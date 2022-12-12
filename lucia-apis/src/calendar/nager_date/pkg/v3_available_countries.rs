@@ -19,19 +19,17 @@ pub(crate) mod pkg {
     Ok(())
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V3AvailableCountriesReq;
 
   #[pkg::res_data]
-  pub type V3AvailableCountriesRes = Vec<V3AvailableCountriesResElem>;
+  pub type V3AvailableCountriesRes = Vec<V3AvailableCountries>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V3AvailableCountriesResElem {
+  pub struct V3AvailableCountries {
     /// ISO 3166-1 alpha-2.
     pub country_code: ArrayString<2>,
     /// English name

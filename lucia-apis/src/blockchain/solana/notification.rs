@@ -1,8 +1,7 @@
 use crate::blockchain::solana::SlotUpdate;
 
 /// Returned data of the `slotSubscribe` notification.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub struct SlotSubscribeNotification {
   /// Parent slot.
   pub parent: u64,
@@ -13,8 +12,7 @@ pub struct SlotSubscribeNotification {
 }
 
 /// Returned data of the `slotsUpdatesSubscribe` notification.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub struct SlotsUpdatesNotification {
   /// Parent slot.
   pub parent: u64,

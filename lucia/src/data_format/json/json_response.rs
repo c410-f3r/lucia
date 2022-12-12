@@ -140,3 +140,48 @@ mod serde_json {
     }
   }
 }
+
+#[cfg(feature = "simd-json")]
+mod simd_json {
+  use crate::{data_format::JsonResponse, dnsn::SimdJson, misc::ByteBuffer};
+  use core::fmt::Display;
+
+  impl<D> crate::dnsn::Deserialize<SimdJson> for JsonResponse<D>
+  where
+    D: for<'de> serde::Deserialize<'de>,
+  {
+    #[inline]
+    fn from_bytes(bytes: &[u8], _: &mut SimdJson) -> crate::Result<Self> {
+      Ok(JsonResponse { data: simd_json::from_reader(bytes)? })
+    }
+
+    #[inline]
+    fn seq_from_bytes<E>(
+      _: &[u8],
+      _: &mut SimdJson,
+      _: impl FnMut(Self) -> Result<(), E>,
+    ) -> Result<(), E>
+    where
+      E: Display + From<crate::Error>,
+    {
+      Err(crate::Error::UnsupportedOperation.into())
+    }
+  }
+
+  impl<D> crate::dnsn::Serialize<SimdJson> for JsonResponse<D>
+  where
+    D: serde::Serialize,
+  {
+    #[inline]
+    fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
+    where
+      BB: ByteBuffer,
+    {
+      if core::mem::size_of::<D>() == 0 {
+        return Ok(());
+      }
+      simd_json::to_writer(bytes, &self.data)?;
+      Ok(())
+    }
+  }
+}

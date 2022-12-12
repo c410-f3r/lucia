@@ -112,3 +112,22 @@ mod serde_json {
     }
   }
 }
+
+#[cfg(feature = "simd-json")]
+mod simd_json {
+  use crate::{data_format::JsonRpcRequest, dnsn::SimdJson, misc::ByteBuffer};
+
+  impl<P> crate::dnsn::Serialize<SimdJson> for JsonRpcRequest<P>
+  where
+    P: serde::Serialize,
+  {
+    #[inline]
+    fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
+    where
+      BB: ByteBuffer,
+    {
+      simd_json::to_writer(bytes, self)?;
+      Ok(())
+    }
+  }
+}

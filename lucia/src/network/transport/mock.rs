@@ -6,9 +6,9 @@
 use crate::{
   misc::{manage_before_sending_related, FromBytes},
   network::{transport::Transport, TransportGroup},
-  package::{Package, PackagesAux},
+  pkg::{Package, PkgsAux},
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 use alloc::{
   borrow::{Cow, ToOwned},
@@ -30,10 +30,10 @@ pub type MockStr = Mock<str>;
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
 ///   network::transport::{MockStr, Transport},
-///   package::PackagesAux,
+///   pkg::PkgsAux,
 /// };
 /// let _ = MockStr::default()
-///   .send_retrieve_and_decode_contained(&mut (), &mut PackagesAux::from_minimum((), (), ()))
+///   .send_retrieve_and_decode_contained(&mut (), &mut PkgsAux::from_minimum((), (), ()))
 ///   .await?;
 /// # Ok(()) }
 /// ```
@@ -61,6 +61,7 @@ where
 
   /// Verifies if `req` is present in the inner request storage.
   #[inline]
+  #[track_caller]
   pub fn assert_request(&mut self, req: &T) {
     let stored = &self.requests[self.asserted];
     self.asserted = self.asserted.wrapping_add(1);
@@ -79,7 +80,7 @@ where
   }
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for Mock<T>
 where
   DRSR: Send + Sync,
@@ -93,7 +94,7 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     P: Package<DRSR, ()> + Send + Sync,
@@ -109,7 +110,7 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, ()> + Send + Sync,

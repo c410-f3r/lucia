@@ -5,8 +5,13 @@ syn = { default-features = false, features = ["full", "parsing", "printing", "ex
 
 [dev-dependencies]
 async-trait = { default-features = false, version = "0.1" }
-lucia = { default-features = false, path = "../lucia" }
+lucia = { default-features = false, features = ["async-trait"], path = "../lucia" }
+lucia-macros = { default-features = false, features = ["async-trait"], path = "../lucia-macros" }
 trybuild = { default-features = false, version = "1.0" }
+
+[features]
+default = ["async-trait"]
+async-trait = []
 
 [lib]
 proc-macro = true

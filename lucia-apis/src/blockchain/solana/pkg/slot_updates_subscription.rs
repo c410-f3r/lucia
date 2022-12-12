@@ -10,8 +10,7 @@ pub(crate) mod sub {
   #[pkg::aux]
   impl<DRSR> SolanaWsPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct SlotsUpdatesSubscribeReq;
 
@@ -31,11 +30,10 @@ pub(crate) mod unsub {
   #[pkg::aux]
   impl<DRSR> SolanaWsPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct SlotsUpdatesUnsubscribeReq(
-    #[cfg_attr(feature = "serde", serde(serialize_with = "crate::misc::_serde_ser_as_tuple"))]
+    #[serde(serialize_with = "crate::misc::_serialize_as_tuple")]
     #[pkg::field(name = "id")]
     u64,
   );

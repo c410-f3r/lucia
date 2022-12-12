@@ -8,34 +8,29 @@ pub(crate) mod pkg {
   use crate::blockchain::solana::{
     Commitment, JsonRpcResponseResultWithContext, SolanaBlockhash, SolanaHttpPkgsAux,
   };
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetLatestBlockhashReq(
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "commitment")]
-    pub Option<Commitment>,
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    Option<Commitment>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "min_context_slot")]
-    pub Option<u64>,
+    Option<u64>,
   );
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
   #[pkg::res_data]
-  pub type GetLatestBlockhashRes = JsonRpcResponseResultWithContext<GetLatestBlockhashResElem>;
+  pub type GetLatestBlockhashRes = JsonRpcResponseResultWithContext<GetLatestBlockhash>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct GetLatestBlockhashResElem {
+  pub struct GetLatestBlockhash {
     /// Block Base58 identifier.
-    #[cfg_attr(
-      feature = "serde",
-      serde(deserialize_with = "crate::misc::deserialize_array_from_base58")
-    )]
+    #[serde(deserialize_with = "crate::misc::deserialize_array_from_base58")]
     pub blockhash: SolanaBlockhash,
     /// Last block height at which the blockhash will be valid
     pub last_valid_block_height: u64,

@@ -1,22 +1,13 @@
-/// Type that indicates the usage of the `serde_json` dependency.
+/// Type that indicates the usage of the `simd-json` dependency.
 #[derive(Debug)]
-pub struct SerdeJson;
-
-_impl_se_collections!(
-  for SerdeJson => serde::Serialize;
-
-  array: |this, bytes, _drsr| { serde_json::to_writer(bytes, &this[..])?; }
-  arrayvec: |this, bytes, _drsr| { serde_json::to_writer(bytes, this)?; }
-  slice_ref: |this, bytes, _drsr| { serde_json::to_writer(bytes, this)?; }
-  vec: |this, bytes, _drsr| { serde_json::to_writer(bytes, this)?; }
-);
+pub struct SimdJson;
 
 #[cfg(all(feature = "std", test))]
 mod tests {
   _create_dnsn_test!(
     json,
     (JsonRequest, JsonResponse),
-    SerdeJson as SerdeJson,
+    SimdJson as SimdJson,
     (r#"{"foo":"foo"}"#.into(), r#"{"bar":"bar"}"#.into()),
     (JsonRequest { data: Foo { foo: "foo" } }, JsonResponse { data: Bar { bar: "bar".into() } }),
   );
@@ -24,7 +15,7 @@ mod tests {
   _create_dnsn_test!(
     json_rpc,
     (JsonRpcRequest, JsonRpcResponse),
-    SerdeJson as SerdeJson,
+    SimdJson as SimdJson,
     (
       r#"{"jsonrpc":"2.0","method":"method","params":{"foo":"foo"},"id":0}"#.into(),
       r#"{"jsonrpc":"2.0","method":"method","result":{"bar":"bar"},"id":0}"#.into()

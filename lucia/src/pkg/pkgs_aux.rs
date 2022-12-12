@@ -7,6 +7,8 @@ use crate::{
 };
 use alloc::vec::Vec;
 
+/// # Packages Auxiliary
+///
 /// Responsible for assisting the creation and management of packages and their requests.
 ///
 /// # Types
@@ -15,7 +17,7 @@ use alloc::vec::Vec;
 /// * `DRSR`: DeserializeR/SerializeR
 /// * `T`: Transport
 #[derive(Debug)]
-pub struct PackagesAux<API, DRSR, TP>
+pub struct PkgsAux<API, DRSR, TP>
 where
   TP: TransportParams,
 {
@@ -34,7 +36,7 @@ where
   built_requests: Id,
 }
 
-impl<API, DRSR, TP> PackagesAux<API, DRSR, TP>
+impl<API, DRSR, TP> PkgsAux<API, DRSR, TP>
 where
   TP: TransportParams,
 {

@@ -29,17 +29,15 @@ pub(crate) mod pkg {
     symbol: &'any str,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V3GetFullOrderBookReq;
 
   #[pkg::res_data]
   pub type V3GetFullOrderBookRes = HttpResWrapper<V3FullOrderBook>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
   pub struct V3FullOrderBook {
     /// Selling offers of base asset.
@@ -47,7 +45,7 @@ pub(crate) mod pkg {
     /// Buying offers of base asset.
     pub bids: Vec<(_MaxNumberStr, _MaxNumberStr)>,
     /// KuCoin-specified sequence.
-    #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::misc::_deserialize_from_str"))]
+    #[serde(deserialize_with = "crate::misc::_deserialize_from_str")]
     pub sequence: i64,
   }
 }

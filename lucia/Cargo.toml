@@ -1,5 +1,4 @@
 [dependencies]
-async-trait = { default-features = false, version = "0.1" }
 cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 
 # Deserializer/Serializer
@@ -7,16 +6,18 @@ cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 borsh = { default-features = false, features = ["std"], optional = true, version = "0.9" }
 bytecheck = { default-features = false, optional = true, version = "0.6" }
 miniserde = { default-features = false, optional = true, version = "0.1" }
-rkyv = { default-features = false, features = ["validation", "std"], optional = true, version = "0.7" }
+rkyv = { default-features = false, features = ["validation"], optional = true, version = "0.7" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
 serde_yaml = { default-features = false, optional = true, version = "0.9" }
 serde-xml-rs = { default-features = false, optional = true, version = "0.6" }
+simd-json = { default-features = false, features = ["serde_impl"], optional = true, version = "0.7" }
 
 # Etc
 
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
+async-trait = { default-features = false, optional = true, version = "0.1" }
 lucia-macros =  { default-features = false, optional = true, path = "../lucia-macros", version = "0.1" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tracing = { default-features = false, optional = true, version = "0.1" }
@@ -41,24 +42,27 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 borsh = ["dep:borsh", "std"]
 miniserde = ["dep:miniserde", "std"]
-rkyv = ["dep:rkyv", "bytecheck"]
+rkyv = ["bytecheck", "dep:rkyv"]
 serde = ["arrayvec?/serde", "cl-aux/serde", "dep:serde"]
 serde_json = ["serde", "dep:serde_json", "std"]
 serde_yaml = ["serde", "dep:serde_yaml", "std"]
 serde-xml-rs = ["serde", "dep:serde-xml-rs", "std"]
+simd-json = ["serde", "dep:simd-json", "std"]
 
 # Etc
 
 arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
 async-std = ["dep:async-std", "async-std?/default"]
-async-fn-in-trait = []
-default = []
+async-trait = ["dep:async-trait", "lucia-macros?/async-trait"]
+default = ["async-trait"]
 macros = ["dep:lucia-macros"]
 std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
 tokio = ["std", "dep:tokio", "tokio?/time"]
 tracing = ["dep:tracing"]
 
-_hack = ["surf?/h1-client-no-tls", "rkyv?/size_32"]
+# These dependencies do not support `no-default-features` and the explicit "hard-coded" usage of
+# any feature would imply a downstream enforcement, which is bad.
+_hack = ["surf?/h1-client-no-tls", "rkyv?/size_32", "simd-json?/allow-non-simd"]
 
 # Network
 

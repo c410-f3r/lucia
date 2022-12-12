@@ -1,7 +1,5 @@
-use crate::{
-  data_format::JsonRpcRequest, network::transport::TransportParams, package::Package, Id,
-};
-#[cfg(not(feature = "async-fn-in-trait"))]
+use crate::{data_format::JsonRpcRequest, network::transport::TransportParams, pkg::Package, Id};
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 use core::{
   borrow::Borrow,
@@ -15,18 +13,15 @@ use core::{
 ///
 /// * `H`: Helper
 /// * `P`: Package
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(transparent))]
 #[derive(Debug)]
-pub struct PackageWithHelper<H, P> {
+pub struct PkgWithHelper<H, P> {
   /// Helper
-  #[cfg_attr(feature = "serde", serde(skip))]
   pub helper: H,
   /// Package
   pub package: P,
 }
 
-impl<H, P> PackageWithHelper<H, P> {
+impl<H, P> PkgWithHelper<H, P> {
   /// Constructor shortcut
   #[inline]
   pub fn new(aux: H, package: P) -> Self {
@@ -34,8 +29,8 @@ impl<H, P> PackageWithHelper<H, P> {
   }
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
-impl<DRSR, H, P, TP> Package<DRSR, TP> for PackageWithHelper<H, P>
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl<DRSR, H, P, TP> Package<DRSR, TP> for PkgWithHelper<H, P>
 where
   H: Send + Sync,
   P: Package<DRSR, TP> + Send + Sync,
@@ -87,16 +82,16 @@ where
   }
 }
 
-impl<H, RP> Borrow<Id> for PackageWithHelper<H, JsonRpcRequest<RP>> {
+impl<H, RP> Borrow<Id> for PkgWithHelper<H, JsonRpcRequest<RP>> {
   #[inline]
   fn borrow(&self) -> &Id {
     &self.package.id
   }
 }
 
-impl<H, P> Eq for PackageWithHelper<H, P> where P: Eq {}
+impl<H, P> Eq for PkgWithHelper<H, P> where P: Eq {}
 
-impl<H, P> Hash for PackageWithHelper<H, P>
+impl<H, P> Hash for PkgWithHelper<H, P>
 where
   P: Hash,
 {
@@ -109,7 +104,7 @@ where
   }
 }
 
-impl<H, P> Ord for PackageWithHelper<H, P>
+impl<H, P> Ord for PkgWithHelper<H, P>
 where
   P: Ord,
 {
@@ -119,7 +114,7 @@ where
   }
 }
 
-impl<H, P> PartialEq for PackageWithHelper<H, P>
+impl<H, P> PartialEq for PkgWithHelper<H, P>
 where
   P: PartialEq,
 {
@@ -129,7 +124,7 @@ where
   }
 }
 
-impl<H, P> PartialOrd for PackageWithHelper<H, P>
+impl<H, P> PartialOrd for PkgWithHelper<H, P>
 where
   P: PartialOrd,
 {

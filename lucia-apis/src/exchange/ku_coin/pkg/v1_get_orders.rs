@@ -42,8 +42,7 @@ pub(crate) mod pkg {
     symbol: Option<&'any str>,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V1GetOrdersReq;
 

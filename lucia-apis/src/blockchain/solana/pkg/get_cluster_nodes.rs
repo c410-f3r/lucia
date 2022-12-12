@@ -11,18 +11,16 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetClusterNodesReq;
 
   #[pkg::res_data]
-  pub type GetClusterNodesRes = Vec<GetClusterNodesResElem>;
+  pub type GetClusterNodesRes = Vec<GetClusterNodes>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[derive(Debug, PartialEq)]
+  #[derive(Debug, serde::Deserialize, PartialEq)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct GetClusterNodesResElem {
+  pub struct GetClusterNodes {
     /// Gossip network address.
     pub gossip: ArrayString<21>,
     /// Node Base58 public key.

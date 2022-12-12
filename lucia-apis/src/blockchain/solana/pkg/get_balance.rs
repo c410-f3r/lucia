@@ -12,8 +12,7 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetBalanceReq<S>(
     #[pkg::field(name = "pk")] S,
@@ -25,15 +24,14 @@ pub(crate) mod pkg {
   #[pkg::res_data]
   pub type GetBalanceRes = JsonRpcResponseResultWithContext<u64>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct GetBalanceConfig {
     /// Commitment.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
     /// Data slice.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_slice: Option<DataSlice>,
   }
 }

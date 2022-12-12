@@ -1,7 +1,6 @@
 /// Block commitment
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum Commitment {
   /// Middle ground between `Processed` and `Finalized`
   Confirmed,
@@ -12,8 +11,7 @@ pub enum Commitment {
 }
 
 /// Used to filter a sequence of bytes
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
 pub struct DataSlice {
   /// Bytes length
   pub length: usize,
@@ -22,9 +20,8 @@ pub struct DataSlice {
 }
 
 /// Used by the `getTokenAccountsByDelegate` and `getTokenAccountsByOwner` endpoints.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum MintOrProgramId<S>
 where
   S: AsRef<str>,
@@ -36,16 +33,14 @@ where
 }
 
 /// Response metadata
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub struct JsonRpcResponseResultContext {
   /// Related response slot
   pub slot: u64,
 }
 
 /// Many responses are returned as a grouping of the actual response and the related slot.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub struct JsonRpcResponseResultWithContext<V> {
   /// Metadata
   pub context: JsonRpcResponseResultContext,

@@ -1,15 +1,17 @@
-use crate::misc::{ConcatArrayStr, _MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr};
+use crate::misc::{
+  ConcatArrayStr, MaxAddressHashStr, _MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr,
+};
 use arrayvec::ArrayString;
 use core::fmt::{Display, Formatter};
 use lucia::misc::QueryWriter;
+use serde::{de, de::Error, Deserialize};
 
 pub(crate) type Chain = ArrayString<20>;
 pub(crate) type KuCoinId = ArrayString<28>;
 
 /// Buy or sell
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderSide {
   /// Buy
   Buy,
@@ -27,9 +29,8 @@ impl Display for OrderSide {
 }
 
 /// Stopping criteria to prevent possible losses.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderStop {
   /// A stop-entry order to buy is an order at a price above the prevailing market price, and a
   /// stop-entry order to sell is an order at a price below the prevailing market price.
@@ -40,9 +41,8 @@ pub enum OrderStop {
 }
 
 /// Self trade prevention
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "UPPERCASE"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum OrderStp {
   /// Cancel both
   CB,
@@ -55,9 +55,8 @@ pub enum OrderStp {
 }
 
 /// Guarantees about the lifetime of an order.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "UPPERCASE"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "UPPERCASE")]
 pub enum OrderTimeInForce {
   /// Fill or kill
   FOK,
@@ -70,9 +69,8 @@ pub enum OrderTimeInForce {
 }
 
 /// KuCoin has three different types of accounts.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum V1AccountTy {
   /// Storage, withdrawal, and deposit of funds.
   Main,
@@ -93,9 +91,8 @@ impl Display for V1AccountTy {
 }
 
 /// Limit or market.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum OrderType {
   /// Executed at the specified price.
   Limit,
@@ -104,9 +101,8 @@ pub enum OrderType {
 }
 
 /// If a web socket request is asking to subscribe or unsubscribe.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum WsReqTy {
   /// Subscribe
   Subscribe,
@@ -115,24 +111,22 @@ pub enum WsReqTy {
 }
 
 /// All responses are wrapped to provide additional metadata.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(untagged)]
 pub enum WsResWrapperSubject {
   /// Account balance
-  #[cfg_attr(feature = "serde", serde(rename = "account.balance"))]
+  #[serde(rename = "account.balance")]
   AccountBalance,
   /// L2 market data
-  #[cfg_attr(feature = "serde", serde(rename = "trade.l2update"))]
+  #[serde(rename = "trade.l2update")]
   TradeL2Update,
   /// For example, tickers.
   Other(String),
 }
 
 /// Value depending on the issued request type.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "lowercase")]
 pub enum WsResWrapperTy {
   /// Error
   Error,
@@ -145,8 +139,7 @@ pub enum WsResWrapperTy {
 }
 
 /// Account has different types of balances.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub struct V1Account {
   /// Funds available to withdraw or trade.
   pub available: _MaxNumberStr,
@@ -159,9 +152,8 @@ pub struct V1Account {
 }
 
 /// Order
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct V1Order {
   /// Cancels after the given seconds. Requires `time_in_force` to be [OrderTimeInForce::GTT].
   pub cancel_after: i64,
@@ -200,20 +192,14 @@ pub struct V1Order {
   /// Base asset amount.
   pub size: _MaxNumberStr,
   /// Stop type, include entry and loss.
-  #[cfg_attr(
-    feature = "serde",
-    serde(deserialize_with = "crate::misc::_deserialize_opt_considering_empty_str")
-  )]
+  #[serde(deserialize_with = "crate::misc::_deserialize_opt_considering_empty_str")]
   pub stop: Option<OrderStop>,
   /// Stop price
   pub stop_price: _MaxNumberStr,
   /// If stop type is triggered.
   pub stop_triggered: bool,
   /// Self trade prevention.
-  #[cfg_attr(
-    feature = "serde",
-    serde(deserialize_with = "crate::misc::_deserialize_opt_considering_empty_str")
-  )]
+  #[serde(deserialize_with = "crate::misc::_deserialize_opt_considering_empty_str")]
   pub stp: Option<OrderStp>,
   /// Pair of two assets like BTC-USDT.
   pub symbol: _MaxPairAbbr,
@@ -226,12 +212,11 @@ pub struct V1Order {
 }
 
 /// Best and last values of the level 1 market data.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct V1Ticker {
   /// Sequence
-  #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::misc::_deserialize_from_str"))]
+  #[serde(deserialize_with = "crate::misc::_deserialize_from_str")]
   pub sequence: u64,
   /// Best ask price
   pub best_ask: _MaxNumberStr,
@@ -249,10 +234,41 @@ pub struct V1Ticker {
   pub time: u64,
 }
 
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+#[doc = _generic_res_data_elem_doc!()]
+pub struct V1Withdrawal {
+  /// Withdrawal address.
+  pub address: MaxAddressHashStr,
+  /// Withdrawal amount.
+  pub amount: _MaxNumberStr,
+  /// Blockchain or network of the asset.
+  pub chain: Chain,
+  /// Creation timestamp.
+  pub created_at: i64,
+  /// Asset identifier.
+  pub currency: _MaxAssetAbbr,
+  /// Withdrawal fee.
+  pub fee: _MaxNumberStr,
+  /// Unique identity.
+  pub id: KuCoinId,
+  /// Internal withdrawal or not.
+  pub is_inner: bool,
+  /// Address remark.
+  pub memo: ArrayString<20>,
+  /// Remark.
+  pub remark: ArrayString<20>,
+  /// Status
+  pub status: ArrayString<20>,
+  /// Update timestamp.
+  pub updated_at: i64,
+  /// Blockchain or network transaction id.
+  pub wallet_tx_id: ArrayString<20>,
+}
+
 /// For endpoints that return very large amounts of items.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PaginatedResponse<T> {
   /// Current page
   pub current_page: u32,
@@ -275,102 +291,95 @@ pub struct HttpResWrapper<T> {
   pub data: crate::Result<T>,
 }
 
-#[cfg(feature = "serde")]
-mod generic_data_response_serde {
-  use crate::exchange::ku_coin::HttpResWrapper;
-  use serde::{de, de::Error, Deserialize};
-
-  impl<'de, T> Deserialize<'de> for HttpResWrapper<T>
+impl<'de, T> Deserialize<'de> for HttpResWrapper<T>
+where
+  T: Deserialize<'de> + 'de,
+{
+  #[inline]
+  fn deserialize<D>(deserializer: D) -> Result<HttpResWrapper<T>, D::Error>
   where
-    T: Deserialize<'de> + 'de,
+    D: de::Deserializer<'de>,
   {
-    #[inline]
-    fn deserialize<D>(deserializer: D) -> Result<HttpResWrapper<T>, D::Error>
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(field_identifier, rename_all = "lowercase")]
+    enum Field {
+      Code,
+      Data,
+      Msg,
+    }
+
+    struct CustomVisitor<'de, T>(core::marker::PhantomData<&'de T>);
+
+    impl<'de, T> de::Visitor<'de> for CustomVisitor<'de, T>
     where
-      D: de::Deserializer<'de>,
+      T: Deserialize<'de>,
     {
-      struct CustomVisitor<'de, T>(core::marker::PhantomData<&'de T>);
+      type Value = HttpResWrapper<T>;
 
-      impl<'de, T> de::Visitor<'de> for CustomVisitor<'de, T>
-      where
-        T: Deserialize<'de>,
-      {
-        type Value = HttpResWrapper<T>;
-
-        #[inline]
-        fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-          formatter.write_str("struct JsonRpcResponse")
-        }
-
-        #[inline]
-        fn visit_map<V>(self, mut map: V) -> Result<HttpResWrapper<T>, V::Error>
-        where
-          V: de::MapAccess<'de>,
-        {
-          let mut code = None;
-          let mut data = None;
-          let mut msg = None;
-
-          while let Some(key) = map.next_key()? {
-            match key {
-              Field::Code => {
-                if code.is_some() {
-                  return Err(de::Error::duplicate_field("code"));
-                }
-                code = Some(map.next_value::<&str>()?.parse().map_err(|err| Error::custom(err))?);
-              }
-              Field::Data => {
-                if data.is_some() {
-                  return Err(de::Error::duplicate_field("data"));
-                }
-                data = Some(map.next_value()?);
-              }
-              Field::Msg => {
-                if msg.is_some() {
-                  return Err(de::Error::duplicate_field("msg"));
-                }
-                msg = Some(map.next_value()?);
-              }
-            }
-          }
-
-          Ok(HttpResWrapper {
-            code: if let Some(elem) = code {
-              elem
-            } else {
-              return Err(de::Error::missing_field("code"));
-            },
-            data: if let Some(elem) = data {
-              Ok(elem)
-            } else {
-              Err(crate::Error::KuCoinUnsuccessfulRequest(msg.unwrap_or_default()))
-            },
-          })
-        }
+      #[inline]
+      fn expecting(&self, formatter: &mut Formatter<'_>) -> core::fmt::Result {
+        formatter.write_str("struct JsonRpcResponse")
       }
 
-      const FIELDS: &[&str] = &["error", "result"];
-      deserializer.deserialize_struct(
-        "JsonRpcResponse",
-        FIELDS,
-        CustomVisitor(core::marker::PhantomData),
-      )
-    }
-  }
+      #[inline]
+      fn visit_map<V>(self, mut map: V) -> Result<HttpResWrapper<T>, V::Error>
+      where
+        V: de::MapAccess<'de>,
+      {
+        let mut code = None;
+        let mut data = None;
+        let mut msg = None;
 
-  #[derive(serde::Deserialize)]
-  #[serde(field_identifier, rename_all = "lowercase")]
-  enum Field {
-    Code,
-    Data,
-    Msg,
+        while let Some(key) = map.next_key()? {
+          match key {
+            Field::Code => {
+              if code.is_some() {
+                return Err(de::Error::duplicate_field("code"));
+              }
+              code = Some(map.next_value::<&str>()?.parse().map_err(|err| Error::custom(err))?);
+            }
+            Field::Data => {
+              if data.is_some() {
+                return Err(de::Error::duplicate_field("data"));
+              }
+              data = Some(map.next_value()?);
+            }
+            Field::Msg => {
+              if msg.is_some() {
+                return Err(de::Error::duplicate_field("msg"));
+              }
+              msg = Some(map.next_value()?);
+            }
+          }
+        }
+
+        Ok(HttpResWrapper {
+          code: if let Some(elem) = code {
+            elem
+          } else {
+            return Err(de::Error::missing_field("code"));
+          },
+          data: if let Some(elem) = data {
+            Ok(elem)
+          } else {
+            Err(crate::Error::KuCoinUnsuccessfulRequest(msg.unwrap_or_default()))
+          },
+        })
+      }
+    }
+
+    const FIELDS: &[&str] = &["error", "result"];
+    deserializer.deserialize_struct(
+      "JsonRpcResponse",
+      FIELDS,
+      CustomVisitor(core::marker::PhantomData),
+    )
   }
 }
 
 /// All WebSocket requests must have a pre-defined set of fields.
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct WsReq<'any> {
   pub(crate) id: u64,
   pub(crate) private_channel: bool,
@@ -380,9 +389,8 @@ pub struct WsReq<'any> {
 }
 
 /// All responses are wrapped to provide additional metadata.
-#[derive(Debug)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct WsResWrapper<D> {
   /// Type
   pub r#type: WsResWrapperTy,

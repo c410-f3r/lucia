@@ -1,19 +1,19 @@
 use crate::{
   dnsn::{Deserialize, Serialize},
   network::transport::TransportParams,
-  package::Package,
+  pkg::Package,
   Id,
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::{borrow::Borrow, marker::PhantomData};
 
 /// Used to perform batch requests with multiple packages.
 #[derive(Debug)]
-pub struct BatchPackage<'slice, DRSR, P, TP>(BatchElems<'slice, DRSR, P, TP>, ());
+pub struct BatchPkg<'slice, DRSR, P, TP>(BatchElems<'slice, DRSR, P, TP>, ());
 
-impl<'slice, DRSR, P, TP> BatchPackage<'slice, DRSR, P, TP> {
+impl<'slice, DRSR, P, TP> BatchPkg<'slice, DRSR, P, TP> {
   /// Currently, only slices of packages are allowed to perform batch requests.
   #[inline]
   pub fn new(slice: &'slice mut [P]) -> Self {
@@ -21,7 +21,7 @@ impl<'slice, DRSR, P, TP> BatchPackage<'slice, DRSR, P, TP> {
   }
 }
 
-impl<'slice, DRSR, P, TP> BatchPackage<'slice, DRSR, P, TP>
+impl<'slice, DRSR, P, TP> BatchPkg<'slice, DRSR, P, TP>
 where
   P: Package<DRSR, TP>,
   P::ExternalRequestContent: Borrow<Id> + Ord,
@@ -99,8 +99,8 @@ where
   }
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
-impl<'slice, DRSR, P, TP> Package<DRSR, TP> for BatchPackage<'slice, DRSR, P, TP>
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl<'slice, DRSR, P, TP> Package<DRSR, TP> for BatchPkg<'slice, DRSR, P, TP>
 where
   BatchElems<'slice, DRSR, P, TP>: Serialize<DRSR>,
   DRSR: Send + Sync,
@@ -159,7 +159,7 @@ where
   }
 }
 
-/// Used internally and exclusively by [BatchPackage]. Not intended for public usage.
+/// Used internally and exclusively by [BatchPkg]. Not intended for public usage.
 #[derive(Debug)]
 pub struct BatchElems<'slice, DRSR, P, T>(&'slice mut [P], PhantomData<(DRSR, T)>);
 
@@ -169,7 +169,7 @@ mod serde_json {
     dnsn::SerdeJson,
     misc::ByteBuffer,
     network::transport::TransportParams,
-    package::{BatchElems, Package},
+    pkg::{BatchElems, Package},
   };
   use serde::Serializer;
 

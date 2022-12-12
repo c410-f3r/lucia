@@ -7,9 +7,8 @@ pub use transaction_json::*;
 pub use transaction_output::*;
 
 /// Types of data representation of an transaction.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum TransactionEncoding {
   /// Represents binary data in alphanumeric text.
   Base58,
@@ -22,9 +21,8 @@ pub enum TransactionEncoding {
 }
 
 /// Level of transaction.
-#[cfg_attr(feature = "serde", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "lowercase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
 pub enum TransactionDetails {
   /// Signatures and metadata
   Full,

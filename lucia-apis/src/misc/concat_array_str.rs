@@ -1,7 +1,8 @@
 use core::fmt::{Display, Formatter};
+use serde::Serialize;
 
-/// Utility that serializes strings as a single string.
 #[derive(Debug)]
+/// Utility that serializes strings as a single string.
 pub struct ConcatArrayStr<'any, const N: usize>(pub(crate) [&'any str; N]);
 
 impl<'any, const N: usize> Display for ConcatArrayStr<'any, N> {
@@ -14,18 +15,12 @@ impl<'any, const N: usize> Display for ConcatArrayStr<'any, N> {
   }
 }
 
-#[cfg(feature = "serde")]
-mod serde {
-  use crate::misc::ConcatArrayStr;
-  use serde::Serialize;
-
-  impl<'str, const N: usize> Serialize for ConcatArrayStr<'str, N> {
-    #[inline]
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-      S: serde::Serializer,
-    {
-      serializer.collect_str(self)
-    }
+impl<'str, const N: usize> Serialize for ConcatArrayStr<'str, N> {
+  #[inline]
+  fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+  where
+    S: serde::Serializer,
+  {
+    serializer.collect_str(self)
   }
 }

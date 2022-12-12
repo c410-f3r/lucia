@@ -14,7 +14,7 @@ Checkout the `lucia-apis` project to see a collection of APIs based on `lucia`.
 
 A structure that implements the `Package` trait describes request data as well as any other additional parameters like HTTP header values.
 
-Auxiliary elements attached to the instance of an API like byte buffers or throttling parameters are declared in a separate mandatory entity called `PackagesAux`, which is responsible for assisting the creation and management of packages and their requests.
+Auxiliary elements attached to the instance of an API like byte buffers or throttling parameters are declared in a separate mandatory entity called `PkgsAux`, which is responsible for assisting the creation and management of packages and their requests.
 
 Take a look at the following example using `lucia_macros` to create a JSON-RPC request with fluent interfaces, `reqwest` to send data and `serde_json` to decode the returned bytes from the server.
 
@@ -26,7 +26,7 @@ lucia::create_packages_aux_wrapper!();
 #[derive(Debug)]
 pub struct MyApi;
 
-type MyApiPackagesAux = PackagesAux<MyApi, SerdeJson, HttpParams>;
+type MyApiPackagesAux = PkgsAux<MyApi, SerdeJson, HttpParams>;
 
 #[lucia::pkg(api(super::MyApi), data_format(json_rpc("my_endpoint")), transport(http))]
 mod my_endpoint {
@@ -89,6 +89,7 @@ Can be applied to one or more different data formats.
 | serde_json | <https://docs.rs/serde_json> |
 | serde-xml-rs | <https://docs.rs/serde-xml-rs> |
 | serde-yaml | <https://docs.rs/serde_yaml> |
+| simd-json | <https://docs.rs/simd-json> |
 
 ## Transports
 

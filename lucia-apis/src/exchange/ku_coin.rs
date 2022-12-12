@@ -5,10 +5,10 @@
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
 //! use lucia::{dnsn::SerdeJson, network::HttpParams};
-//! use lucia_apis::{exchange::ku_coin::KuCoin, misc::PackagesAux};
+//! use lucia_apis::{exchange::ku_coin::KuCoin, misc::PkgsAux};
 //!
 //! let mut pkgs_aux =
-//!   PackagesAux::from_minimum(KuCoin::new(None)?, SerdeJson, HttpParams::from_url("URL")?);
+//!   PkgsAux::from_minimum(KuCoin::new(None)?, SerdeJson, HttpParams::from_url("URL")?);
 //! let _ = pkgs_aux.v1_get_currencies().build();
 //! # Ok(()) }
 //! ```
@@ -18,17 +18,19 @@ mod integration_tests;
 mod ku_coin_credentials;
 mod pkg;
 
-use core::time::Duration;
+use crate::misc::PkgsAux;
+use core::{fmt::Write, time::Duration};
 pub use ku_coin_credentials::*;
 use lucia::{
-  misc::{RequestLimit, RequestThrottling},
+  misc::{GenericTime, Pair, RequestLimit, RequestThrottling},
+  network::{transport::Transport, WebSocket, WsParams},
   Api,
 };
 pub use pkg::*;
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
-#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http, ws))]
+#[lucia_macros::api_types(pkgs_aux(PkgsAux), transport(http, ws))]
 pub struct KuCoin {
   credentials: Option<KuCoinCredentials>,
   orders_rt: RequestThrottling,
@@ -45,24 +47,19 @@ impl KuCoin {
     })
   }
 
-  /// Returns a ready-to-use pair containing "tokio_tungstenite" as the transport for WebSocket
-  /// connections.
+  /// Returns a ready-to-use pair containing WebSocket transport.
   ///
   /// If private, then a token should be provided. Otherwise the connection will be assumed as
   /// public.
-  #[cfg(feature = "tokio-tungstenite")]
-  pub async fn tokio_tungstenite<DRSR>(
+  pub async fn web_socket<DRSR, T>(
     bullet_url: &str,
+    bytes: &mut Vec<u8>,
     drsr: DRSR,
     token_opt: Option<&str>,
-  ) -> crate::Result<
-    lucia::misc::Pair<KuCoinWsPkgsAux<DRSR>, lucia::network::transport::TokioTungstenite>,
-  > {
-    use core::fmt::Write;
-    use futures::stream::StreamExt;
-    use lucia::misc::{GenericTime, Pair};
-    use tokio_tungstenite::connect_async;
-
+  ) -> crate::Result<Pair<KuCoinWsPkgsAux<DRSR>, T>>
+  where
+    T: Transport<DRSR, Params = WsParams> + WebSocket,
+  {
     let id = GenericTime::now()?.timestamp()?.as_millis();
     let mut url = String::new();
     let rslt = if let Some(token) = token_opt {
@@ -72,16 +69,11 @@ impl KuCoin {
       url.write_fmt(format_args!("{bullet_url}?connectId={id}&acceptUserMessage=true"))
     };
     rslt.map_err(lucia::Error::from)?;
-    let mut trans = connect_async(url.as_str()).await.map_err(lucia::Error::from)?.0;
-    let _ = trans.next().await;
-    Ok(Pair::new(
-      crate::misc::PackagesAux::from_minimum(
-        KuCoin::new(None)?,
-        drsr,
-        lucia::network::WsParams::default(),
-      ),
-      trans,
-    ))
+    let mut trans = T::from_url(url.as_str()).await?;
+    let before_len = bytes.len();
+    let _ = trans.receive_with_buffer(bytes).await;
+    bytes.truncate(before_len);
+    Ok(Pair::new(PkgsAux::from_minimum(KuCoin::new(None)?, drsr, WsParams::default()), trans))
   }
 }
 

@@ -10,8 +10,7 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetMinimumBalanceForRentExemptionReq(
     #[pkg::field(name = "data_len")] usize,
@@ -21,12 +20,11 @@ pub(crate) mod pkg {
   #[pkg::res_data]
   pub type GetMinimumBalanceForRentExemptionRes = u64;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct GetMinimumBalanceForRentExemptionConfig {
     /// Commitment
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
   }
 }

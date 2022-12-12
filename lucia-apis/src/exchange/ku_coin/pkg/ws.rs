@@ -2,13 +2,14 @@ macro_rules! create {
   (
     $pkg:ident,
     $fn:ident,
-    $($param_ident:ident: $param_ty:ty )?,
+    ($($param_ident:ident: $param_ty:ty )?),
     $private_channel:expr,
     $array:expr,
     $req_ident:ident => $req_ty:ty,
     $res_ident:ident => $res_ty:ty,
     { $($additional_item:item)* }
   ) => {
+    pub use $pkg::*;
     #[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(ws))]
     pub(crate) mod $pkg {
       use crate::{
@@ -44,15 +45,13 @@ macro_rules! create {
 
       $($additional_item)*
     }
-
-    pub use $pkg::*;
   };
 }
 
 create!(
   account_balance,
   account_balance_data,
-  ,
+  (),
   true,
   ["/account/balance", ""],
   AccountBalanceReq => WsReq<'any>,
@@ -62,10 +61,9 @@ create!(
     use crate::misc::{_MaxAssetAbbr, _MaxNumberStr};
 
     /// Account balance modification returned by a WebSocket response.
-    #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-    #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-    #[derive(Debug)]
-    pub struct AccountBalance {
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+        pub struct AccountBalance {
       /// KuCoin account id.
       pub account_id: KuCoinId,
       /// The change of available balance
@@ -87,7 +85,7 @@ create!(
 create!(
   l2_market_data,
   l2_market_data_data,
-  symbols: &'any str,
+  (symbols: &'any str),
   false,
   ["/market/level2:", symbols],
   L2MarketDataReq => WsReq<'any>,
@@ -96,10 +94,9 @@ create!(
     use crate::misc::{_MaxNumberStr, _MaxPairAbbr};
 
     /// Response of a WebSocket level 2 market data.
-    #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-    #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-    #[derive(Debug)]
-    pub struct L2MarketData {
+    #[derive(Debug, serde::Deserialize)]
+    #[serde(rename_all = "camelCase")]
+        pub struct L2MarketData {
       /// Changes
       pub changes: L2MarketDataChanges,
       /// KuCoin-specified ending sequence.
@@ -111,9 +108,8 @@ create!(
     }
 
     /// Both asks and bids changes
-    #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-    #[derive(Debug)]
-    pub struct L2MarketDataChanges {
+    #[derive(Debug, serde::Deserialize)]
+        pub struct L2MarketDataChanges {
       /// Selling offers of base asset.
       pub asks: Vec<L2MarketDataChangesValues>,
       /// Buying offers of base asset.
@@ -121,15 +117,14 @@ create!(
     }
 
     /// Asks or bids changes
-    #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-    #[derive(Debug)]
-    pub struct L2MarketDataChangesValues(
+    #[derive(Debug, serde::Deserialize)]
+        pub struct L2MarketDataChangesValues(
       /// Price
       pub _MaxNumberStr,
       /// Size
       pub _MaxNumberStr,
       /// Sequence
-      #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::misc::_deserialize_from_str"))]
+      #[serde(deserialize_with = "crate::misc::_deserialize_from_str")]
       i64,
     );
   }
@@ -138,10 +133,44 @@ create!(
 create!(
   symbol_ticker,
   symbol_ticker_data,
-  symbol: &'any str,
+  (symbol: &'any str),
   false,
   ["/market/ticker:", symbol],
   SymbolTickerReq => WsReq<'any>,
   SymbolTickerRes => WsResWrapper<crate::exchange::ku_coin::V1Ticker>,
   {}
 );
+
+pub use ping::*;
+#[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(ws))]
+pub(crate) mod ping {
+  use crate::exchange::ku_coin::{KuCoin, KuCoinWsPkgsAux};
+  use arrayvec::ArrayString;
+  use lucia::{misc::GenericTime, network::WsReqParamsTy};
+
+  #[pkg::aux]
+  impl<DRSR> KuCoinWsPkgsAux<DRSR> {
+    #[pkg::aux_data]
+    fn ping_data(&mut self) -> crate::Result<PingReq> {
+      self.ext_req_params.ty = WsReqParamsTy::String;
+      Ok(PingReq { id: GenericTime::now()?.timestamp()?.as_nanos().try_into()?, r#type: "ping" })
+    }
+  }
+
+  #[derive(Debug, serde::Serialize)]
+  #[pkg::req_data]
+  pub struct PingReq {
+    id: u64,
+    r#type: &'static str,
+  }
+
+  #[derive(Debug, serde::Deserialize)]
+  #[pkg::res_data]
+  pub struct PingRes {
+    /// KuCoin ID
+    #[serde(deserialize_with = "crate::misc::_deserialize_from_str")]
+    pub id: u64,
+    /// Pong string
+    pub r#type: ArrayString<4>,
+  }
+}

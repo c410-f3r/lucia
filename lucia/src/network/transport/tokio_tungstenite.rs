@@ -1,14 +1,14 @@
 use crate::{
   misc::manage_before_sending_related,
-  network::{transport::Transport, TransportGroup, WsParams, WsReqParamsTy},
-  package::{Package, PackagesAux},
+  network::{transport::Transport, TransportGroup, WebSocket, WsParams, WsReqParamsTy},
+  pkg::{Package, PkgsAux},
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
-use alloc::string::String;
+use alloc::{string::String, vec::Vec};
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
-use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
 use tungstenite::Message;
 
 /// Shortcut of `WebSocketStream<MaybeTlsStream<TcpStream>>`.
@@ -20,19 +20,19 @@ pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
 ///   network::{transport::Transport, WsParams},
-///   package::PackagesAux,
+///   pkg::PkgsAux,
 /// };
 /// let _ = tokio_tungstenite::connect_async("URL")
 ///   .await?
 ///   .0
 ///   .send_retrieve_and_decode_contained(
 ///     &mut (),
-///     &mut PackagesAux::from_minimum((), (), WsParams::default()),
+///     &mut PkgsAux::from_minimum((), (), WsParams::default()),
 ///   )
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for TokioTungstenite
 where
   DRSR: Send + Sync,
@@ -44,7 +44,7 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     P: Package<DRSR, WsParams> + Send + Sync,
@@ -67,7 +67,7 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, WsParams> + Send + Sync,
@@ -79,5 +79,25 @@ where
     } else {
       0
     })
+  }
+}
+
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl WebSocket for TokioTungstenite {
+  #[inline]
+  async fn from_url(url: &str) -> crate::Result<Self> {
+    Ok(connect_async(url).await?.0)
+  }
+
+  #[inline]
+  async fn receive_with_buffer(&mut self, bytes: &mut Vec<u8>) -> crate::Result<usize> {
+    if let Some(rslt) = self.next().await {
+      let data = rslt?.into_data();
+      let len = data.len();
+      bytes.extend(data);
+      Ok(len)
+    } else {
+      Ok(0)
+    }
   }
 }

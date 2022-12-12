@@ -18,3 +18,14 @@ where
   bytes.extend(vec)?;
   Ok(())
 }
+
+#[cfg(all(feature = "std", test))]
+mod tests {
+  _create_dnsn_test!(
+    json,
+    (JsonRequest, JsonResponse),
+    Miniserde as Miniserde,
+    (r#"{"foo":"foo"}"#.into(), r#"{"bar":"bar"}"#.into()),
+    (JsonRequest { data: Foo { foo: "foo" } }, JsonResponse { data: Bar { bar: "bar".into() } }),
+  );
+}

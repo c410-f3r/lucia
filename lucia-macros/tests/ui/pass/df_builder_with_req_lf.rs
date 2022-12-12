@@ -8,7 +8,7 @@ type Api = ();
 #[lucia_macros::pkg(api(super::Api), data_format(json), transport(http))]
 mod pkg {
   #[pkg::aux]
-  impl super::PackagesAux<(), (), ()> {
+  impl super::PkgsAux<(), (), ()> {
     #[pkg::aux_data]
     fn foo_data<'any>(&mut self, param: &'any ()) -> lucia::Result<FooReq<'any>> {
       Ok(param)

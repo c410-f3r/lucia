@@ -26,23 +26,21 @@ pub(crate) mod pkg {
     }
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetFeeForMessageReq(String, Option<GetFeeForMessageConfig>);
 
   #[pkg::res_data]
   pub type GetFeeForMessageRes = JsonRpcResponseResultWithContext<Option<u64>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct GetFeeForMessageConfig {
     /// Commitment
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
     /// Minimum slot that the request can be evaluated at.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_context_slot: Option<u64>,
   }
 }

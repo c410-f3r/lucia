@@ -44,8 +44,7 @@ pub(crate) mod pkg {
     offset: Option<i8>,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V3IsTodayPublicHolidayReq;
 

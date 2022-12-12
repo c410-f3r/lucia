@@ -10,9 +10,8 @@ use arrayvec::ArrayString;
   // Only used in tx deserialization that is already boxed
   variant_size_differences
 )]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum GenericInstructionJson {
   /// Compiled
   Compiled(CompiledInstructionJson),
@@ -21,23 +20,21 @@ pub enum GenericInstructionJson {
 }
 
 /// Contains known instructions that can be represented.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum InstructionJsonParsedInfo {
   /// Spl-token transfer
   TransferInstruction(TransferInstruction),
   /// Spl-token checked transfer
   TransferCheckedInstruction(TransferCheckedInstruction),
   /// Unsupported
-  #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::misc::_deserialize_ignore_any"))]
+  #[serde(deserialize_with = "crate::misc::_deserialize_ignore_any")]
   Unknown,
 }
 
 /// Json data expressed as raw bytes.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CompiledInstructionJson {
   /// Index in regards to the block array of programs.
   pub program_id_index: u8,
@@ -48,8 +45,7 @@ pub struct CompiledInstructionJson {
 }
 
 /// Decoded instruction contained in other outer instructions.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub struct InnerInstructionJson {
   /// Index in regards to the block array of instructions.
   pub index: u8,
@@ -58,9 +54,8 @@ pub struct InnerInstructionJson {
 }
 
 /// With decoded JSON data.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InstructionJson {
   /// Known program name
   pub program: Option<SolanaProgramName>,
@@ -71,9 +66,8 @@ pub struct InstructionJson {
 }
 
 /// Basic decoded instruction that may have a known information.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct InstructionJsonParsed {
   /// Information
   pub info: InstructionJsonParsedInfo,
@@ -82,9 +76,8 @@ pub struct InstructionJsonParsed {
 }
 
 /// Decoded block message.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MessageJson<AK, I> {
   /// All block accounts.
   pub account_keys: Vec<AK>,
@@ -95,9 +88,8 @@ pub struct MessageJson<AK, I> {
 }
 
 /// Account information.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct MessageJsonAccountKey {
   /// Base58 identifier.
   pub pubkey: SolanaAddressHashStr,
@@ -108,9 +100,8 @@ pub struct MessageJsonAccountKey {
 }
 
 /// Decoded transaction
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionJson<AK, I> {
   /// All block signatures.
   pub signatures: Vec<SolanaSignatureHashStr>,

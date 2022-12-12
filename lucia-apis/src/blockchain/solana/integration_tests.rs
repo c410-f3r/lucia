@@ -100,6 +100,26 @@ _create_http_test!(Solana::new(None), http(), get_block_height, |pkgs_aux, trans
     .unwrap();
 });
 
+_create_http_test!(Solana::new(None), http(), get_block_commitment, |pkgs_aux, trans| async {
+  let _ = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_block_commitment().data(2).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap();
+});
+
+_create_http_test!(Solana::new(None), http(), get_block_production, |pkgs_aux, trans| async {
+  let _ = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_block_production().data(None, None, None).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap();
+});
+
 _create_http_test!(Solana::new(None), http(), get_cluster_nodes, |pkgs_aux, trans| async {
   let _ = trans
     .send_retrieve_and_decode_contained(&mut pkgs_aux.get_cluster_nodes().build(), pkgs_aux)

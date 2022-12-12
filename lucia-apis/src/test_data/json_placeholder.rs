@@ -9,12 +9,12 @@
 //!   network::{HttpMethod, HttpParams},
 //! };
 //! use lucia_apis::{
-//!   misc::PackagesAux,
+//!   misc::PkgsAux,
 //!   test_data::json_placeholder::{GenericParams, JsonPlaceholder},
 //! };
 //!
 //! let mut pkgs_aux =
-//!   PackagesAux::from_minimum(JsonPlaceholder, SerdeJson, (HttpParams::from_url("URL")?));
+//!   PkgsAux::from_minimum(JsonPlaceholder, SerdeJson, (HttpParams::from_url("URL")?));
 //! let _ = pkgs_aux.albums().params(GenericParams::new(None, HttpMethod::Get, None, &[])).build();
 //! # Ok(()) }
 //! ```
@@ -26,9 +26,9 @@ mod pkg;
 use lucia::Api;
 pub use pkg::*;
 
-#[doc = _generic_api_doc!()]
 #[derive(Debug)]
-#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http))]
+#[doc = _generic_api_doc!()]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http))]
 pub struct JsonPlaceholder;
 
 impl Api for JsonPlaceholder {

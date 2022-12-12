@@ -28,9 +28,8 @@ pub(crate) mod pkg {
     order_id: &'any str,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   #[pkg::req_data]
   pub struct V1GetOrderReq;
 

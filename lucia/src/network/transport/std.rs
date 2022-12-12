@@ -4,16 +4,16 @@ use crate::{
     transport::{Transport, TransportParams},
     TcpParams, TransportGroup, UdpParams,
   },
-  package::{Package, PackagesAux},
+  pkg::{Package, PkgsAux},
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 use std::{
   io::{Read, Write},
   net::{TcpStream, UdpSocket},
 };
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for TcpStream
 where
   DRSR: Send + Sync,
@@ -25,7 +25,7 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     P: Package<DRSR, TcpParams> + Send + Sync,
@@ -38,7 +38,7 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, TcpParams> + Send + Sync,
@@ -47,7 +47,7 @@ where
   }
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for UdpSocket
 where
   DRSR: Send + Sync,
@@ -59,7 +59,7 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     P: Package<DRSR, UdpParams> + Send + Sync,
@@ -75,7 +75,7 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, UdpParams> + Send + Sync,
@@ -86,7 +86,7 @@ where
 
 async fn send<DRSR, P, T>(
   pkg: &mut P,
-  pkgs_aux: &mut PackagesAux<P::Api, DRSR, T::Params>,
+  pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
   trans: &mut T,
   cb: impl Fn(
     &[u8],
@@ -124,7 +124,7 @@ where
 
 async fn send_and_retrieve<DRSR, P, T>(
   pkg: &mut P,
-  pkgs_aux: &mut PackagesAux<P::Api, DRSR, T::Params>,
+  pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
   trans: &mut T,
   cb: impl Fn(
     &mut [u8],
@@ -146,86 +146,21 @@ where
 #[cfg(test)]
 mod tests {
   use crate::{
-    dnsn::{Deserialize, Serialize},
-    misc::{sleep, ByteBuffer},
+    misc::sleep,
     network::{
-      transport::{Transport, TransportParams},
+      transport::{
+        tests::{Ping, PingPong, Pong},
+        Transport,
+      },
       TcpParams, UdpParams,
     },
-    package::{Package, PackagesAux},
+    pkg::PkgsAux,
   };
   use core::time::Duration;
   use std::{
     io::{Read, Write},
     net::{TcpListener, TcpStream, UdpSocket},
   };
-
-  #[derive(Debug, Eq, PartialEq)]
-  struct PingPong(Ping, ());
-
-  impl<DRSR, TP> Package<DRSR, TP> for PingPong
-  where
-    DRSR: Send + Sync,
-    TP: Send + Sync + TransportParams,
-  {
-    type Api = ();
-    type Error = crate::Error;
-    type ExternalRequestContent = Ping;
-    type ExternalResponseContent = Pong;
-    type PackageParams = ();
-
-    fn ext_req_content(&self) -> &Self::ExternalRequestContent {
-      &self.0
-    }
-
-    fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
-      &mut self.0
-    }
-
-    fn pkg_params(&self) -> &Self::PackageParams {
-      &self.1
-    }
-
-    fn pkg_params_mut(&mut self) -> &mut Self::PackageParams {
-      &mut self.1
-    }
-  }
-
-  #[derive(Debug, Eq, PartialEq)]
-  struct Ping;
-
-  impl<DRSR> Serialize<DRSR> for Ping {
-    fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut DRSR) -> crate::Result<()>
-    where
-      BB: ByteBuffer,
-    {
-      bytes.extend(*b"ping")?;
-      Ok(())
-    }
-  }
-
-  #[derive(Debug, Eq, PartialEq)]
-  struct Pong(&'static str);
-
-  impl<DRSR> Deserialize<DRSR> for Pong {
-    #[inline]
-    fn from_bytes(bytes: &[u8], _: &mut DRSR) -> crate::Result<Self> {
-      assert_eq!(bytes, b"ping");
-      Ok(Self("pong"))
-    }
-
-    #[inline]
-    fn seq_from_bytes<E>(
-      _: &[u8],
-      _: &mut DRSR,
-      _: impl FnMut(Self) -> Result<(), E>,
-    ) -> Result<(), E>
-    where
-      E: From<crate::Error>,
-    {
-      Ok(())
-    }
-  }
 
   #[tokio::test(flavor = "multi_thread")]
   async fn tcp() {
@@ -238,7 +173,7 @@ mod tests {
       stream.write_all(&buffer[..idx]).unwrap();
     });
     sleep(Duration::from_millis(100)).await.unwrap();
-    let mut pa = PackagesAux::from_minimum((), (), TcpParams::from_url(addr).unwrap());
+    let mut pa = PkgsAux::from_minimum((), (), TcpParams::from_url(addr).unwrap());
     let mut trans = TcpStream::connect(addr).unwrap();
     let res =
       trans.send_retrieve_and_decode_contained(&mut PingPong(Ping, ()), &mut pa).await.unwrap();
@@ -248,7 +183,7 @@ mod tests {
   #[tokio::test]
   async fn udp() {
     let addr = "127.0.0.1:12346";
-    let mut pa = PackagesAux::from_minimum((), (), UdpParams::from_url(addr).unwrap());
+    let mut pa = PkgsAux::from_minimum((), (), UdpParams::from_url(addr).unwrap());
     let mut trans = UdpSocket::bind(addr).unwrap();
     let res =
       trans.send_retrieve_and_decode_contained(&mut PingPong(Ping, ()), &mut pa).await.unwrap();

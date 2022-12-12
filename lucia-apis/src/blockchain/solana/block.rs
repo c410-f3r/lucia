@@ -4,9 +4,8 @@ use crate::blockchain::solana::{
 use alloc::vec::Vec;
 
 /// A collection of transactions.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Block {
   /// Base58 identifier.
   pub blockhash: SolanaAddressHashStr,
@@ -27,9 +26,8 @@ pub struct Block {
 }
 
 /// Groups transaction's data as well as its additional metadata.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct BlockTransaction {
   /// Transaction metadata
   pub meta: TransactionMeta,

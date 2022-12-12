@@ -1,20 +1,22 @@
+//! # Package
+//!
 //! Groups all elements that interact with packages.
 
-mod batch_package;
-mod package_with_helper;
-mod packages_aux;
+mod batch_pkg;
+mod pkg_with_helper;
+mod pkgs_aux;
 
 use crate::{
   dnsn::{Deserialize, Serialize},
   network::transport::TransportParams,
   Api,
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
-pub use batch_package::{BatchElems, BatchPackage};
+pub use batch_pkg::{BatchElems, BatchPkg};
 use core::fmt::Display;
-pub use package_with_helper::*;
-pub use packages_aux::*;
+pub use pkg_with_helper::*;
+pub use pkgs_aux::*;
 
 /// Groups all necessary information to define requests and responses as well as any desired
 /// custom parameter to perform modifications before or after sending.
@@ -23,7 +25,7 @@ pub use packages_aux::*;
 ///
 /// `DRSR`: DeserializeR/SerializeR
 /// `TP`: Transport Parameters
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait Package<DRSR, TP>
 where
   TP: TransportParams,
@@ -79,7 +81,7 @@ where
   fn pkg_params_mut(&mut self) -> &mut Self::PackageParams;
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, TP> Package<DRSR, TP> for ()
 where
   TP: TransportParams,
@@ -111,7 +113,7 @@ where
   }
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, P, TP> Package<DRSR, TP> for &mut P
 where
   P: Package<DRSR, TP> + Send + Sync,

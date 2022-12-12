@@ -10,16 +10,15 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetSlotLeaderReq(
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "commitment")]
-    pub Option<Commitment>,
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    Option<Commitment>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "min_context_slot")]
-    pub Option<u64>,
+    Option<u64>,
   );
 
   #[pkg::res_data]

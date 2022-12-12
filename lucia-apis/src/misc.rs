@@ -36,7 +36,7 @@ pub fn into_rslt<T>(opt: Option<T>) -> crate::Result<T> {
   opt.ok_or(crate::Error::NoInnerValue(type_name::<T>()))
 }
 
-#[cfg(all(feature = "bs58", feature = "serde"))]
+#[cfg(feature = "bs58")]
 #[inline]
 pub(crate) fn deserialize_array_from_base58<'de, D, const N: usize>(
   deserializer: D,
@@ -60,7 +60,6 @@ where
   Ok(array)
 }
 
-#[cfg(feature = "serde")]
 pub(crate) fn _deserialize_from_str<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
   T: core::str::FromStr,
@@ -71,7 +70,6 @@ where
   T::from_str(s).map_err(serde::de::Error::custom)
 }
 
-#[cfg(feature = "serde")]
 #[inline]
 pub(crate) fn _deserialize_ignore_any<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
@@ -82,7 +80,6 @@ where
   serde::de::IgnoredAny::deserialize(deserializer).map(|_| T::default())
 }
 
-#[cfg(feature = "serde")]
 #[inline]
 pub(crate) fn _deserialize_opt_considering_empty_str<'de, D, T>(
   deserializer: D,
@@ -113,9 +110,8 @@ pub(crate) fn _init_tracing() {
     .try_init();
 }
 
-#[cfg(feature = "serde")]
 #[inline]
-pub(crate) fn _serde_ser_as_tuple<T, S>(field: T, serializer: S) -> Result<S::Ok, S::Error>
+pub(crate) fn _serialize_as_tuple<T, S>(field: T, serializer: S) -> Result<S::Ok, S::Error>
 where
   T: serde::Serialize,
   S: serde::Serializer,

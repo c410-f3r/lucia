@@ -1,9 +1,8 @@
 use crate::blockchain::solana::{program::spl_token::AccountBalance, SolanaAddressHashStr};
 
 /// Data related to the checked transfer instruction.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TransferCheckedInstruction {
   /// Signing Base58 identifier.
   pub authority: SolanaAddressHashStr,
