@@ -31,19 +31,17 @@ pub(crate) mod pkg {
     country_code: &'any str,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V3LongWeekendReq;
 
   #[pkg::res_data]
-  pub type V3LongWeekendRes = Vec<V3LongWeekendResElem>;
+  pub type V3LongWeekendRes = Vec<V3LongWeekend>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V3LongWeekendResElem {
+  pub struct V3LongWeekend {
     /// Start date.
     pub start_date: ArrayString<10>,
     /// End date.

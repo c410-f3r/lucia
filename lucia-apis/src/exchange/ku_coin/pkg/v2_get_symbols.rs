@@ -30,17 +30,15 @@ pub(crate) mod pkg {
     market: Option<&'any str>,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V2GetSymbolsReq;
 
   #[pkg::res_data]
   pub type V2GetSymbolsRes = HttpResWrapper<Vec<V2Symbol>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
   pub struct V2Symbol {
     /// Left-hand-side asset.

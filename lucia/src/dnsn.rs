@@ -3,6 +3,10 @@
 //! `lucia` abstracts different serialization/deserialization frameworks to enhance de-coupling,
 //! enable choice and improve experimentation.
 
+#[cfg(test)]
+#[macro_use]
+mod tests;
+
 #[cfg(feature = "borsh")]
 mod borsh;
 mod deserialize;
@@ -17,6 +21,8 @@ mod serde_xml_rs;
 #[cfg(feature = "serde_yaml")]
 mod serde_yaml;
 mod serialize;
+#[cfg(feature = "simd-json")]
+mod simd_json;
 
 #[cfg(feature = "borsh")]
 pub use self::borsh::*;
@@ -30,5 +36,7 @@ pub use self::serde_json::*;
 pub use self::serde_xml_rs::*;
 #[cfg(feature = "serde_yaml")]
 pub use self::serde_yaml::*;
+#[cfg(feature = "simd-json")]
+pub use self::simd_json::*;
 pub use deserialize::*;
 pub use serialize::*;

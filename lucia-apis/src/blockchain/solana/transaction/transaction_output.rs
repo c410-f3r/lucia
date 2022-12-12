@@ -7,9 +7,8 @@ use alloc::{string::String, vec::Vec};
 
 /// A transaction can be represented in various formats.
 #[allow(clippy::large_enum_variant)]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum GenericTransaction {
   /// Encoded bytes.
   Base64(String, TransactionEncoding),
@@ -24,8 +23,7 @@ pub enum GenericTransaction {
   // Probably little will be gained boxing a variant of 28 bytes
   variant_size_differences
 )]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub enum InstructionError {
   /// Deprecated! Use CustomError instead!
   /// The program instruction returned an error
@@ -195,8 +193,7 @@ pub enum InstructionError {
 }
 
 /// Some possible reasons a transaction was rejected.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
 pub enum TransactionError {
   /// An account is already being processed in another transaction in a way
   /// that does not support parallelism
@@ -274,9 +271,8 @@ pub enum TransactionError {
 }
 
 /// Transaction metadata.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionMeta {
   /// Error filled if unsuccessful.
   pub err: Option<TransactionError>,
@@ -299,9 +295,8 @@ pub struct TransactionMeta {
 }
 
 /// Transaction output of a RPC request.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionOutput {
   /// Estimated production time, as Unix timestamp
   pub block_time: Option<i64>,
@@ -314,9 +309,8 @@ pub struct TransactionOutput {
 }
 
 /// Pre and pos transaction balance information.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TransactionTokenBalance {
   /// Index in regards to the block array of accounts.
   pub account_index: u8,

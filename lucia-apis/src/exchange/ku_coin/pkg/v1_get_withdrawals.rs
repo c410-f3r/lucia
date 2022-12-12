@@ -5,11 +5,7 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::{
-    exchange::ku_coin::{Chain, HttpResWrapper, KuCoinHttpPkgsAux, KuCoinId},
-    misc::{MaxAddressHashStr, _MaxAssetAbbr, _MaxNumberStr},
-  };
-  use arrayvec::ArrayString;
+  use crate::exchange::ku_coin::{HttpResWrapper, KuCoinHttpPkgsAux, V1Withdrawal};
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
@@ -40,44 +36,10 @@ pub(crate) mod pkg {
     status: Option<&'any str>,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V1GetWithdrawalsReq;
 
   #[pkg::res_data]
   pub type V1GetWithdrawalsRes = HttpResWrapper<Vec<V1Withdrawal>>;
-
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
-  #[doc = _generic_res_data_elem_doc!()]
-  pub struct V1Withdrawal {
-    /// Withdrawal address.
-    pub address: MaxAddressHashStr,
-    /// Withdrawal amount.
-    pub amount: _MaxNumberStr,
-    /// Blockchain or network of the asset.
-    pub chain: Chain,
-    /// Creation timestamp.
-    pub created_at: i64,
-    /// Asset identifier.
-    pub currency: _MaxAssetAbbr,
-    /// Withdrawal fee.
-    pub fee: _MaxNumberStr,
-    /// Unique identity.
-    pub id: KuCoinId,
-    /// Internal withdrawal or not.
-    pub is_inner: bool,
-    /// Address remark.
-    pub memo: ArrayString<20>,
-    /// Remark.
-    pub remark: ArrayString<20>,
-    /// Status
-    pub status: ArrayString<20>,
-    /// Update timestamp.
-    pub updated_at: i64,
-    /// Blockchain or network transaction id.
-    pub wallet_tx_id: ArrayString<20>,
-  }
 }

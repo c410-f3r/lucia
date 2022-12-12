@@ -30,17 +30,15 @@ pub(crate) mod pkg {
     currency: &'any str,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V2GetCurrencyReq;
 
   #[pkg::res_data]
   pub type V2GetCurrencyRes = HttpResWrapper<Box<V2Currency>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
   pub struct V2Currency {
     /// Blockchains or networks
@@ -64,9 +62,8 @@ pub(crate) mod pkg {
   }
 
   /// Blockchain or network information.
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct V2CurrencyChain {
     /// Blockchain name
     pub chain_name: Option<_MaxAssetName>,

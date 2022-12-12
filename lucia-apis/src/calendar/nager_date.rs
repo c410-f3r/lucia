@@ -5,9 +5,9 @@
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
 //! use lucia::{dnsn::SerdeJson, network::HttpParams};
-//! use lucia_apis::{calendar::nager_date::NagerDate, misc::PackagesAux};
+//! use lucia_apis::{calendar::nager_date::NagerDate, misc::PkgsAux};
 //!
-//! let mut pkgs_aux = PackagesAux::from_minimum(NagerDate, SerdeJson, HttpParams::from_url("URL")?);
+//! let mut pkgs_aux = PkgsAux::from_minimum(NagerDate, SerdeJson, HttpParams::from_url("URL")?);
 //! let _ = pkgs_aux.v3_country_info().params("es").build();
 //! # Ok(()) }
 //! ```
@@ -21,7 +21,7 @@ pub use pkg::*;
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
-#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http))]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http))]
 pub struct NagerDate;
 
 impl Api for NagerDate {

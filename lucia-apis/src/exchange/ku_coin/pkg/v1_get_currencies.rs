@@ -20,17 +20,15 @@ pub(crate) mod pkg {
     Ok(())
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V1GetCurrenciesReq;
 
   #[pkg::res_data]
   pub type V1GetCurrenciesRes = HttpResWrapper<Vec<V1Currency>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
   pub struct V1Currency {
     /// Number of confirmed blocks for a transaction to be considered fully valid.

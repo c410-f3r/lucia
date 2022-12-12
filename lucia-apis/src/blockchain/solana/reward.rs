@@ -2,9 +2,8 @@ use crate::blockchain::solana::SolanaAddressHashStr;
 use arrayvec::ArrayString;
 
 /// Transaction-level reward that is populated if requested.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Reward {
   /// Base58 account that received the reward.
   pub pubkey: SolanaAddressHashStr,

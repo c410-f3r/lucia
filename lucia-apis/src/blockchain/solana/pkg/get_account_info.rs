@@ -13,12 +13,11 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetAccountInfoReq<S>(
     #[pkg::field(name = "pk")] S,
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "config")]
     Option<GetAccountInfoConfig>,
   )
@@ -28,18 +27,17 @@ pub(crate) mod pkg {
   #[pkg::res_data]
   pub type GetAccountInfoRes = JsonRpcResponseResultWithContext<Option<Account>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct GetAccountInfoConfig {
     /// Account encoding.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<AccountEncoding>,
     /// Commitment.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
     /// Data slice.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_slice: Option<DataSlice>,
   }
 }

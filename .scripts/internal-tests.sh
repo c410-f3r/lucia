@@ -24,6 +24,7 @@ LUCIA=(
   serde_json
   serde_yaml
   serde-xml-rs
+  "simd-json,_hack"
 
   # Etc
   async-std
@@ -47,7 +48,6 @@ LUCIA_APIS=(
 
   # Etc
   default
-  serde
   std
 )
 

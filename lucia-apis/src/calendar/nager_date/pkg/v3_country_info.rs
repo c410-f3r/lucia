@@ -28,19 +28,17 @@ pub(crate) mod pkg {
     country: &'any str,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V3CountryInfoReq;
 
   #[pkg::res_data]
-  pub type V3CountryInfoRes = Box<V3CountryInfoResElem>;
+  pub type V3CountryInfoRes = Box<V3CountryInfo>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V3CountryInfoResElem {
+  pub struct V3CountryInfo {
     /// For example, Spain.
     pub common_name: ArrayString<12>,
     /// For example, Kingdom of Spain.
@@ -50,6 +48,6 @@ pub(crate) mod pkg {
     /// Continent.
     pub region: ArrayString<6>,
     /// Adjacent countries.
-    pub borders: Option<Vec<V3CountryInfoResElem>>,
+    pub borders: Option<Vec<V3CountryInfo>>,
   }
 }

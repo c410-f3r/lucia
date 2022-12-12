@@ -5,9 +5,7 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::test_data::json_placeholder::{
-    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPkgsAux,
-  };
+  use crate::test_data::json_placeholder::{GenericParams, GenericRes, JsonPlaceholderHttpPkgsAux};
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
 
@@ -19,15 +17,14 @@ pub(crate) mod pkg {
     params: &mut GenericParams<'_>,
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
-    params_management("posts", params, req_params)?;
+    params.manage("posts", req_params)?;
     Ok(())
   }
 
   #[pkg::params]
   pub type PostsGenericParams<'any> = GenericParams<'any>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct PostsReq;
 
@@ -35,9 +32,8 @@ pub(crate) mod pkg {
   pub type PostsRes = GenericRes;
 
   /// Post
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct Post {
     /// User id
     pub user_id: u32,

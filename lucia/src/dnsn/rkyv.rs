@@ -42,3 +42,20 @@ impl Rkyv {
     Ok(())
   }
 }
+
+#[cfg(all(feature = "std", test))]
+mod tests {
+  _create_dnsn_test!(
+    verbatim,
+    (VerbatimRequest, VerbatimResponse),
+    Rkyv as Rkyv::default(),
+    (
+      [102, 111, 111, 0, 252, 255, 255, 255, 3, 0, 0, 0][..].into(),
+      [98, 97, 114, 0, 0, 0, 0, 3][..].into()
+    ),
+    (
+      VerbatimRequest { data: Foo { foo: "foo" } },
+      VerbatimResponse { data: Bar { bar: "bar".into() } }
+    ),
+  );
+}

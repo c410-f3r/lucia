@@ -21,7 +21,7 @@ pub(crate) fn api_types(
   let pkgs_aux_path = pkgs_aux.map(Cow::Borrowed).unwrap_or_else(|| {
     let mut segments = Punctuated::new();
     segments.push(PathSegment {
-      ident: Ident::new("PackagesAux", Span::mixed_site()),
+      ident: Ident::new("PkgsAux", Span::mixed_site()),
       arguments: PathArguments::None,
     });
     Cow::Owned(Path { leading_colon: None, segments })
@@ -53,6 +53,7 @@ pub(crate) fn api_types(
 
   let generic_pair_ident = create_ident(&mut buffer, ["Pair"]);
   let generic_pair_tt = quote::quote_spanned!(api_ident.span() =>
+    #[allow(unused_qualifications)]
     #[doc = concat!("[lucia::misc::Pair] with [", stringify!(#api_ident), "] as the API.")]
     pub type #generic_pair_ident<DRSR, T> = lucia::misc::Pair<
       #pkgs_aux_path<#api_ident, DRSR, <T as lucia::network::transport::Transport<DRSR>>::Params>,
@@ -84,6 +85,7 @@ pub(crate) fn api_types(
     let local_tp_ident = Ident::new(params, Span::mixed_site());
     let local_ty_ident = create_ident(&mut buffer, [camel_abbr, "PkgsAux"]);
     tys.push(quote::quote!(
+      #[allow(unused_qualifications)]
       #[doc = concat!(
         "[", stringify!(#pkgs_aux_path), "] with [",
         stringify!(#api_ident),

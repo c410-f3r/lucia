@@ -7,7 +7,7 @@ pub trait TransportParams {
   /// For example, HTTP has response headers.
   type ExternalResponseParams: Debug + Send + Sync;
 
-  /// Used internally to construct `PackagesAux`.
+  /// Used internally to construct `PkgsAux`.
   fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams);
 }
 

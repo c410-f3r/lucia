@@ -113,10 +113,10 @@ macro_rules! _create_generic_test {
     #[$executor::test]
     async fn $test() {
       fn parts_cb_infer<'pair, API, DRSR, O, T>(
-        pkgs_aux: &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
+        pkgs_aux: &'pair mut crate::misc::PkgsAux<API, DRSR, T::Params>,
         trans: &'pair mut T,
         cb: impl FnOnce(
-          &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
+          &'pair mut crate::misc::PkgsAux<API, DRSR, T::Params>,
           &'pair mut T
         ) -> O,
       ) -> O
@@ -126,11 +126,11 @@ macro_rules! _create_generic_test {
         cb(pkgs_aux, trans)
       }
       fn rslt_cb_infer<'pair, API, DRSR, O, R, T>(
-        pkgs_aux: &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
+        pkgs_aux: &'pair mut crate::misc::PkgsAux<API, DRSR, T::Params>,
         trans: &'pair mut T,
         rslt: R,
         cb: impl FnOnce(
-          &'pair mut crate::misc::PackagesAux<API, DRSR, T::Params>,
+          &'pair mut crate::misc::PkgsAux<API, DRSR, T::Params>,
           &'pair mut T,
           R
         ) -> O,
@@ -159,7 +159,7 @@ macro_rules! _create_http_test {
       {
         let (drsr, ext_req_params) = $drsr_erp;
         lucia::misc::Pair::new(
-          crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
+          crate::misc::PkgsAux::from_minimum($api, drsr, ext_req_params),
           reqwest::Client::default()
         )
       },
@@ -186,7 +186,7 @@ macro_rules! _create_ws_test {
         let (drsr, ext_req_params) = $drsr_erp;
         let (trans, _) = tokio_tungstenite::connect_async($url).await.unwrap();
         lucia::misc::Pair::new(
-          crate::misc::PackagesAux::from_minimum($api, drsr, ext_req_params),
+          crate::misc::PkgsAux::from_minimum($api, drsr, ext_req_params),
           trans
         )
       },
@@ -194,7 +194,7 @@ macro_rules! _create_ws_test {
       |pkgs_aux, trans, subs| async move {
         let mut iter = subs.into_iter();
         let ids = &mut [$( pkgs_aux.$unsub().data(iter.next().unwrap()).build(), )+][..];
-        let _ = trans.send(&mut lucia::package::BatchPackage::new(ids), pkgs_aux).await.unwrap();
+        let _ = trans.send(&mut lucia::pkg::BatchPkg::new(ids), pkgs_aux).await.unwrap();
       }
     }
   };

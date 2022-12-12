@@ -35,8 +35,7 @@ pub(crate) mod pkg {
     chain: Option<&'any str>,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V1GetWithdrawalsQuotasReq;
 
@@ -44,9 +43,8 @@ pub(crate) mod pkg {
   pub type V1GetWithdrawalsQuotasRes = HttpResWrapper<Box<V1WithdrawalQuotas>>;
 
   /// Withdrawal limits associated with an asset.
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct V1WithdrawalQuotas {
     /// Current available withdrawal amount
     pub available_amount: _MaxNumberStr,

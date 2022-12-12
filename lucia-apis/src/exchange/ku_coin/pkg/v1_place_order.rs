@@ -28,45 +28,42 @@ pub(crate) mod pkg {
     Ok(())
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   #[pkg::req_data]
   pub struct V1PlaceOrderReq<'any> {
-    #[cfg_attr(feature = "serde", serde(flatten))]
+    #[serde(flatten)]
     common: V1PlaceOrderCommon<'any>,
-    #[cfg_attr(feature = "serde", serde(flatten, skip_serializing_if = "Option::is_none"))]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
     limit: Option<V1PlaceOrderLimit<'any>>,
-    #[cfg_attr(feature = "serde", serde(flatten, skip_serializing_if = "Option::is_none"))]
+    #[serde(flatten, skip_serializing_if = "Option::is_none")]
     market: Option<V1PlaceOrderMarket<'any>>,
   }
 
   #[pkg::res_data]
-  pub type V1PlaceOrderRes = HttpResWrapper<V1PlaceOrderResElem>;
+  pub type V1PlaceOrderRes = HttpResWrapper<V1PlaceOrder>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct V1PlaceOrderResElem {
+  pub struct V1PlaceOrder {
     /// Returned unique id.
     pub order_id: ArrayString<32>,
   }
 
   /// Common parameters used by limit and market orders
-  #[derive(Debug)]
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+  #[derive(Debug, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct V1PlaceOrderCommon<'any> {
     /// Custom order id.
     pub client_oid: &'any SyncDynDebugDisplay,
     /// Metadata.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub remark: Option<&'any str>,
     /// Side.
     pub side: OrderSide,
     /// Self trade prevention.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub stp: Option<OrderStp>,
     /// Pair of two assets like BTC-USDT.
     pub symbol: &'any str,
@@ -75,43 +72,41 @@ pub(crate) mod pkg {
   }
 
   /// Limit order parameters
-  #[derive(Debug)]
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+  #[derive(Debug, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct V1PlaceOrderLimit<'any> {
     /// Cancels after the given seconds. Requires `time_in_force` to be [OrderTimeInForce::GTT].
-    cancel_after: u32,
+    pub cancel_after: Option<u32>,
     /// If order will or will not be displayed in the order book.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    hidden: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub hidden: Option<bool>,
     /// Only a portion of the order is displayed in the order book
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    iceberg: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub iceberg: Option<bool>,
     /// Invalid when `time_in_force` is [OrderTimeInForce::IOC] or [OrderTimeInForce::FOK].
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    post_only: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub post_only: Option<bool>,
     /// Quote asset price.
-    price: &'any SyncDynDebugDisplay,
+    pub price: &'any SyncDynDebugDisplay,
     /// Base asset amount.
-    size: &'any SyncDynDebugDisplay,
+    pub size: &'any SyncDynDebugDisplay,
     /// Time in force.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    time_in_force: Option<OrderTimeInForce>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub time_in_force: Option<OrderTimeInForce>,
     /// The maximum visible size of an iceberg order.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
-    visible_size: Option<&'any SyncDynDebugDisplay>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub visible_size: Option<&'any SyncDynDebugDisplay>,
   }
 
   /// Market order parameters. Requires one of the two optional values.
-  #[derive(Debug)]
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
+  #[derive(Debug, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct V1PlaceOrderMarket<'any> {
     /// Quote asset amount
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub funds: Option<&'any SyncDynDebugDisplay>,
     /// Base asset amount
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub size: Option<&'any SyncDynDebugDisplay>,
   }
 }

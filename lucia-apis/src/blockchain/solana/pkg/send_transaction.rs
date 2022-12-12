@@ -34,37 +34,34 @@ pub(crate) mod pkg {
     }
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct SendTransactionReq(String, Option<SendTransactionConfig>);
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct SendTransactionConfig {
     /// Send transaction encoding
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<SendTransactionEncoding>,
     /// Maximum number of times for the RPC node to retry sending the transaction to the leader. If
     /// this parameter not provided, the RPC node will retry the transaction until it is finalized
     /// or until the blockhash expires.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub max_retries: Option<usize>,
     /// Minimum slot at which to perform preflight transaction check
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_context_slot: Option<u64>,
     /// Preflight commitment
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub preflight_commitment: Option<Commitment>,
     /// If true, skip the preflight transaction checks
     pub skip_preflight: bool,
   }
 
   /// Send transaction encoding
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   pub enum SendTransactionEncoding {
     /// Represents binary data in alphanumeric text.
     Base58,

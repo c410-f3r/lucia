@@ -5,10 +5,10 @@
 //! ```rust,no_run
 //! # async fn fun() -> lucia_apis::Result<()> {
 //! use lucia::{dnsn::SerdeJson, network::HttpParams};
-//! use lucia_apis::{blockchain::solana::Solana, misc::PackagesAux};
+//! use lucia_apis::{blockchain::solana::Solana, misc::PkgsAux};
 //!
 //! let mut pkgs_aux =
-//!   PackagesAux::from_minimum(Solana::new(None), SerdeJson, HttpParams::from_url("URL")?);
+//!   PkgsAux::from_minimum(Solana::new(None), SerdeJson, HttpParams::from_url("URL")?);
 //! let _ = pkgs_aux.get_slot().data(None, None).build();
 //! # Ok(()) }
 //! ```
@@ -28,13 +28,12 @@ mod notification;
 mod pkg;
 pub mod program;
 mod reward;
-#[cfg(feature = "serde")]
 mod short_vec;
 mod slot_update;
 mod transaction;
 
 use crate::blockchain::{
-  solana::pkg::{GetSignatureStatusesReq, GetSignatureStatusesResElem},
+  solana::pkg::{GetSignatureStatuses, GetSignatureStatusesReq},
   ConfirmTransactionOptions,
 };
 pub use account::*;
@@ -44,7 +43,8 @@ pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
   misc::RequestThrottling,
-  package::Package,
+  network::{transport::Transport, HttpParams},
+  pkg::Package,
   Api,
 };
 pub use notification::*;
@@ -71,13 +71,13 @@ _create_blockchain_constants!(
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
-#[lucia_macros::api_types(pkgs_aux(crate::misc::PackagesAux), transport(http, ws))]
+#[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http, ws))]
 pub struct Solana {
   /// If some, tells that each request must respect calling intervals.
   pub rt: Option<RequestThrottling>,
 }
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for Solana {
   type Error = crate::Error;
 
@@ -99,17 +99,16 @@ impl Solana {
   /// Make successive HTTP requests over a period defined in `cto` until the transaction is
   /// successful or expired.
   #[inline]
-  pub async fn confirm_transaction<'tx_hash, DRSR, T>(
+  pub async fn confirm_transaction<'th, DRSR, T>(
     cto: ConfirmTransactionOptions,
     pkgs_aux: &mut SolanaHttpPkgsAux<DRSR>,
     trans: &mut T,
-    tx_hash: &'tx_hash str,
+    tx_hash: &'th str,
   ) -> crate::Result<bool>
   where
     DRSR: Send + Sync,
-    T:
-      lucia::network::transport::Transport<DRSR, Params = lucia::network::HttpParams> + Send + Sync,
-    for<'signs> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'signs, &'tx_hash str>>>:
+    T: Transport<DRSR, Params = HttpParams> + Send + Sync,
+    for<'sig> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'sig, &'th str>>>:
       Package<
         DRSR,
         T::Params,
@@ -121,9 +120,8 @@ impl Solana {
     macro_rules! call {
       () => {{
         let signatures = &[tx_hash];
-        if let Some(Some(GetSignatureStatusesResElem {
-          confirmation_status: Commitment::Finalized,
-          ..
+        if let Some(Some(GetSignatureStatuses {
+          confirmation_status: Commitment::Finalized, ..
         })) = trans
           .send_retrieve_and_decode_contained(
             &mut pkgs_aux.get_signature_statuses().data(signatures, None).build(),

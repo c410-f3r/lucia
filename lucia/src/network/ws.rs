@@ -1,4 +1,7 @@
 use crate::network::transport::TransportParams;
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
+use alloc::vec::Vec;
 
 /// How the WebSocket request should be issued.
 #[derive(Clone, Copy, Debug)]
@@ -48,3 +51,17 @@ impl WsReqParams {
 #[derive(Debug)]
 #[doc = generic_trans_res_params_doc!("WebSocket")]
 pub struct WsResParams;
+
+/// Abstracts all WebSocket implementations.
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+pub trait WebSocket
+where
+  Self: Sized,
+{
+  /// Different from other protocols, WebSockets only need an initial URL in order to create
+  /// a channel or connection.
+  async fn from_url(url: &str) -> crate::Result<Self>;
+
+  /// Polls one single message and stores the result in the passed `bytes`.
+  async fn receive_with_buffer(&mut self, bytes: &mut Vec<u8>) -> crate::Result<usize>;
+}

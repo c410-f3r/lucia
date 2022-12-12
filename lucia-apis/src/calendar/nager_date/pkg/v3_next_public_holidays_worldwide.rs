@@ -5,7 +5,7 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::calendar::nager_date::{NagerDateHttpPkgsAux, V3PublicHolidayResElem};
+  use crate::calendar::nager_date::{NagerDateHttpPkgsAux, V3PublicHoliday};
   use lucia::network::HttpReqParams;
 
   #[pkg::aux]
@@ -17,11 +17,10 @@ pub(crate) mod pkg {
     Ok(())
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V3NextPublicHolidaysWorldwideReq;
 
   #[pkg::res_data]
-  pub type V3NextPublicHolidaysWorldwideRes = Vec<V3PublicHolidayResElem>;
+  pub type V3NextPublicHolidaysWorldwideRes = Vec<V3PublicHoliday>;
 }

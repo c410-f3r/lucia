@@ -1,14 +1,14 @@
 //! Custom transport through `transport(Custom)`.
 
-use lucia::package::PackagesAux;
-use lucia::package::Package;
+use lucia::pkg::PkgsAux;
+use lucia::pkg::Package;
 use lucia::network::TransportGroup;
 use lucia::network::transport::Transport;
 use lucia::network::transport::TransportParams;
 
 struct CustomTransport;
 
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[async_trait::async_trait]
 impl<DRSR> Transport<DRSR> for CustomTransport
 where
   DRSR: Send + Sync,
@@ -20,7 +20,7 @@ where
   async fn send<P>(
     &mut self,
     _: &mut P,
-    _: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    _: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     P: Package<DRSR, Self::Params> + Send + Sync,
@@ -32,7 +32,7 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     _: &mut P,
-    _: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    _: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, Self::Params> + Send + Sync,

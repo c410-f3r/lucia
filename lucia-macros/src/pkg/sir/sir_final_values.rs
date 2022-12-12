@@ -116,13 +116,17 @@ impl<'attrs, 'module, 'others>
         let freqdiv_where_predicates_iter = freqdiv_where_predicates.iter();
         let tp = Self::transport_params(transport_group);
         let (lts, tys) = Self::pkg_params(&freqdiv, &fpiv);
+        #[cfg(feature = "async-trait")]
+        let async_trait_cfg = quote::quote!(#[async_trait::async_trait]);
+        #[cfg(not(feature = "async-trait"))]
+        let async_trait_cfg = TokenStream::new();
         package_impls.push(quote::quote!(
-          #[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+          #async_trait_cfg
           impl<
             #(#lts,)*
             #(#tys,)*
             DRSR
-          > lucia::package::Package<DRSR, #tp> for #camel_case_pkg_ident<
+          > lucia::pkg::Package<DRSR, #tp> for #camel_case_pkg_ident<
             #(#fpiv_params_iter,)*
             lucia::data_format::#dfe_ext_req_ctnt_wrapper<#freqdiv_ident<#freqdiv_params>>
           >

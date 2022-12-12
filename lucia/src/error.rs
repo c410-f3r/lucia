@@ -43,6 +43,9 @@ pub enum Error {
   /// See [serde_yaml::Error]
   #[cfg(feature = "serde_yaml")]
   SerdeYaml(serde_yaml::Error),
+  /// See [simd_json::Error]
+  #[cfg(feature = "simd-json")]
+  SimdJson(simd_json::Error),
   /// See [surf::Error]
   #[cfg(feature = "surf")]
   Surf(surf::Error),
@@ -163,6 +166,14 @@ impl From<serde_yaml::Error> for Error {
   #[inline]
   fn from(from: serde_yaml::Error) -> Self {
     Self::SerdeYaml(from)
+  }
+}
+
+#[cfg(feature = "simd-json")]
+impl From<simd_json::Error> for Error {
+  #[inline]
+  fn from(from: simd_json::Error) -> Self {
+    Self::SimdJson(from)
   }
 }
 

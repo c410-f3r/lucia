@@ -13,8 +13,7 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetProgramAccountsReq<'bytes, 'filter, S>(
     #[pkg::field(name = "pk")] S,
@@ -24,33 +23,31 @@ pub(crate) mod pkg {
     S: AsRef<str> + Send;
 
   #[pkg::res_data]
-  pub type GetProgramAccountsRes = Vec<GetProgramAccountsResElem>;
+  pub type GetProgramAccountsRes = Vec<GetProgramAccounts>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct GetProgramAccountsConfig<'bytes, 'filter> {
     /// Account encoding
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<AccountEncoding>,
     /// Commitment
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
     /// Filters
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<&'filter [Filter<'bytes>]>,
     /// Minimum slot at which to perform preflight transaction check
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub min_context_slot: Option<u64>,
     /// Data slice
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub data_slice: Option<DataSlice>,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct GetProgramAccountsResElem {
+  pub struct GetProgramAccounts {
     /// Account
     pub account: Account,
     /// Base58 identifier

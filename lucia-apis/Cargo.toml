@@ -1,9 +1,9 @@
 [dependencies]
-arrayvec = { default-features = false, version = "0.7" }
-async-trait = { default-features = false, version = "0.1" }
-cl-aux = { default-features = false, features = ["alloc", "arrayvec"], version = "2.0" }
+arrayvec = { default-features = false, features = ["serde"], version = "0.7" }
+cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "2.0" }
 lucia = { default-features = false, features = ["arrayvec"], path = "../lucia", version = "0.4" }
 lucia-macros = { default-features = false, path = "../lucia-macros", version = "0.1" }
+serde = { default-features = false, features = ["alloc", "derive"], version = "1.0" }
 
 # KuCoin
 
@@ -17,22 +17,18 @@ solana-program = { default-features = false, optional = true, version = "1.0" }
 
 # Etc
 
-base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
+async-trait = { default-features = false, optional = true, version = "0.1" }
+base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.20" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
 crypto-common = { default-features = false, optional = true, version = "0.1" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
-futures = { default-features = false, optional = true, version = "0.3" }
-hex = { default-features = false, optional = true, version = "0.4" }
-serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.18" }
+
 
 [dev-dependencies]
 dotenv = { default-features = false, version = "0.15" }
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
-lucia-apis = { features = ["ed25519-dalek", "serde"], path = "." }
+lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
-serde = { default-features = false, features = ["alloc"], version = "1.0" }
-serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.18" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
@@ -47,12 +43,11 @@ nager-date = []
 solana = ["base64", "dep:bincode", "bs58"]
 
 # Etc
-async-fn-in-trait = []
-default = []
+
+async-trait = ["dep:async-trait", "lucia/async-trait", "lucia-macros/async-trait"]
+default = ["async-trait"]
 ed25519-dalek = ["dep:ed25519-dalek", "std"]
-serde = ["arrayvec/serde", "cl-aux/serde", "dep:serde"]
 std = []
-tokio-tungstenite = ["futures", "dep:tokio-tungstenite", "lucia/tokio-tungstenite"]
 _integration-tests = []
 
 [package]

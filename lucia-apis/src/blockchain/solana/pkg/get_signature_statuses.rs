@@ -12,8 +12,7 @@ pub(crate) mod pkg {
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetSignatureStatusesReq<'signatures, S>(
     #[pkg::field(name = "signatures")] &'signatures [S],
@@ -24,20 +23,18 @@ pub(crate) mod pkg {
 
   #[pkg::res_data]
   pub type GetSignatureStatusesRes =
-    JsonRpcResponseResultWithContext<Vec<Option<GetSignatureStatusesResElem>>>;
+    JsonRpcResponseResultWithContext<Vec<Option<GetSignatureStatuses>>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct GetSignatureStatusesConfig {
     search_transaction_history: bool,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
-  pub struct GetSignatureStatusesResElem {
+  pub struct GetSignatureStatuses {
     /// Commitment
     pub confirmation_status: Commitment,
     /// Number of blocks since signature confirmation.

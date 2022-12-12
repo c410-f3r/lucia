@@ -31,6 +31,8 @@ pub enum Error {
   // Features
   //
   // KuCoin
+  /// Bullet request returned an empty set of instance servers.
+  EmptySetOfInstanceServers,
   /// Unsuccessful request explained in the contained string.
   KuCoinUnsuccessfulRequest(String),
 

@@ -39,17 +39,15 @@ pub(crate) mod pkg {
     Public,
   }
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct V1BulletReq;
 
   #[pkg::res_data]
   pub type V1BulletRes = HttpResWrapper<Box<V1Bullet>>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
   pub struct V1Bullet {
     /// Web-socket servers.
@@ -59,9 +57,8 @@ pub(crate) mod pkg {
   }
 
   /// Information about a Web-socket server connection.
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize, serde::Serialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct V1BulletInstanceServer {
     /// If SSL should be used
     pub encrypt: bool,

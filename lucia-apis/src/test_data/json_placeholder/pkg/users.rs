@@ -5,9 +5,7 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::test_data::json_placeholder::{
-    pkg::params_management, GenericParams, GenericRes, JsonPlaceholderHttpPkgsAux,
-  };
+  use crate::test_data::json_placeholder::{GenericParams, GenericRes, JsonPlaceholderHttpPkgsAux};
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
 
@@ -19,15 +17,14 @@ pub(crate) mod pkg {
     params: &mut GenericParams<'_>,
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
-    params_management("users", params, req_params)?;
+    params.manage("users", req_params)?;
     Ok(())
   }
 
   #[pkg::params]
   pub type UsersGenericParams<'any> = GenericParams<'any>;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct UsersReq;
 
@@ -35,9 +32,8 @@ pub(crate) mod pkg {
   pub type UsersRes = GenericRes;
 
   /// User
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct User {
     /// Id
     pub id: u32,
@@ -58,9 +54,8 @@ pub(crate) mod pkg {
   }
 
   /// User address
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct UserAddress {
     /// Street
     pub street: ArrayString<17>,
@@ -75,9 +70,8 @@ pub(crate) mod pkg {
   }
 
   /// User company
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct UserCompany {
     /// Name
     pub name: ArrayString<18>,
@@ -88,9 +82,8 @@ pub(crate) mod pkg {
   }
 
   /// User geographic parameters.
-  #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-  #[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Deserialize)]
+  #[serde(rename_all = "camelCase")]
   pub struct UserGeoParams {
     /// Latitude
     pub lat: ArrayString<9>,

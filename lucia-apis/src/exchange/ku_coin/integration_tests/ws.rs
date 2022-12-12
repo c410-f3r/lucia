@@ -1,12 +1,15 @@
 use crate::exchange::ku_coin::{
   integration_tests::{cred_prod, cred_test, http_prod, http_test, place_order},
-  AccountBalance, KuCoin, V1BulletParams, WsReqTy, WsResWrapper,
+  AccountBalance, KuCoin, KuCoinHttpPkgsAux, KuCoinWsPkgsAux, V1BulletParams, WsReqTy,
+  WsResWrapper,
 };
-use futures::StreamExt;
 use lucia::{
   data_format::JsonResponse,
   dnsn::{Deserialize, SerdeJson},
-  network::{transport::Transport, HttpParams},
+  network::{
+    transport::{TokioTungstenite, Transport},
+    HttpParams, WebSocket,
+  },
 };
 
 macro_rules! sub_and_unsub {
@@ -19,10 +22,11 @@ macro_rules! sub_and_unsub {
 macro_rules! unsub {
   ($pkgs_aux:expr, $trans:expr, $pkg:expr) => {
     let _ = $trans.send($pkg, $pkgs_aux).await.unwrap();
+    let mut buffer = Vec::new();
     loop {
       tokio::select! {
         _ = tokio::time::sleep(core::time::Duration::from_secs(1)) => { break },
-        _ = $trans.next() => {},
+        _ = $trans.receive_with_buffer(&mut buffer) => {},
       }
     }
   };
@@ -31,6 +35,14 @@ macro_rules! unsub {
 _create_http_test!(cred_prod(), http_prod(), ws_prod, |pkgs_aux, trans| async {
   let mut pair_ws = init_ws_instance(pkgs_aux, trans).await;
   let (pkgs_aux_ws, trans_ws) = pair_ws.parts_mut();
+
+  let _ = trans_ws
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux_ws.ping().data().unwrap().build(),
+      &mut **pkgs_aux_ws,
+    )
+    .await
+    .unwrap();
 
   sub_and_unsub!(
     pkgs_aux_ws,
@@ -57,7 +69,11 @@ _create_http_test!(cred_test(), http_test(), ws_test, |pkgs_aux, trans| async {
     .unwrap();
   place_order(pkgs_aux, trans).await;
   let _ = JsonResponse::<WsResWrapper<AccountBalance>>::from_bytes(
-    &trans_ws.next().await.unwrap().unwrap().into_data(),
+    &{
+      let mut buffer = Vec::new();
+      let _ = trans_ws.receive_with_buffer(&mut buffer).await.unwrap();
+      buffer
+    },
     &mut pkgs_aux.drsr,
   )
   .unwrap();
@@ -69,12 +85,9 @@ _create_http_test!(cred_test(), http_test(), ws_test, |pkgs_aux, trans| async {
 });
 
 async fn init_ws_instance<'pa, T>(
-  pkgs_aux: &'pa mut crate::misc::PackagesAux<KuCoin, SerdeJson, HttpParams>,
+  pkgs_aux: &'pa mut KuCoinHttpPkgsAux<SerdeJson>,
   trans: &mut T,
-) -> lucia::misc::Pair<
-  crate::misc::PackagesAux<KuCoin, SerdeJson, lucia::network::WsParams>,
-  lucia::network::transport::TokioTungstenite,
->
+) -> lucia::misc::Pair<KuCoinWsPkgsAux<SerdeJson>, TokioTungstenite>
 where
   T: Send + Sync + Transport<SerdeJson, Params = HttpParams>,
 {
@@ -88,8 +101,9 @@ where
     .data
     .data
     .unwrap();
-  KuCoin::tokio_tungstenite(
+  KuCoin::web_socket(
     v1_bullet_res.instance_servers[0].endpoint.as_str(),
+    &mut pkgs_aux.byte_buffer,
     SerdeJson,
     Some(v1_bullet_res.token.as_str()),
   )

@@ -1,22 +1,21 @@
 use crate::{
   misc::manage_before_sending_related,
   network::{transport::Transport, TransportGroup},
-  package::{Package, PackagesAux},
+  pkg::{Package, PkgsAux},
 };
-#[cfg(not(feature = "async-fn-in-trait"))]
+#[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 
 /// Does absolutely nothing. Good for demonstration purposes.
 ///
 /// ```rust,no_run
 /// # async fn fun() -> lucia::Result<()> {
-/// use lucia::{network::transport::Transport, package::PackagesAux};
+/// use lucia::{network::transport::Transport, pkg::PkgsAux};
 /// let _ =
-///   ().send_retrieve_and_decode_contained(&mut (), &mut PackagesAux::from_minimum((), (), ()))
-///     .await?;
+///   ().send_retrieve_and_decode_contained(&mut (), &mut PkgsAux::from_minimum((), (), ())).await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(not(feature = "async-fn-in-trait"), async_trait::async_trait)]
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for ()
 where
   DRSR: Send + Sync,
@@ -28,7 +27,7 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
     P: Package<DRSR, ()> + Send + Sync,
@@ -42,12 +41,24 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PackagesAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
     P: Package<DRSR, ()> + Send + Sync,
   {
     self.send(pkg, pkgs_aux).await?;
     Ok(0)
+  }
+}
+
+#[cfg(all(feature = "std", test))]
+mod tests {
+  use crate::{network::transport::Transport, pkg::PkgsAux};
+
+  #[tokio::test]
+  async fn unit() {
+    let mut pa = PkgsAux::from_minimum((), (), ());
+    let mut trans = ();
+    assert_eq!(trans.send_retrieve_and_decode_contained(&mut (), &mut pa).await.unwrap(), ());
   }
 }

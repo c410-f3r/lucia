@@ -1,7 +1,6 @@
 /// Slot updates which can be used for tracking the live progress of a cluster.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum SlotUpdate {
   /// Connected node received the first shred of a block. Indicates that a new block that is being
   /// produced.

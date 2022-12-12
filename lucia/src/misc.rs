@@ -16,7 +16,7 @@ mod url;
 use crate::{
   dnsn::Serialize,
   network::transport::Transport,
-  package::{Package, PackagesAux},
+  pkg::{Package, PkgsAux},
   Api,
 };
 pub use byte_buffer::*;
@@ -66,7 +66,7 @@ pub async fn sleep(duration: Duration) -> crate::Result<()> {
 #[inline]
 pub(crate) fn log_req<DRSR, P, T>(
   _pgk: &mut P,
-  _pkgs_aux: &mut PackagesAux<P::Api, DRSR, T::Params>,
+  _pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
   _trans: &T,
 ) where
   P: Package<DRSR, T::Params>,
@@ -82,10 +82,10 @@ pub(crate) fn log_req<DRSR, P, T>(
   });
 }
 
-/// Used in [crate::Transport::send_retrieve_and_decode_contained] and all implementations of
+/// Used in [crate::network::transport::Transport::send_retrieve_and_decode_contained] and all implementations of
 /// [crate::Requests::decode_responses].
 ///
-/// Not used in [crate::Transport::send_retrieve_and_decode_many] because
+/// Not used in [crate::network::transport::Transport::send_retrieve_and_decode_batch] because
 /// [crate::Requests::decode_responses] takes precedence.
 #[inline]
 pub(crate) fn log_res(_res: &[u8]) {
@@ -95,7 +95,7 @@ pub(crate) fn log_res(_res: &[u8]) {
 #[inline]
 pub(crate) async fn manage_before_sending_related<DRSR, P, T>(
   pkg: &mut P,
-  pkgs_aux: &mut PackagesAux<P::Api, DRSR, T::Params>,
+  pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
   trans: &T,
 ) -> Result<(), P::Error>
 where

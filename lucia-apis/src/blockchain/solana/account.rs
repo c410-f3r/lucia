@@ -8,9 +8,8 @@ use alloc::string::String;
   // Data format is specified by the blockchain
   allow(clippy::large_enum_variant, variant_size_differences)
 ]
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum AccountData {
   /// Raw bytes
   Binary(String, AccountEncoding),
@@ -19,9 +18,8 @@ pub enum AccountData {
 }
 
 /// Basic universal account information.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Account {
   /// Account data
   pub data: AccountData,
@@ -36,9 +34,8 @@ pub struct Account {
 }
 
 /// Account json representation with additional metadata.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountDataJson {
   /// Data payload.
   pub parsed: AccountDataJsonParsed,
@@ -49,21 +46,19 @@ pub struct AccountDataJson {
 }
 
 /// Data payload of [AccountDataJson].
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase", untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
 pub enum AccountDataJsonParsed {
   /// SPL token account
   SplTokenAccount(GenericAccount),
   /// Unknown program
-  #[cfg_attr(feature = "serde", serde(deserialize_with = "crate::misc::_deserialize_ignore_any"))]
+  #[serde(deserialize_with = "crate::misc::_deserialize_ignore_any")]
   Unknown,
 }
 
 /// Types of data representation of an account.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize, serde::Serialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
 pub enum AccountEncoding {
   /// Represents binary data in alphanumeric text.
   Base58,
@@ -72,6 +67,6 @@ pub enum AccountEncoding {
   /// Json representation with additional metadata.
   JsonParsed,
   /// Compressed base64 representation.
-  #[cfg_attr(feature = "serde", serde(rename = "base64+zstd"))]
+  #[serde(rename = "base64+zstd")]
   Base64Zstd,
 }

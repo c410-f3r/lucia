@@ -1,9 +1,8 @@
 use crate::misc::_MaxNumberStr;
 
 /// Token balance of an SPL Token account.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AccountBalance {
   /// Raw balance without decimals, a string representation of u64.
   pub amount: _MaxNumberStr,

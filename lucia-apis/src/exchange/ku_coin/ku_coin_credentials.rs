@@ -1,4 +1,5 @@
 use arrayvec::{ArrayString, ArrayVec};
+use base64::engine::DEFAULT_ENGINE;
 use core::{
   fmt::{Debug, Formatter},
   str,
@@ -96,7 +97,7 @@ impl Debug for KuCoinCredentials {
 #[inline(always)]
 fn encode_to_base64<const N: usize>(bytes: &[u8]) -> crate::Result<ArrayString<N>> {
   let mut buffer = ArrayVec::from([0; N]);
-  let len = base64::encode_config_slice(bytes, base64::STANDARD, &mut buffer);
+  let len = base64::encode_engine_slice(bytes, &mut buffer, &DEFAULT_ENGINE);
   buffer.truncate(len);
   let rslt = str::from_utf8(&buffer)
     .ok()

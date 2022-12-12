@@ -35,7 +35,7 @@ fn http_test() -> (SerdeJson, HttpParams) {
 }
 
 async fn place_order<T>(
-  pkgs_aux: &mut crate::misc::PackagesAux<KuCoin, SerdeJson, HttpParams>,
+  pkgs_aux: &mut crate::misc::PkgsAux<KuCoin, SerdeJson, HttpParams>,
   trans: &mut T,
 ) where
   T: Send + Sync + Transport<SerdeJson, Params = HttpParams>,

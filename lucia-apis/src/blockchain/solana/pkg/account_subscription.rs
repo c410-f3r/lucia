@@ -10,12 +10,11 @@ pub(crate) mod sub {
   #[pkg::aux]
   impl<DRSR> SolanaWsPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct AccountSubscribeReq<S>(
     #[pkg::field(name = "pk")] S,
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "config")]
     Option<AccountSubscribeConfig>,
   )
@@ -25,15 +24,14 @@ pub(crate) mod sub {
   #[pkg::res_data]
   pub type AccountSubscribeRes = u64;
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
   pub struct AccountSubscribeConfig {
     /// Account encoding.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<AccountEncoding>,
     /// Commitment.
-    #[cfg_attr(feature = "serde", serde(skip_serializing_if = "Option::is_none"))]
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
   }
 }
@@ -50,11 +48,10 @@ pub(crate) mod unsub {
   #[pkg::aux]
   impl<DRSR> SolanaWsPkgsAux<DRSR> {}
 
-  #[cfg_attr(feature = "serde", derive(serde::Serialize))]
-  #[derive(Debug)]
+  #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct AccountUnsubscribeReq(
-    #[cfg_attr(feature = "serde", serde(serialize_with = "crate::misc::_serde_ser_as_tuple"))]
+    #[serde(serialize_with = "crate::misc::_serialize_as_tuple")]
     #[pkg::field(name = "id")]
     u64,
   );

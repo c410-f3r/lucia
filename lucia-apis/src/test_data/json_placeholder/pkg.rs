@@ -19,9 +19,8 @@ use lucia::{
 };
 
 /// Generic response used by all packages.
-#[cfg_attr(feature = "serde", derive(serde::Deserialize))]
-#[cfg_attr(feature = "serde", serde(untagged))]
-#[derive(Debug)]
+#[derive(Debug, serde::Deserialize)]
+#[serde(untagged)]
 pub enum GenericRes {
   /// One album.
   Album(Box<Album>),
@@ -68,24 +67,24 @@ impl<'any> GenericParams<'any> {
   ) -> Self {
     Self { id_opt, method, nested_opt, query }
   }
-}
 
-fn params_management(
-  endpoint: &str,
-  params: &mut GenericParams<'_>,
-  req_params: &mut HttpReqParams,
-) -> crate::Result<()> {
-  req_params.method = params.method;
-  match (params.id_opt, params.nested_opt) {
-    (None, None) | (None, Some(_)) => req_params.url.push_path(format_args!("/{endpoint}"))?,
-    (Some(id), None) => req_params.url.push_path(format_args!("/{endpoint}/{id}"))?,
-    (Some(id), Some(nested)) => {
-      req_params.url.push_path(format_args!("/{endpoint}/{id}/{nested}"))?
+  pub(crate) fn manage(
+    &mut self,
+    endpoint: &str,
+    req_params: &mut HttpReqParams,
+  ) -> crate::Result<()> {
+    req_params.method = self.method;
+    match (self.id_opt, self.nested_opt) {
+      (None, None) | (None, Some(_)) => req_params.url.push_path(format_args!("/{endpoint}"))?,
+      (Some(id), None) => req_params.url.push_path(format_args!("/{endpoint}/{id}"))?,
+      (Some(id), Some(nested)) => {
+        req_params.url.push_path(format_args!("/{endpoint}/{id}/{nested}"))?
+      }
     }
+    let mut query_writer = req_params.url.query_writer()?;
+    for (key, value) in self.query {
+      query_writer = query_writer.write(key, value)?;
+    }
+    Ok(())
   }
-  let mut query_writer = req_params.url.query_writer()?;
-  for (key, value) in params.query {
-    query_writer = query_writer.write(key, value)?;
-  }
-  Ok(())
 }
