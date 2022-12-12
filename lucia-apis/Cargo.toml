@@ -17,7 +17,7 @@ solana-program = { default-features = false, optional = true, version = "1.0" }
 
 # Etc
 
-base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.13" }
+base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.20" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
 crypto-common = { default-features = false, optional = true, version = "0.1" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
