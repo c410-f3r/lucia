@@ -36,7 +36,7 @@ pub(crate) fn pkg(
   let mut item_mod: ItemMod = parse_macro_input::parse(item)?;
   let items_stub = &mut Vec::new();
   let fiv = FirItemsValues::try_from((
-    item_mod.content.as_mut().map(|el| &mut el.1).unwrap_or(items_stub),
+    item_mod.content.as_mut().map_or(items_stub, |el| &mut el.1),
     item_mod.ident.span(),
   ))?;
   let freqdiv = FirReqItemValues::try_from(fiv.req_data)?;

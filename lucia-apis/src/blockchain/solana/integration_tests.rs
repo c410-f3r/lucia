@@ -30,7 +30,7 @@ const TOKEN_PROGRAM: &str = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 const WS_URL: &str = "ws://localhost:8900";
 
 _create_http_test!(Solana::new(None), http(), get_account_info, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux
         .get_account_info()
@@ -54,7 +54,7 @@ _create_http_test!(Solana::new(None), http(), get_account_info, |pkgs_aux, trans
 });
 
 _create_http_test!(Solana::new(None), http(), get_balance, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux.get_balance().data(TO_NORMAL_ACCOUNT, None).build(),
       pkgs_aux,
@@ -65,12 +65,12 @@ _create_http_test!(Solana::new(None), http(), get_balance, |pkgs_aux, trans| asy
 
 _create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async {
   let slot = trans
-    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None, None).build(), pkgs_aux)
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
     .await
     .unwrap()
     .result
     .unwrap();
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux
         .get_block()
@@ -90,10 +90,42 @@ _create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async
     .unwrap();
 });
 
-_create_http_test!(Solana::new(None), http(), get_block_height, |pkgs_aux, trans| async {
-  let _ = trans
+_create_http_test!(Solana::new(None), http(), get_blocks, |pkgs_aux, trans| async {
+  let slot = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+  let _res = trans
     .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_block_height().data(Some(Commitment::Finalized), Some(2)).build(),
+      &mut pkgs_aux.get_blocks().data(slot, None, None).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap();
+});
+
+_create_http_test!(Solana::new(None), http(), get_blocks_with_limit, |pkgs_aux, trans| async {
+  let slot = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+  let _res = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_blocks_with_limit().data(slot, None, None).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap();
+});
+
+_create_http_test!(Solana::new(None), http(), get_block_height, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_block_height().data(None).build(),
       pkgs_aux,
     )
     .await
@@ -101,7 +133,7 @@ _create_http_test!(Solana::new(None), http(), get_block_height, |pkgs_aux, trans
 });
 
 _create_http_test!(Solana::new(None), http(), get_block_commitment, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux.get_block_commitment().data(2).build(),
       pkgs_aux,
@@ -111,9 +143,9 @@ _create_http_test!(Solana::new(None), http(), get_block_commitment, |pkgs_aux, t
 });
 
 _create_http_test!(Solana::new(None), http(), get_block_production, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_block_production().data(None, None, None).build(),
+      &mut pkgs_aux.get_block_production().data(None).build(),
       pkgs_aux,
     )
     .await
@@ -121,7 +153,7 @@ _create_http_test!(Solana::new(None), http(), get_block_production, |pkgs_aux, t
 });
 
 _create_http_test!(Solana::new(None), http(), get_cluster_nodes, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(&mut pkgs_aux.get_cluster_nodes().build(), pkgs_aux)
     .await
     .unwrap();
@@ -133,7 +165,7 @@ _create_http_test!(Solana::new(None), http(), get_fee_for_message, |pkgs_aux, tr
   let from_public_key = from_keypair.public.to_bytes();
   let blockhash = trans
     .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_latest_blockhash().data(None, None).build(),
+      &mut pkgs_aux.get_latest_blockhash().data(None).build(),
       pkgs_aux,
     )
     .await
@@ -167,7 +199,7 @@ _create_http_test!(
   http(),
   get_minimum_balance_for_rent_exemption,
   |pkgs_aux, trans| async {
-    let _ = trans
+    let _res = trans
       .send_retrieve_and_decode_contained(
         &mut pkgs_aux.get_minimum_balance_for_rent_exemption().data(100, None).build(),
         pkgs_aux,
@@ -178,7 +210,7 @@ _create_http_test!(
 );
 
 _create_http_test!(Solana::new(None), http(), get_multiple_accounts, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux
         .get_multiple_accounts()
@@ -225,19 +257,16 @@ _create_http_test!(Solana::new(None), http(), get_program_accounts, |pkgs_aux, t
 });
 
 _create_http_test!(Solana::new(None), http(), get_slot, |pkgs_aux, trans| async {
-  let _ = trans
-    .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_slot().data(Some(Commitment::Processed), Some(2)).build(),
-      pkgs_aux,
-    )
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
     .await
     .unwrap();
 });
 
 _create_http_test!(Solana::new(None), http(), get_slot_leader, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_slot_leader().data(Some(Commitment::Processed), Some(2)).build(),
+      &mut pkgs_aux.get_slot_leader().data(None).build(),
       pkgs_aux,
     )
     .await
@@ -245,7 +274,7 @@ _create_http_test!(Solana::new(None), http(), get_slot_leader, |pkgs_aux, trans|
 });
 
 _create_http_test!(Solana::new(None), http(), get_slot_leaders, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux.get_slot_leaders().data(1, 2).build(),
       pkgs_aux,
@@ -255,7 +284,7 @@ _create_http_test!(Solana::new(None), http(), get_slot_leaders, |pkgs_aux, trans
 });
 
 _create_http_test!(Solana::new(None), http(), get_token_account_balance, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux.get_token_account_balance().data(TO_SOL_TOKEN_ACCOUNT, None).build(),
       pkgs_aux,
@@ -269,7 +298,7 @@ _create_http_test!(
   http(),
   get_token_accounts_by_owner,
   |pkgs_aux, trans| async {
-    let _ = trans
+    let _res = trans
       .send_retrieve_and_decode_contained(
         &mut pkgs_aux
           .get_token_accounts_by_owner()
@@ -296,7 +325,7 @@ _create_http_test!(
 );
 
 _create_http_test!(Solana::new(None), http(), get_version, |pkgs_aux, trans| async {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(&mut pkgs_aux.get_version().build(), pkgs_aux)
     .await
     .unwrap()
@@ -314,7 +343,7 @@ _create_http_test!(
     let from_keypair = Keypair::from_bytes(&alice_keypair()[..]).unwrap();
     let blockhash = trans
       .send_retrieve_and_decode_contained(
-        &mut pkgs_aux.get_latest_blockhash().data(None, None).build(),
+        &mut pkgs_aux.get_latest_blockhash().data(None).build(),
         pkgs_aux,
       )
       .await
@@ -341,7 +370,7 @@ _create_http_test!(
       .unwrap();
     assert!(Solana::confirm_transaction(<_>::default(), pkgs_aux, trans, &tx_hash).await.unwrap());
 
-    let _ = trans
+    let _res = trans
       .send_retrieve_and_decode_contained(
         &mut pkgs_aux
           .get_transaction()
@@ -365,7 +394,7 @@ _create_http_test!(
 
 _create_http_test!(Solana::new(None), http(), http_reqs_with_array, |pkgs_aux, trans| async {
   let mut buffer = Vec::new();
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_batch(
       &mut buffer,
       &mut [

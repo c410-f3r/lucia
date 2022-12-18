@@ -16,15 +16,10 @@ pub(crate) mod pkg {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetBlockProductionReq<'any>(
+    #[pkg::field(name = "config")]
+    #[serde(serialize_with = "crate::misc::_serialize_as_tuple")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    #[pkg::field(name = "commitment")]
-    Option<Commitment>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[pkg::field(name = "range")]
-    Option<(u64, Option<u64>)>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    #[pkg::field(name = "identity")]
-    Option<&'any str>,
+    Option<GetBlockProductionConfig<'any>>,
   );
 
   #[pkg::res_data]
@@ -40,13 +35,27 @@ pub(crate) mod pkg {
     pub range: GetBlockProductionRange,
   }
 
+  #[derive(Debug, serde::Serialize)]
+  #[doc = generic_config_doc!()]
+  pub struct GetBlockProductionConfig<'any> {
+    #[doc = commitment_doc!()]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commitment: Option<Commitment>,
+    /// Only return results for this validator identity
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub identity: Option<&'any str>,
+    /// Slot range to return block production for.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub range: Option<GetBlockProductionRange>,
+  }
+
   /// Block production slot range
-  #[derive(Debug, serde::Deserialize)]
+  #[derive(Debug, serde::Deserialize, serde::Serialize)]
   #[serde(rename_all = "camelCase")]
   pub struct GetBlockProductionRange {
     /// First slot of the block production information (inclusive)
     pub first_slot: u64,
     /// Last slot of block production information (inclusive)
-    pub last_slot: u64,
+    pub last_slot: Option<u64>,
   }
 }

@@ -21,7 +21,7 @@ impl<'slice, DRSR, P, TP> BatchPkg<'slice, DRSR, P, TP> {
   }
 }
 
-impl<'slice, DRSR, P, TP> BatchPkg<'slice, DRSR, P, TP>
+impl<DRSR, P, TP> BatchPkg<'_, DRSR, P, TP>
 where
   P: Package<DRSR, TP>,
   P::ExternalRequestContent: Borrow<Id> + Ord,
@@ -71,14 +71,13 @@ where
     T: PartialOrd,
   {
     let mut is_sorted = true;
-    let mut previous = if let Some(elem) = iter.next() { elem } else { return Ok(()) };
+    let Some(mut previous) = iter.next() else { return Ok(()); };
     for curr in iter {
       if previous > curr {
         is_sorted = false;
         break;
-      } else {
-        previous = curr;
       }
+      previous = curr;
     }
     if is_sorted {
       Ok(())
@@ -173,7 +172,7 @@ mod serde_json {
   };
   use serde::Serializer;
 
-  impl<'slice, DRSR, P, TP> crate::dnsn::Serialize<SerdeJson> for BatchElems<'slice, DRSR, P, TP>
+  impl<DRSR, P, TP> crate::dnsn::Serialize<SerdeJson> for BatchElems<'_, DRSR, P, TP>
   where
     P: Package<DRSR, TP>,
     P::ExternalRequestContent: serde::Serialize,
@@ -185,7 +184,7 @@ mod serde_json {
       BB: ByteBuffer,
     {
       serde_json::Serializer::new(bytes)
-        .collect_seq(self.0.iter().map(|el| el.ext_req_content()))?;
+        .collect_seq(self.0.iter().map(Package::ext_req_content))?;
       Ok(())
     }
   }

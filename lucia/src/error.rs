@@ -1,6 +1,13 @@
-use crate::{data_format::JsonRpcResponseError, Id};
+use crate::{
+  data_format::{GraphQlResponseError, JsonRpcResponseError},
+  Id,
+};
 #[cfg(feature = "tokio-tungstenite")]
 use alloc::boxed::Box;
+use alloc::{
+  string::{String, ToString},
+  vec::Vec,
+};
 use core::fmt::{Debug, Display, Formatter};
 
 #[cfg(feature = "rkyv")]
@@ -26,6 +33,9 @@ pub enum Error {
   #[cfg(feature = "miniserde")]
   /// See [miniserde::Error].
   Miniserde(miniserde::Error),
+  /// See [protobuf::Error]
+  #[cfg(feature = "protobuf")]
+  Protobuf(protobuf::Error),
   /// See [reqwest::Error]
   #[cfg(feature = "reqwest")]
   Reqwest(reqwest::Error),
@@ -58,14 +68,12 @@ pub enum Error {
   Utf8Error(core::str::Utf8Error),
 
   // Internal
-  /// Package builder needs request content that wasn't provided.
-  AbsentBuilderContent,
-  /// Package builder needs request parameters that wasn't provided.
-  AbsentBuilderParams,
   /// A slice-like batch of package is not sorted
   BatchPackagesAreNotSorted,
   /// A server was not able to receive the full request data after several attempts.
   CouldNotSendTheFullRequestData,
+  /// GraphQl response error
+  GraphQlResponseError(Vec<GraphQlResponseError<String>>),
   /// The hardware returned an incorrect time value
   IncorrectHardwareTime,
   /// `no_std` has no knowledge of time. Try enabling the `std` feature
@@ -118,6 +126,14 @@ impl From<miniserde::Error> for Error {
   #[inline]
   fn from(from: miniserde::Error) -> Self {
     Self::Miniserde(from)
+  }
+}
+
+#[cfg(feature = "protobuf")]
+impl From<protobuf::Error> for Error {
+  #[inline]
+  fn from(from: protobuf::Error) -> Self {
+    Self::Protobuf(from)
   }
 }
 
@@ -204,6 +220,26 @@ impl From<core::str::Utf8Error> for Error {
   #[inline]
   fn from(from: core::str::Utf8Error) -> Self {
     Self::Utf8Error(from)
+  }
+}
+
+impl<E> From<Vec<GraphQlResponseError<E>>> for Error
+where
+  E: Display,
+{
+  #[inline]
+  fn from(from: Vec<GraphQlResponseError<E>>) -> Self {
+    Self::GraphQlResponseError(
+      from
+        .into_iter()
+        .map(|elem| GraphQlResponseError {
+          extensions: elem.extensions.map(|extension| extension.to_string()),
+          locations: elem.locations,
+          message: elem.message,
+          path: elem.path,
+        })
+        .collect(),
+    )
   }
 }
 

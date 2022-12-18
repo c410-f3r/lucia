@@ -35,11 +35,12 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct GetFeeForMessageConfig {
-    /// Commitment
+    #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
-    /// Minimum slot that the request can be evaluated at.
+    #[doc = min_context_slot_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_context_slot: Option<u64>,
   }

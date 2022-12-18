@@ -67,10 +67,10 @@ pub trait Transport<DRSR> {
   /// Convenient method similar to [Self::send_retrieve_and_decode_contained] but used for batch
   /// requests
   #[inline]
-  async fn send_retrieve_and_decode_batch<'slice, B, P>(
+  async fn send_retrieve_and_decode_batch<B, P>(
     &mut self,
     buffer: &mut B,
-    pkgs: &'slice mut [P],
+    pkgs: &mut [P],
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where

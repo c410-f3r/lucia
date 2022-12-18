@@ -1,8 +1,8 @@
-use syn::{ItemEnum, ItemStruct, ItemType};
+use syn::{ItemStruct, ItemType};
 
 #[derive(Clone, Copy, Debug)]
 pub(crate) enum EnumStructOrType<'any> {
-  Enum(&'any ItemEnum),
+  Enum,
   Struct(&'any ItemStruct),
   Type(&'any ItemType),
 }

@@ -21,7 +21,7 @@ impl SirAuxItemValues {
     impl_values: BuilderCommonValues<'_>,
     ret_values: BuilderExtendedValues<'_>,
   ) {
-    let method = Self::create_method_returning_builder(CreateMethodReturningBuilderParams {
+    let method = Self::create_method_returning_builder(&CreateMethodReturningBuilderParams {
       bev: ret_values,
       builder_aux_field_constr: &quote::quote!(self.aux),
       fn_common_values,
@@ -107,7 +107,7 @@ impl SirAuxItemValues {
     saiv_tts: &mut Vec<TokenStream>,
     ret_values: BuilderExtendedValues<'_>,
   ) {
-    let method = Self::create_method_returning_builder(CreateMethodReturningBuilderParams {
+    let method = Self::create_method_returning_builder(&CreateMethodReturningBuilderParams {
       bev: ret_values,
       builder_aux_field_constr: &quote::quote!(self),
       fn_common_values: &FnCommonValues {

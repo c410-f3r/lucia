@@ -1,8 +1,8 @@
 //! Utility functions and structures
 
-mod concat_array_str;
+pub(crate) mod concat_array_str;
+pub(crate) mod slice_by_commas;
 
-pub use concat_array_str::*;
 use core::any::type_name;
 use lucia::create_packages_aux_wrapper;
 
@@ -103,7 +103,7 @@ pub(crate) fn _init_tracing() {
     util::SubscriberInitExt,
     EnvFilter,
   };
-  let _ = Subscriber::builder()
+  let _rslt = Subscriber::builder()
     .with_env_filter(EnvFilter::from_default_env())
     .with_span_events(FmtSpan::CLOSE | FmtSpan::NEW)
     .finish()

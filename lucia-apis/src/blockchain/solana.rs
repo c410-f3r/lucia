@@ -9,15 +9,12 @@
 //!
 //! let mut pkgs_aux =
 //!   PkgsAux::from_minimum(Solana::new(None), SerdeJson, HttpParams::from_url("URL")?);
-//! let _ = pkgs_aux.get_slot().data(None, None).build();
+//! let _ = pkgs_aux.get_slot().data(None).build();
 //! # Ok(()) }
 //! ```
 
-macro_rules! generic_config_doc {
-  () => {
-    "Additional set of optional parameters used by the corresponding request."
-  };
-}
+#[macro_use]
+mod macros;
 
 mod account;
 mod block;
@@ -180,7 +177,7 @@ impl Solana {
   pub fn spl_token_normal_account(
     account_data: &AccountData,
   ) -> crate::Result<&program::spl_token::TokenAccount> {
-    if let Some(program::spl_token::GenericAccount::TokenAccount(ref elem)) =
+    if let Some(program::spl_token::GenericAccount::Account(ref elem)) =
       Self::spl_token_account(account_data)
     {
       Ok(elem)

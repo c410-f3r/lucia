@@ -27,6 +27,7 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct GetProgramAccountsConfig<'bytes, 'filter> {
     /// Account encoding
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -37,7 +38,7 @@ pub(crate) mod pkg {
     /// Filters
     #[serde(skip_serializing_if = "Option::is_none")]
     pub filters: Option<&'filter [Filter<'bytes>]>,
-    /// Minimum slot at which to perform preflight transaction check
+    #[doc = min_context_slot_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_context_slot: Option<u64>,
     /// Data slice

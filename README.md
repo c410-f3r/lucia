@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![Rustc](https://img.shields.io/badge/rustc-1.65-lightgray")](https://blog.rust-lang.org/2022/11/03/Rust-1.65.0.html)
 
-A flexible client API framework for writing asynchronous, fast, maintainable and scalable applications with the Rust programming language. Supports several data formats, transports and custom parameters.
+A flexible client API framework for writing asynchronous, fast, organizable, scalable and maintainable applications with the Rust programming language. Supports several data formats, transports and custom parameters.
 
 Checkout the `lucia-apis` project to see a collection of APIs based on `lucia`.
 
@@ -64,16 +64,17 @@ pub async fn fetch_my_endpoint() -> lucia::Result<i32> {
 
 ## Data formats
 
-Each request has one or more data formats or protocols attached specifically to an API.
+Each request has one or more data formats attached specifically to an API.
 
 They are what will be serialized and deserialized so in order to create yet another data format, it is necessary to implement `Deserialize` and `Serialize` according to the desired serializer.
 
 | Name | URL |
 |---|---|
 | Borsh | <https://borsh.io/> |
-| GraphQL | <https://spec.graphql.org/October2021/> |
+| GraphQL | <https://spec.graphql.org/> |
 | JSON | <https://www.json.org/json-en.html> |
 | JSON-RPC 2.0 | <https://www.jsonrpc.org/> |
+| Protobuf | <https://developers.google.com/protocol-buffers> |
 | XML | <https://www.w3.org/TR/xml/> |
 | YAML | <https://yaml.org/spec/> |
 
@@ -86,6 +87,7 @@ Can be applied to one or more different data formats.
 | borsh | <https://docs.rs/borsh> |
 | miniserde | <https://docs.rs/miniserde> |
 | rkyv | <https://docs.rs/rkyv> |
+| rust-protobuf | <https://docs.rs/protobuf> |
 | serde_json | <https://docs.rs/serde_json> |
 | serde-xml-rs | <https://docs.rs/serde-xml-rs> |
 | serde-yaml | <https://docs.rs/serde_yaml> |

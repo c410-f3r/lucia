@@ -67,18 +67,13 @@ where
       .filter_map(|(idx, elem)| (*elem == b'/').then_some(idx));
     let _ = slash_iter.next();
     let _ = slash_iter.next();
-    let origin_end = if let Some(elem) = slash_iter.next() {
-      elem
-    } else {
-      return [url.as_ref().len(); 3];
-    };
+    let Some(origin_end) = slash_iter.next() else { return [url.as_ref().len(); 3]; };
     let after_origin = url.as_ref().get(origin_end..).unwrap_or_default();
     let path_end = if let Some(elem) = after_origin
       .as_bytes()
       .iter()
       .enumerate()
-      .filter_map(|(idx, elem)| (*elem == b'?').then_some(idx))
-      .next()
+      .find_map(|(idx, elem)| (*elem == b'?').then_some(idx))
     {
       elem.wrapping_add(origin_end)
     } else {

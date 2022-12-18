@@ -71,7 +71,7 @@ impl KuCoin {
     rslt.map_err(lucia::Error::from)?;
     let mut trans = T::from_url(url.as_str()).await?;
     let before_len = bytes.len();
-    let _ = trans.receive_with_buffer(bytes).await;
+    let _len = trans.receive_with_buffer(bytes).await;
     bytes.truncate(before_len);
     Ok(Pair::new(PkgsAux::from_minimum(KuCoin::new(None)?, drsr, WsParams::default()), trans))
   }

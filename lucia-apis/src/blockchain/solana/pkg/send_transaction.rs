@@ -40,6 +40,7 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct SendTransactionConfig {
     /// Send transaction encoding
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -49,10 +50,10 @@ pub(crate) mod pkg {
     /// or until the blockhash expires.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_retries: Option<usize>,
-    /// Minimum slot at which to perform preflight transaction check
+    #[doc = min_context_slot_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub min_context_slot: Option<u64>,
-    /// Preflight commitment
+    #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub preflight_commitment: Option<Commitment>,
     /// If true, skip the preflight transaction checks

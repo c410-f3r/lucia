@@ -14,7 +14,7 @@ use lucia::{
 
 macro_rules! sub_and_unsub {
   ($pkgs_aux:expr, $trans:expr, $sub:expr, $unsub:expr) => {
-    let _ = $trans.send_retrieve_and_decode_contained($sub, $pkgs_aux).await.unwrap();
+    let _res = $trans.send_retrieve_and_decode_contained($sub, $pkgs_aux).await.unwrap();
     unsub!($pkgs_aux, $trans, $unsub)
   };
 }
@@ -36,7 +36,7 @@ _create_http_test!(cred_prod(), http_prod(), ws_prod, |pkgs_aux, trans| async {
   let mut pair_ws = init_ws_instance(pkgs_aux, trans).await;
   let (pkgs_aux_ws, trans_ws) = pair_ws.parts_mut();
 
-  let _ = trans_ws
+  let _res = trans_ws
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux_ws.ping().data().unwrap().build(),
       &mut **pkgs_aux_ws,
@@ -63,15 +63,15 @@ _create_http_test!(cred_test(), http_test(), ws_test, |pkgs_aux, trans| async {
   let mut pair_ws = init_ws_instance(pkgs_aux, trans).await;
   let (pkgs_aux_ws, trans_ws) = pair_ws.parts_mut();
 
-  let _ = trans_ws
+  let _res = trans_ws
     .send(&mut pkgs_aux_ws.account_balance().data(WsReqTy::Subscribe).unwrap().build(), pkgs_aux_ws)
     .await
     .unwrap();
   place_order(pkgs_aux, trans).await;
-  let _ = JsonResponse::<WsResWrapper<AccountBalance>>::from_bytes(
+  let _res = JsonResponse::<WsResWrapper<AccountBalance>>::from_bytes(
     &{
       let mut buffer = Vec::new();
-      let _ = trans_ws.receive_with_buffer(&mut buffer).await.unwrap();
+      let _res = trans_ws.receive_with_buffer(&mut buffer).await.unwrap();
       buffer
     },
     &mut pkgs_aux.drsr,
@@ -84,8 +84,8 @@ _create_http_test!(cred_test(), http_test(), ws_test, |pkgs_aux, trans| async {
   );
 });
 
-async fn init_ws_instance<'pa, T>(
-  pkgs_aux: &'pa mut KuCoinHttpPkgsAux<SerdeJson>,
+async fn init_ws_instance<T>(
+  pkgs_aux: &mut KuCoinHttpPkgsAux<SerdeJson>,
   trans: &mut T,
 ) -> lucia::misc::Pair<KuCoinWsPkgsAux<SerdeJson>, TokioTungstenite>
 where

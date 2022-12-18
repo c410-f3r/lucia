@@ -10,7 +10,7 @@ use core::{
   hash::{Hash, Hasher},
 };
 
-/// Replied from a given [crate::data_format::JsonRpcRequest].
+/// Replied from an issued [crate::data_format::JsonRpcRequest].
 ///
 /// The `jsonrpc` field is not included because `2.0` is always expected.
 #[derive(Debug)]
@@ -93,9 +93,8 @@ impl<R> PartialOrd for JsonRpcResponse<R> {
 
 #[cfg(feature = "serde")]
 mod serde {
+  use crate::data_format::{JsonRpcResponse, JsonRpcResponseError};
   use core::marker::PhantomData;
-
-  use crate::data_format::JsonRpcResponse;
   use serde::{de::Visitor, ser::SerializeStruct};
 
   impl<'de, R> serde::Deserialize<'de> for JsonRpcResponse<R>
@@ -107,10 +106,7 @@ mod serde {
     where
       D: serde::de::Deserializer<'de>,
     {
-      struct CustomVisitor<'de, R>(
-        PhantomData<JsonRpcResponse<R>>,
-        PhantomData<JsonRpcResponse<&'de ()>>,
-      )
+      struct CustomVisitor<'de, R>(PhantomData<R>, PhantomData<&'de ()>)
       where
         R: serde::Deserialize<'de>;
 
@@ -142,7 +138,7 @@ mod serde {
                 if error.is_some() {
                   return Err(serde::de::Error::duplicate_field("error"));
                 }
-                error = Some(map.next_value::<crate::data_format::JsonRpcResponseError>()?);
+                error = Some(map.next_value::<JsonRpcResponseError>()?);
               }
               Field::Id => {
                 if id.is_some() {
@@ -213,11 +209,11 @@ mod serde {
     where
       S: serde::ser::Serializer,
     {
-      let mut state = serializer.serialize_struct(" ", 3)?;
+      let mut state = serializer.serialize_struct("JsonRpcResponse", 3)?;
       state.serialize_field("jsonrpc", "2.0")?;
       match self.result {
         Err(ref err) => {
-          state.serialize_field("error", &alloc::string::ToString::to_string(&err))?
+          state.serialize_field("error", &alloc::string::ToString::to_string(&err))?;
         }
         Ok(ref el) => state.serialize_field("result", &el)?,
       }
@@ -239,7 +235,11 @@ mod serde {
 
 #[cfg(feature = "serde_json")]
 mod serde_json {
-  use crate::{data_format::JsonRpcResponse, dnsn::SerdeJson, misc::seq_visitor::_SeqVisitor};
+  use crate::{
+    data_format::JsonRpcResponse,
+    dnsn::SerdeJson,
+    misc::{seq_visitor::_SeqVisitor, ByteBuffer},
+  };
   use core::fmt::Display;
 
   impl<R> crate::dnsn::Deserialize<SerdeJson> for JsonRpcResponse<R>
@@ -274,7 +274,7 @@ mod serde_json {
     #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SerdeJson) -> crate::Result<()>
     where
-      BB: crate::misc::ByteBuffer,
+      BB: ByteBuffer,
     {
       serde_json::to_writer(bytes, self)?;
       Ok(())

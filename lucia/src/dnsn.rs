@@ -12,6 +12,8 @@ mod borsh;
 mod deserialize;
 #[cfg(feature = "miniserde")]
 mod miniserde;
+#[cfg(feature = "protobuf")]
+mod protobuf;
 #[cfg(feature = "rkyv")]
 mod rkyv;
 #[cfg(feature = "serde_json")]
@@ -28,6 +30,8 @@ mod simd_json;
 pub use self::borsh::*;
 #[cfg(feature = "miniserde")]
 pub use self::miniserde::*;
+#[cfg(feature = "protobuf")]
+pub use self::protobuf::*;
 #[cfg(feature = "rkyv")]
 pub use self::rkyv::*;
 #[cfg(feature = "serde_json")]

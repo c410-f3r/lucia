@@ -6,6 +6,7 @@ cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 borsh = { default-features = false, features = ["std"], optional = true, version = "0.9" }
 bytecheck = { default-features = false, optional = true, version = "0.6" }
 miniserde = { default-features = false, optional = true, version = "0.1" }
+protobuf = { default-features = false, optional = true, version = "3.0" }
 rkyv = { default-features = false, features = ["validation"], optional = true, version = "0.7" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
@@ -68,7 +69,7 @@ _hack = ["surf?/h1-client-no-tls", "rkyv?/size_32", "simd-json?/allow-non-simd"]
 
 reqwest = ["dep:reqwest"]
 surf = ["dep:surf"]
-tokio-tungstenite = ["dep:futures", "dep:tokio", "tokio?/net", "dep:tokio-tungstenite", "dep:tungstenite"]
+tokio-tungstenite = ["dep:futures", "dep:tokio", "tokio?/net", "dep:tokio-tungstenite", "tungstenite"]
 
 [package]
 categories = ["asynchronous", "data-structures", "encoding", "network-programming", "no-std"]

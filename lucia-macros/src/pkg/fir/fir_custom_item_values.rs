@@ -3,7 +3,7 @@ use crate::pkg::{
 };
 use syn::{punctuated::Punctuated, GenericParam, Ident, Token, Type, WherePredicate};
 
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub(crate) struct FirCustomItemValuesRef<'any, 'module> {
   pub(crate) fields_attrs: &'any Vec<Option<FirCustomFieldFieldAttr>>,
   pub(crate) ident: &'module Ident,
@@ -79,7 +79,7 @@ macro_rules! create_fir_custom_item_values {
             push_doc_if_inexistent(&mut item.attrs, $doc);
             local_generics = &item.generics;
             local_ident = &item.ident;
-            local_item = EnumStructOrType::Enum(item);
+            local_item = EnumStructOrType::Enum;
           }
           Item::Struct(ref mut item) => {
             push_doc_if_inexistent(&mut item.attrs, $doc);

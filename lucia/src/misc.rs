@@ -34,6 +34,10 @@ pub use url::*;
 /// Sleeps for the specified amount of time.
 ///
 /// Intended for asynchronous usage, i.e., won't block threads.
+#[allow(
+  // Depends on the selected set of features.
+  clippy::unused_async
+)]
 #[inline]
 pub async fn sleep(duration: Duration) -> crate::Result<()> {
   #[cfg(all(feature = "async-std", not(feature = "tokio")))]
@@ -63,6 +67,10 @@ pub async fn sleep(duration: Duration) -> crate::Result<()> {
 
 /// Used in all implementations of [crate::Transport::send] and/or
 /// [crate::Transport::send_and_receive`].
+#[allow(
+  // Depends on the feature
+  clippy::used_underscore_binding
+)]
 #[inline]
 pub(crate) fn log_req<DRSR, P, T>(
   _pgk: &mut P,
@@ -87,6 +95,10 @@ pub(crate) fn log_req<DRSR, P, T>(
 ///
 /// Not used in [crate::network::transport::Transport::send_retrieve_and_decode_batch] because
 /// [crate::Requests::decode_responses] takes precedence.
+#[allow(
+  // Depends on the feature
+  clippy::used_underscore_binding
+)]
 #[inline]
 pub(crate) fn log_res(_res: &[u8]) {
   _debug!("Response: {:?}", core::str::from_utf8(_res));

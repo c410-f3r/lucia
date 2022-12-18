@@ -54,12 +54,20 @@ where
   <T as ToOwned>::Owned: Debug + FromBytes,
 {
   /// Ensures that no included request hasn't processed.
+  ///
+  /// # Panics
+  ///
+  /// If the number of asserted requests differs from the number of stored requests.
   #[inline]
   pub fn assert_does_not_have_non_asserted_requests(&self) {
-    assert_eq!(self.asserted, self.requests.len())
+    assert_eq!(self.asserted, self.requests.len());
   }
 
   /// Verifies if `req` is present in the inner request storage.
+  ///
+  /// # Panics
+  ///
+  /// If the stored request differs from the passed request.
   #[inline]
   #[track_caller]
   pub fn assert_request(&mut self, req: &T) {

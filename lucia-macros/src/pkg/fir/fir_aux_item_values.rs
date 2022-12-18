@@ -20,7 +20,7 @@ pub(crate) struct FirAuxItemValues<'module> {
   pub(crate) faiv_where_predicates: &'module Punctuated<WherePredicate, Token![,]>,
 }
 
-impl<'module> FirAuxItemValues<'module> {
+impl FirAuxItemValues<'_> {
   fn manage_impl_item(
     attr_span: Span,
     ii: &mut ImplItem,
@@ -87,12 +87,12 @@ impl<'module> TryFrom<ItemWithAttrSpan<(), &'module mut Item>> for FirAuxItemVal
       let (iim, fafa) = Self::manage_impl_item(from.span, elem)?;
       match fafa {
         FirAuxFieldAttr::AuxData => match (faiv_user_data_method, faiv_user_params_method) {
-          (None, None) | (None, Some(_)) => faiv_user_data_method = Some(iim),
-          (Some(_), None) | (Some(_), Some(_)) => return Err(crate::Error::BadAux(from.span)),
+          (None, None | Some(_)) => faiv_user_data_method = Some(iim),
+          (Some(_), None | Some(_)) => return Err(crate::Error::BadAux(from.span)),
         },
         FirAuxFieldAttr::AuxParams => match (faiv_user_data_method, faiv_user_params_method) {
-          (None, None) | (Some(_), None) => faiv_user_params_method = Some(iim),
-          (None, Some(_)) | (Some(_), Some(_)) => return Err(crate::Error::BadAux(from.span)),
+          (None | Some(_), None) => faiv_user_params_method = Some(iim),
+          (None | Some(_), Some(_)) => return Err(crate::Error::BadAux(from.span)),
         },
       }
     }

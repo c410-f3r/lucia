@@ -74,6 +74,10 @@ pub enum HttpMimeType {
   Bytes,
   /// JSON
   Json,
+  /// JSON:API
+  JsonApi,
+  /// Protocol buffer
+  Protobuf,
   /// Plain text
   Text,
   /// XML
@@ -88,6 +92,8 @@ impl HttpMimeType {
     match self {
       HttpMimeType::Bytes => "application/octet-stream",
       HttpMimeType::Json => "application/json",
+      HttpMimeType::JsonApi => "application/vnd.api+json",
+      HttpMimeType::Protobuf => "application/vnd.google.protobuf",
       HttpMimeType::Text => "text/plain",
       HttpMimeType::Xml => "application/xml",
       HttpMimeType::Yaml => "application/yaml",

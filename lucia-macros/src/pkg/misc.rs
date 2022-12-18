@@ -40,14 +40,11 @@ pub(crate) fn from_camel_case_to_snake_case(string: &str) -> String {
       (true, true) => {
         snake_case_string.push(b.to_ascii_lowercase().into());
       }
-      (true, false) => {
-        snake_case_string.push(b.into());
-      }
       (false, true) => {
         snake_case_string.push('_');
         snake_case_string.push(b.to_ascii_lowercase().into());
       }
-      (false, false) => {
+      (true | false, false) => {
         snake_case_string.push(b.into());
       }
     }
@@ -58,9 +55,7 @@ pub(crate) fn from_camel_case_to_snake_case(string: &str) -> String {
 pub(crate) fn inner_angle_bracketed_values(
   ty: &Type,
 ) -> Option<(&TypePath, &PathSegment, &AngleBracketedGenericArguments)> {
-  let type_path = if let Type::Path(ref elem) = *ty {
-    elem
-  } else {
+  let Type::Path(ref type_path) = *ty else {
     return None;
   };
   let last_segment_path = type_path.path.segments.last()?;
@@ -86,10 +81,7 @@ pub(crate) fn manage_unique_attribute<T>(opt: Option<&T>, span: Span) -> crate::
 pub(crate) fn parts_from_generics(
   generics: &Generics,
 ) -> (&Punctuated<GenericParam, Token![,]>, &Punctuated<WherePredicate, Token![,]>) {
-  (
-    &generics.params,
-    generics.where_clause.as_ref().map(|el| &el.predicates).unwrap_or(EMPTY_WHERE_PREDS),
-  )
+  (&generics.params, generics.where_clause.as_ref().map_or(EMPTY_WHERE_PREDS, |el| &el.predicates))
 }
 
 pub(crate) fn split_params(

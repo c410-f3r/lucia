@@ -1,5 +1,5 @@
 use crate::misc::{
-  ConcatArrayStr, MaxAddressHashStr, _MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr,
+  _MaxAssetAbbr, _MaxAssetName, _MaxNumberStr, _MaxPairAbbr, concat_array_str::ConcatArrayStr,
 };
 use arrayvec::ArrayString;
 use core::fmt::{Display, Formatter};
@@ -8,6 +8,7 @@ use serde::{de, de::Error, Deserialize};
 
 pub(crate) type Chain = ArrayString<20>;
 pub(crate) type KuCoinId = ArrayString<28>;
+pub(crate) type WalletTxId = ArrayString<88>;
 
 /// Buy or sell
 #[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
@@ -68,6 +69,30 @@ pub enum OrderTimeInForce {
   IOC,
 }
 
+/// Limit or market.
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum OrderType {
+  /// Executed at the specified price.
+  Limit,
+  /// Immediately executed with the current market price.
+  Market,
+}
+
+/// Operation status.
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum Status {
+  /// Exchanges is processing the operation.
+  Processing,
+  /// Blockchain is processing the operation.
+  WalletProcessing,
+  /// Operation was successful.
+  Success,
+  /// Operation failed.
+  Failure,
+}
+
 /// KuCoin has three different types of accounts.
 #[derive(Clone, Copy, Debug, serde::Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -88,16 +113,6 @@ impl Display for V1AccountTy {
       Self::Trade => "trade",
     })
   }
-}
-
-/// Limit or market.
-#[derive(Debug, serde::Deserialize, serde::Serialize)]
-#[serde(rename_all = "lowercase")]
-pub enum OrderType {
-  /// Executed at the specified price.
-  Limit,
-  /// Immediately executed with the current market price.
-  Market,
 }
 
 /// If a web socket request is asking to subscribe or unsubscribe.
@@ -156,7 +171,7 @@ pub struct V1Account {
 #[serde(rename_all = "camelCase")]
 pub struct V1Order {
   /// Cancels after the given seconds. Requires `time_in_force` to be [OrderTimeInForce::GTT].
-  pub cancel_after: i64,
+  pub cancel_after: u64,
   /// Order cancellation transaction record
   pub cancel_exist: bool,
   /// Order source.
@@ -164,7 +179,7 @@ pub struct V1Order {
   /// User-provided ID at creation time.
   pub client_oid: ArrayString<20>,
   /// Creation timestamp.
-  pub created_at: i64,
+  pub created_at: u64,
   /// Dealt amount of quote asset.
   pub deal_funds: _MaxNumberStr,
   /// Dealt amount of base asset.
@@ -232,38 +247,6 @@ pub struct V1Ticker {
   pub best_ask_size: _MaxNumberStr,
   /// timestamp
   pub time: u64,
-}
-
-#[derive(Debug, serde::Deserialize)]
-#[serde(rename_all = "camelCase")]
-#[doc = _generic_res_data_elem_doc!()]
-pub struct V1Withdrawal {
-  /// Withdrawal address.
-  pub address: MaxAddressHashStr,
-  /// Withdrawal amount.
-  pub amount: _MaxNumberStr,
-  /// Blockchain or network of the asset.
-  pub chain: Chain,
-  /// Creation timestamp.
-  pub created_at: i64,
-  /// Asset identifier.
-  pub currency: _MaxAssetAbbr,
-  /// Withdrawal fee.
-  pub fee: _MaxNumberStr,
-  /// Unique identity.
-  pub id: KuCoinId,
-  /// Internal withdrawal or not.
-  pub is_inner: bool,
-  /// Address remark.
-  pub memo: ArrayString<20>,
-  /// Remark.
-  pub remark: ArrayString<20>,
-  /// Status
-  pub status: ArrayString<20>,
-  /// Update timestamp.
-  pub updated_at: i64,
-  /// Blockchain or network transaction id.
-  pub wallet_tx_id: ArrayString<20>,
 }
 
 /// For endpoints that return very large amounts of items.

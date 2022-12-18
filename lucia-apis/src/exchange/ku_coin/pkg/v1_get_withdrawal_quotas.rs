@@ -1,13 +1,8 @@
-#[lucia_macros::pkg(
-  api(crate::exchange::ku_coin::KuCoin),
-  data_format(json),
-  error(crate::Error),
-  transport(http)
-)]
+#[lucia_macros::pkg(api(KuCoin), data_format(json), error(crate::Error), transport(http))]
 pub(crate) mod pkg {
   use crate::{
-    exchange::ku_coin::{Chain, HttpResWrapper, KuCoinHttpPkgsAux},
-    misc::{_MaxAssetAbbr, _MaxNumberStr},
+    exchange::ku_coin::{Chain, HttpResWrapper, KuCoin, KuCoinHttpPkgsAux},
+    misc::{_MaxAssetAbbr, _MaxNumberStr, into_rslt},
   };
   use lucia::network::HttpReqParams;
 
@@ -16,15 +11,18 @@ pub(crate) mod pkg {
 
   #[pkg::before_sending]
   async fn before_sending(
+    api: &mut KuCoin,
     params: &mut V1GetWithdrawalsQuotasParams<'_>,
+    req_bytes: &[u8],
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
-    req_params.url.push_path(format_args!("/api/v1/withdrawals"))?;
+    req_params.url.push_path(format_args!("/api/v1/withdrawals/quotas"))?;
     let _ = req_params
       .url
       .query_writer()?
       .write("currency", params.currency)?
       .write_opt("chain", params.chain)?;
+    into_rslt(api.credentials.as_mut())?.push_headers(req_bytes, req_params)?;
     Ok(())
   }
 
@@ -57,12 +55,14 @@ pub(crate) mod pkg {
     /// Is the withdraw function enabled or not
     pub is_withdraw_enabled: bool,
     /// Total BTC amount available to withdraw the current day
+    #[serde(rename = "limitBTCAmount")]
     pub limit_btc_amount: _MaxNumberStr,
     /// Floating point precision.
     pub precision: u8,
     /// Remaining amount available to withdraw the current day
     pub remain_amount: _MaxNumberStr,
     /// The estimated BTC amount (based on the daily fiat limit) that can be withdrawn within the current day
+    #[serde(rename = "usedBTCAmount")]
     pub used_btc_amount: _MaxNumberStr,
     /// Minimum withdrawal fee
     pub withdraw_min_fee: _MaxNumberStr,

@@ -46,6 +46,6 @@ pub(crate) mod pkg {
     pub bids: Vec<(_MaxNumberStr, _MaxNumberStr)>,
     /// KuCoin-specified sequence.
     #[serde(deserialize_with = "crate::misc::_deserialize_from_str")]
-    pub sequence: i64,
+    pub sequence: u64,
   }
 }

@@ -57,14 +57,19 @@ pub(crate) mod pkg {
   #[derive(Debug, serde::Serialize)]
   pub struct V1ApplyWithdrawalReqOpts<'any> {
     /// Asset blockchain. For example, Ethereum or Solana.
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub chain: Option<&'any str>,
     /// Fee deduct type
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub fee_deduct_type: Option<FeeDeductType>,
     /// Internal withdrawal or not
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub is_inner: Option<bool>,
     /// Memo
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub memo: Option<&'any str>,
     /// Remark
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub remark: Option<&'any str>,
   }
 }

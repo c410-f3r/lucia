@@ -43,7 +43,7 @@ where
     P: Package<DRSR, HttpParams> + Send + Sync,
     P::Api: Send + Sync,
   {
-    let _ = response(self, pkg, pkgs_aux).await?;
+    let _res = response(self, pkg, pkgs_aux).await?;
     Ok(())
   }
 
