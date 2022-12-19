@@ -10,6 +10,14 @@ A flexible client API framework for writing asynchronous, fast, organizable, sca
 
 Checkout the `lucia-apis` project to see a collection of APIs based on `lucia`.
 
+## Objective
+
+It is possible to directly decode json responses using built-in methods provided by some transport implementations like `reqwest` or `surf` but as complexity grows, the cost of maintaining large sets of endpoints with ad-hoc solutions usually becomes unsustainable. Based on this scenario, `lucia` comes into play to organize and centralize data flow in a well-defined manner to increase productivity and maintainability.
+
+For API consumers, the calling convention of `lucia` endpoints is based on fluent interfaces which makes the usage more pleasant and intuitive.
+
+In the future, the project may create automatic bindings for other languages in other to avoid having duplicated repositories or automatically generate packages from GraphQL schemas or `.proto` files.
+
 ## Infrastructure
 
 A structure that implements the `Package` trait describes request data as well as any other additional parameters like HTTP header values.
