@@ -18,14 +18,17 @@ pub(crate) fn api_types(
 
   let attrs::Attrs { pkgs_aux, transports } = attrs::Attrs::try_from(&*attr_args)?;
 
-  let pkgs_aux_path = pkgs_aux.map(Cow::Borrowed).unwrap_or_else(|| {
-    let mut segments = Punctuated::new();
-    segments.push(PathSegment {
-      ident: Ident::new("PkgsAux", Span::mixed_site()),
-      arguments: PathArguments::None,
-    });
-    Cow::Owned(Path { leading_colon: None, segments })
-  });
+  let pkgs_aux_path = pkgs_aux.map_or_else(
+    || {
+      let mut segments = Punctuated::new();
+      segments.push(PathSegment {
+        ident: Ident::new("PkgsAux", Span::mixed_site()),
+        arguments: PathArguments::None,
+      });
+      Cow::Owned(Path { leading_colon: None, segments })
+    },
+    Cow::Borrowed,
+  );
 
   let api_ident = match item {
     Item::Enum(ref container) => &container.ident,

@@ -17,10 +17,10 @@ impl RequestLimit {
   }
 
   /// Useful for tests.
-  #[allow(
+  #[
     // u16::MAX is greater than 0
-    clippy::unwrap_used
-  )]
+    allow(clippy::missing_panics_doc, clippy::unwrap_used)
+  ]
   #[inline]
   pub fn unlimited() -> Self {
     Self { duration: Duration::from_secs(0), limit: NonZeroU16::new(u16::MAX).unwrap() }

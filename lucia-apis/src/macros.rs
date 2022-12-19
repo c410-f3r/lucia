@@ -25,7 +25,7 @@ macro_rules! try_with_solana_blockhashes {
               let (pkgs_aux, trans) = pair_mut.parts_mut();
               let res = trans
                 .send_retrieve_and_decode_contained(
-                  &mut pkgs_aux.get_latest_blockhash().data(None, None).build(),
+                  &mut pkgs_aux.get_latest_blockhash().data(None).build(),
                   pkgs_aux,
                 )
                 .await?;
@@ -44,7 +44,7 @@ macro_rules! try_with_solana_blockhashes {
               let (pkgs_aux, trans) = pair_mut.parts_mut();
               let res = trans
                 .send_retrieve_and_decode_contained(
-                  &mut pkgs_aux.get_latest_blockhash().data(None, None).build(),
+                  &mut pkgs_aux.get_latest_blockhash().data(None).build(),
                   pkgs_aux,
                 )
                 .await?;
@@ -141,7 +141,7 @@ macro_rules! _create_generic_test {
         cb(pkgs_aux, trans, rslt)
       }
       crate::misc::_init_tracing();
-      let _ = dotenv::dotenv().ok();
+      let _opt = dotenv::dotenv().ok();
       let mut pair = $pair;
       let (pkg, pkgs_aux) = pair.parts_mut();
       let rslt = parts_cb_infer(pkg, pkgs_aux, $parts_cb).await;
@@ -194,7 +194,7 @@ macro_rules! _create_ws_test {
       |pkgs_aux, trans, subs| async move {
         let mut iter = subs.into_iter();
         let ids = &mut [$( pkgs_aux.$unsub().data(iter.next().unwrap()).build(), )+][..];
-        let _ = trans.send(&mut lucia::pkg::BatchPkg::new(ids), pkgs_aux).await.unwrap();
+        let _res = trans.send(&mut lucia::pkg::BatchPkg::new(ids), pkgs_aux).await.unwrap();
       }
     }
   };

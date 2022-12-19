@@ -16,6 +16,7 @@ pub mod calendar;
 mod error;
 pub mod exchange;
 pub mod misc;
+pub mod series;
 pub mod test_data;
 
 pub use error::Error;

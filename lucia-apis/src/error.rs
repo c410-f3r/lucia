@@ -31,8 +31,6 @@ pub enum Error {
   // Features
   //
   // KuCoin
-  /// Bullet request returned an empty set of instance servers.
-  EmptySetOfInstanceServers,
   /// Unsuccessful request explained in the contained string.
   KuCoinUnsuccessfulRequest(String),
 
@@ -56,8 +54,6 @@ pub enum Error {
   // Internal
   /// For third-party dependencies that throws strings errors
   Generic(Cow<'static, str>),
-  /// Header key can not be greater than 65535 bytes
-  HeaderKeyIsTooLarge,
   /// Request was expecting a different HTTP status code.
   IncompatibleStatusCode(StatusCode, StatusCode),
   /// A variant used to transform `Option`s into `Result`s

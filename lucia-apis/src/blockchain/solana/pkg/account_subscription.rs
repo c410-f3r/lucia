@@ -30,7 +30,7 @@ pub(crate) mod sub {
     /// Account encoding.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<AccountEncoding>,
-    /// Commitment.
+    #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
   }

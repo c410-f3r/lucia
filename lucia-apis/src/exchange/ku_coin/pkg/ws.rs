@@ -14,7 +14,7 @@ macro_rules! create {
     pub(crate) mod $pkg {
       use crate::{
         exchange::ku_coin::{KuCoin, KuCoinWsPkgsAux, WsReq, WsReqTy, WsResWrapper},
-        misc::ConcatArrayStr,
+        misc::concat_array_str::ConcatArrayStr,
       };
       use lucia::{misc::GenericTime, network::WsReqParamsTy};
 
@@ -96,20 +96,20 @@ create!(
     /// Response of a WebSocket level 2 market data.
     #[derive(Debug, serde::Deserialize)]
     #[serde(rename_all = "camelCase")]
-        pub struct L2MarketData {
+    pub struct L2MarketData {
       /// Changes
       pub changes: L2MarketDataChanges,
       /// KuCoin-specified ending sequence.
-      pub sequence_end: i64,
+      pub sequence_end: u64,
       /// KuCoin-specified starting sequence.
-      pub sequence_start: i64,
+      pub sequence_start: u64,
       /// Pair of two assets
       pub symbol: _MaxPairAbbr,
     }
 
     /// Both asks and bids changes
     #[derive(Debug, serde::Deserialize)]
-        pub struct L2MarketDataChanges {
+      pub struct L2MarketDataChanges {
       /// Selling offers of base asset.
       pub asks: Vec<L2MarketDataChangesValues>,
       /// Buying offers of base asset.
@@ -118,14 +118,14 @@ create!(
 
     /// Asks or bids changes
     #[derive(Debug, serde::Deserialize)]
-        pub struct L2MarketDataChangesValues(
+    pub struct L2MarketDataChangesValues(
       /// Price
       pub _MaxNumberStr,
       /// Size
       pub _MaxNumberStr,
       /// Sequence
       #[serde(deserialize_with = "crate::misc::_deserialize_from_str")]
-      i64,
+      pub u64,
     );
   }
 );

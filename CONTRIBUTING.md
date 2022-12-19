@@ -4,7 +4,7 @@ Simply put, the only necessary thing to create an endpoint is implementing the `
 
 ## Location
 
-Take a look at https://github.com/public-apis/public-apis to see which category your API fits better. If the `src/api` directory doesn't contain such category, then create one and also put it in the `README.md` file as well as the API name in alphabetical order.
+Take a look at https://github.com/public-apis/public-apis to see which category your API fits better. If the `src/api` directory doesn't contain such category, then create one and also put it in the `lucia-apis/README.md` file as well as the API name in alphabetical order.
 
 ```bash
 cd src/api/gaming
@@ -68,7 +68,7 @@ mod my_endpoint {
 }
 ```
 
-## Tests
+## Creating tests
 
 Integration tests or end-to-end testing can be performed using an internet connection or through the local `Mock` transport structure.
 
@@ -82,7 +82,7 @@ touch integration_tests.rs;
 Don't forget to also add local and CI coverage.
 
 ```bash
-# .scripts/internet-tests.sh
+# .scripts/internal-tests.sh
 
 $rt check-with-features . first-api
 ...
@@ -91,16 +91,11 @@ $rt check-with-features . my-new-gaming-api
 $rt check-with-features . last-api
 ```
 
-.scripts/internal-tests
-Cargo.toml
-integration-tests
-
-
 # Calling tests
 
-All tests of all types can be issued using normal `cargo` commands but more complex and automatic coverage is currently dealt with Bash scripts. Multi-platform scripts is something that can be resolved in the future with enough interest.
+All tests of all types can be issued using normal `cargo` commands but more complex and automatic coverage is currently dealt with Bash scripts. Multi-platform scripts or executables is something that can be resolved in the future with enough interest.
 
-Continuous Integration uses what is inside the `.script` directory and so you can in a local environment.
+Continuous Integration uses what is inside in the `.script` directory and so you can too in a local environment.
 
 * **.scripts/integration-tests.sh**: Tests if the internal declarations conform the external counterparts. May or may not require a internet connection.
 * **.scripts/internal-tests.sh**: Unit tests, formatting and lints.

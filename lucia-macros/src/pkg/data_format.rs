@@ -7,6 +7,7 @@ pub(crate) enum DataFormat {
   Borsh,
   Json,
   JsonRpc(String),
+  Protobuf,
   Verbatim,
   Xml,
   Yaml,
@@ -42,12 +43,12 @@ impl DataFormat {
       };
     }
     match *self {
-      DataFormat::Borsh => TokenStream::new(),
       DataFormat::Json => rslt!(http_mime_type!(Json)),
       DataFormat::JsonRpc(_) => rslt!(http_method_and_mime_type!(Post, Json)),
-      DataFormat::Verbatim => TokenStream::new(),
+      DataFormat::Protobuf => rslt!(http_mime_type!(Protobuf)),
       DataFormat::Xml => rslt!(http_mime_type!(Xml)),
       DataFormat::Yaml => rslt!(http_mime_type!(Yaml)),
+      DataFormat::Borsh | DataFormat::Verbatim => TokenStream::new(),
     }
   }
 
@@ -71,6 +72,12 @@ impl DataFormat {
         dfe_ext_req_ctnt_wrapper: ident_fn("JsonRpcRequest"),
         dfe_ext_res_ctnt_wrapper: ident_fn("JsonRpcResponse"),
         dfe_pkgs_aux_call: quote::quote!(json_rpc_request(#method, data)),
+      },
+      DataFormat::Protobuf => DataFormatElems {
+        dfe_data_format_builder_fn: ident_fn("build_protobuf"),
+        dfe_ext_req_ctnt_wrapper: ident_fn("ProtobufRequest"),
+        dfe_ext_res_ctnt_wrapper: ident_fn("ProtobufResponse"),
+        dfe_pkgs_aux_call: quote::quote!(protobuf_request(data)),
       },
       DataFormat::Verbatim => DataFormatElems {
         dfe_data_format_builder_fn: ident_fn("build_verbatim"),
@@ -107,9 +114,7 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for DataFormat {
         }
       };
     }
-    let meta = if let NestedMeta::Meta(ref elem) = *from {
-      elem
-    } else {
+    let NestedMeta::Meta(ref meta) = *from else {
       return Err(crate::Error::UnknownDataFormat);
     };
     if let Meta::List(ref elem) = *meta {
@@ -127,9 +132,10 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for DataFormat {
       match first_path_seg_ident!(elem).to_string().as_str() {
         "borsh" => Ok(Self::Borsh),
         "json" => Ok(Self::Json),
+        "protobuf" => Ok(Self::Protobuf),
+        "verbatim" => Ok(Self::Verbatim),
         "xml" => Ok(Self::Xml),
         "yaml" => Ok(Self::Yaml),
-        "verbatim" => Ok(Self::Verbatim),
         _ => Err(crate::Error::UnknownDataFormat),
       }
     } else {

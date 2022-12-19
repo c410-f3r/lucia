@@ -92,7 +92,7 @@ fn push_attr<'any>(
       },
     },
     tokens,
-  })
+  });
 }
 
 #[cfg(test)]

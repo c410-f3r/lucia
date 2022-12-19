@@ -27,13 +27,14 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct GetSignatureStatusesConfig {
     search_transaction_history: bool,
   }
 
   #[derive(Debug, serde::Deserialize)]
-  #[serde(rename_all = "camelCase")]
   #[doc = _generic_res_data_elem_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct GetSignatureStatuses {
     /// Commitment
     pub confirmation_status: Commitment,

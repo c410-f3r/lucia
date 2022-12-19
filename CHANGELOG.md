@@ -9,3 +9,7 @@
 * Add related API types. [#16](https://github.com/c410-f3r/lucia/pull/16)
 
 * Add support for borsh and rkyv. [#23](https://github.com/c410-f3r/lucia/pull/23)
+
+* Add support for the simd-json serializer. [#26](https://github.com/c410-f3r/lucia/pull/26)
+
+* Add support for GraphQL and Protobuf. [#30](https://github.com/c410-f3r/lucia/pull/30)

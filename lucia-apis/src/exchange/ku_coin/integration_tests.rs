@@ -40,7 +40,7 @@ async fn place_order<T>(
 ) where
   T: Send + Sync + Transport<SerdeJson, Params = HttpParams>,
 {
-  let _ = trans
+  let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux
         .v1_place_order()

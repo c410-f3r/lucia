@@ -28,10 +28,8 @@ impl SirAuxItemValues {
     bcv: BuilderCommonValues<'_>,
   ) -> (impl Iterator<Item = &GenericParam>, impl Iterator<Item = &GenericParam>) {
     let (a_lts, a_tys) = split_params(bcv.faiv.faiv_params);
-    let (b_lts, b_tys) =
-      split_params(bcv.fpiv.map(|el| el.fpiv_params).unwrap_or(EMPTY_GEN_PARAMS));
-    let (c_lts, c_tys) =
-      split_params(bcv.freqdiv.map(|el| el.freqdiv_params).unwrap_or(EMPTY_GEN_PARAMS));
+    let (b_lts, b_tys) = split_params(bcv.fpiv.map_or(EMPTY_GEN_PARAMS, |el| el.fpiv_params));
+    let (c_lts, c_tys) = split_params(bcv.freqdiv.map_or(EMPTY_GEN_PARAMS, |el| el.freqdiv_params));
     (a_lts.chain(b_lts).chain(c_lts), a_tys.chain(b_tys).chain(c_tys))
   }
 

@@ -23,7 +23,6 @@ bs58 = { default-features = false, features = ["alloc"], optional = true, versio
 crypto-common = { default-features = false, optional = true, version = "0.1" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 
-
 [dev-dependencies]
 dotenv = { default-features = false, version = "0.15" }
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
@@ -38,9 +37,10 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 # API
 
 json-placeholder = []
-ku-coin = ["base64", "dep:crypto-common", "dep:hmac", "dep:sha2"]
+ku-coin = ["base64", "crypto-common", "hmac", "sha2"]
 nager-date = []
-solana = ["base64", "dep:bincode", "bs58"]
+rick-and-morty = []
+solana = ["base64", "bincode", "bs58"]
 
 # Etc
 

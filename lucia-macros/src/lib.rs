@@ -1,5 +1,7 @@
 //! Lucia - Macros
 
+#![allow(clippy::too_many_lines)]
+
 extern crate alloc;
 
 mod api_types;

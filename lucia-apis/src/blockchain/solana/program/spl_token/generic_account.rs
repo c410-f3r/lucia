@@ -8,8 +8,8 @@ use crate::blockchain::solana::program::spl_token::{MintAccount, TokenAccount};
 #[derive(Debug, serde::Deserialize)]
 #[serde(content = "info", rename_all = "camelCase", tag = "type")]
 pub enum GenericAccount {
+  /// Token account
+  Account(TokenAccount),
   /// Mint account
   Mint(MintAccount),
-  /// Token account
-  TokenAccount(TokenAccount),
 }

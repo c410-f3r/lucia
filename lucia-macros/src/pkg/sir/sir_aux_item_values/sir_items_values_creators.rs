@@ -20,7 +20,7 @@ impl SirAuxItemValues {
     let FirCustomItemValuesRef { fields_attrs, ident, item, params, ty, where_predicates } = fcivr;
     let single_elem = |is_trivial| (quote::quote!(elem: #ty), quote::quote!(elem), is_trivial);
     let (fn_args, fn_ret_constr, is_trivial) = match item {
-      EnumStructOrType::Enum(_) => single_elem(false),
+      EnumStructOrType::Enum => single_elem(false),
       EnumStructOrType::Struct(item) => match item.fields {
         Fields::Named(ref fields_named) => {
           if fields_attrs.is_empty() {
@@ -30,8 +30,12 @@ impl SirAuxItemValues {
               .named
               .iter()
               .zip(fields_attrs)
-              .filter_map(|(struct_field, attr_field)| {
-                Some(attr_field.as_ref().map(|el| &el.name).unwrap_or(struct_field.ident.as_ref()?))
+              .map(|(struct_field, attr_field)| {
+                Some(
+                  attr_field
+                    .as_ref()
+                    .map_or_else(|| struct_field.ident.as_ref(), |el| Some(&el.name)),
+                )
               })
               .collect::<Vec<_>>();
             let tys = fields_named.named.iter().map(|struct_field| &struct_field.ty);
@@ -145,11 +149,11 @@ impl SirAuxItemValues {
         match ps.ident.to_string().as_str() {
           "Option" => {
             has_short_circuit = true;
-            fn_ret_wrapper_variant_ident = Some(Ident::new("Some", Span::mixed_site()))
+            fn_ret_wrapper_variant_ident = Some(Ident::new("Some", Span::mixed_site()));
           }
           "Result" => {
             has_short_circuit = true;
-            fn_ret_wrapper_variant_ident = Some(Ident::new("Ok", Span::mixed_site()))
+            fn_ret_wrapper_variant_ident = Some(Ident::new("Ok", Span::mixed_site()));
           }
           _ => {}
         }
@@ -162,7 +166,7 @@ impl SirAuxItemValues {
 
     let fn_args_iter = fn_args_iter_fn();
     let fn_args = quote::quote!(#(#fn_args_iter,)*);
-    let fn_args_idents = fn_args_iter_fn().map(|el| &el.pat);
+    let fn_args_idents = fn_args_iter_fn().map(|el| &*el.pat);
     let method_ident = &iim.sig.ident;
     let fn_ret_constr = if has_short_circuit {
       quote::quote!(self.aux.#method_ident(#(#fn_args_idents,)*)?)
@@ -186,7 +190,7 @@ impl SirAuxItemValues {
   }
 
   pub(super) fn create_method_returning_builder(
-    cmrbp: CreateMethodReturningBuilderParams<'_>,
+    cmrbp: &CreateMethodReturningBuilderParams<'_>,
   ) -> TokenStream {
     let CreateMethodReturningBuilderParams {
       builder_aux_field_constr,

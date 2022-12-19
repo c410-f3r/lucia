@@ -13,6 +13,7 @@ mod v1_get_withdrawals;
 mod v1_place_order;
 mod v2_get_currency;
 mod v2_get_symbols;
+mod v2_inner_transfer;
 mod v3_get_full_order_book;
 mod ws;
 
@@ -31,5 +32,6 @@ pub use v1_get_withdrawals::pkg::*;
 pub use v1_place_order::pkg::*;
 pub use v2_get_currency::pkg::*;
 pub use v2_get_symbols::pkg::*;
+pub use v2_inner_transfer::pkg::*;
 pub use v3_get_full_order_book::pkg::*;
 pub use ws::*;

@@ -42,18 +42,18 @@ pub(crate) mod pkg {
     /// Support debit or not
     pub is_debit_enabled: bool,
     /// If asset can be deposited.
-    pub is_deposit_enabled: Option<bool>,
+    pub is_deposit_enabled: bool,
     /// If asset supports margin trading.
     pub is_margin_enabled: bool,
     /// If asset supports withdrawal.
-    pub is_withdraw_enabled: Option<bool>,
+    pub is_withdraw_enabled: bool,
     /// Mutable asset name
     pub name: _MaxAssetName,
     /// Asset precision
     pub precision: u8,
     /// Minimum fees charged for withdrawal
-    pub withdrawal_min_fee: Option<_MaxNumberStr>,
+    pub withdrawal_min_fee: _MaxNumberStr,
     /// Minimum withdrawal amount
-    pub withdrawal_min_size: Option<_MaxNumberStr>,
+    pub withdrawal_min_size: _MaxNumberStr,
   }
 }

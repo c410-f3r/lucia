@@ -19,14 +19,10 @@ impl<'attrs> TryFrom<&'attrs [NestedMeta]> for FirPkgAttr<'attrs> {
     let mut error = None;
     let mut transports = None;
     for nested_meta in from {
-      let meta_list = if let NestedMeta::Meta(Meta::List(ref elem)) = *nested_meta {
-        elem
-      } else {
+      let NestedMeta::Meta(Meta::List(ref meta_list)) = *nested_meta else {
         continue;
       };
-      let first_meta_list_path_seg = if let Some(elem) = meta_list.path.segments.first() {
-        elem
-      } else {
+      let Some(first_meta_list_path_seg) = meta_list.path.segments.first() else {
         continue;
       };
       match first_meta_list_path_seg.ident.to_string().as_str() {
@@ -55,9 +51,7 @@ impl<'attrs> TryFrom<&'attrs [NestedMeta]> for FirPkgAttr<'attrs> {
 }
 
 fn first_nested_meta_path(meta_list: &MetaList) -> Option<&Path> {
-  let meta = if let Some(NestedMeta::Meta(elem)) = meta_list.nested.first() {
-    elem
-  } else {
+  let Some(NestedMeta::Meta(meta)) = meta_list.nested.first() else {
     return None;
   };
   if let Meta::Path(ref elem) = *meta {

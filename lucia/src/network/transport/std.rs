@@ -108,9 +108,8 @@ where
     if sent == slice.len() {
       everything_was_sent = true;
       break;
-    } else {
-      slice = slice.get(sent..).unwrap_or_default();
     }
+    slice = slice.get(sent..).unwrap_or_default();
   }
   pkgs_aux.byte_buffer.clear();
   pkgs_aux.byte_buffer.extend((0..pkgs_aux.byte_buffer.capacity()).map(|_| 0));

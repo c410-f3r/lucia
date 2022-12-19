@@ -25,6 +25,10 @@ impl GenericTime {
 
   /// Returns the amount of time elapsed from another instant to this one,
   /// or None if that instant is later than this one.
+  #[allow(
+    // Depends on the feature
+    clippy::used_underscore_binding
+  )]
   #[inline]
   pub fn duration_since(&self, _earlier: Self) -> crate::Result<Duration> {
     #[cfg(feature = "std")]

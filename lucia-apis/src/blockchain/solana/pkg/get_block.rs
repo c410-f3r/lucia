@@ -24,8 +24,9 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct GetBlockConfig {
-    /// Commitment
+    #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
     #[serde(skip_serializing_if = "Option::is_none")]

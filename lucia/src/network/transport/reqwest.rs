@@ -41,7 +41,7 @@ where
   where
     P: Package<DRSR, HttpParams> + Send + Sync,
   {
-    let _ = response(self, pkg, pkgs_aux).await?;
+    let _res = response(self, pkg, pkgs_aux).await?;
     Ok(())
   }
 
@@ -71,10 +71,10 @@ where
   DRSR: Send + Sync,
   P: Package<DRSR, HttpParams> + Send + Sync,
 {
-  async fn manage_data<A, DRSR, E>(
+  fn manage_data<A, DRSR>(
     mut rb: RequestBuilder,
     pkgs_aux: &mut PkgsAux<A, DRSR, HttpParams>,
-  ) -> Result<RequestBuilder, E>
+  ) -> RequestBuilder
   where
     DRSR: Send + Sync,
   {
@@ -82,20 +82,16 @@ where
       rb = rb.header(CONTENT_TYPE, HeaderValue::from_static(data_format._as_str()));
     }
     rb = rb.body(pkgs_aux.byte_buffer.clone());
-    Ok(rb)
+    rb
   }
   pkgs_aux.byte_buffer.clear();
   manage_before_sending_related(pkg, pkgs_aux, client).await?;
   let mut rb = match pkgs_aux.ext_req_params.method {
     HttpMethod::Delete => client.delete(pkgs_aux.ext_req_params.url.url()),
     HttpMethod::Get => client.get(pkgs_aux.ext_req_params.url.url()),
-    HttpMethod::Patch => {
-      manage_data(client.patch(pkgs_aux.ext_req_params.url.url()), pkgs_aux).await?
-    }
-    HttpMethod::Post => {
-      manage_data(client.post(pkgs_aux.ext_req_params.url.url()), pkgs_aux).await?
-    }
-    HttpMethod::Put => manage_data(client.put(pkgs_aux.ext_req_params.url.url()), pkgs_aux).await?,
+    HttpMethod::Patch => manage_data(client.patch(pkgs_aux.ext_req_params.url.url()), pkgs_aux),
+    HttpMethod::Post => manage_data(client.post(pkgs_aux.ext_req_params.url.url()), pkgs_aux),
+    HttpMethod::Put => manage_data(client.put(pkgs_aux.ext_req_params.url.url()), pkgs_aux),
   };
   pkgs_aux.byte_buffer.clear();
   for (key, value) in pkgs_aux.ext_req_params.headers.iter() {

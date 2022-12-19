@@ -50,7 +50,7 @@ impl KuCoinCredentials {
     body: &[u8],
     req_params: &mut HttpReqParams,
   ) -> crate::Result<()> {
-    let timestamp: i64 = GenericTime::now()?.timestamp()?.as_millis().try_into()?;
+    let timestamp: u64 = GenericTime::now()?.timestamp()?.as_millis().try_into()?;
     let sign_value = self.sign(body, req_params, timestamp)?;
     req_params.headers.push_str("KC-API-KEY", self.api_key.as_ref())?;
     req_params.headers.push_str("KC-API-KEY-VERSION", "2")?;
@@ -67,7 +67,7 @@ impl KuCoinCredentials {
     &self,
     body: &[u8],
     req_params: &mut HttpReqParams,
-    timestamp: i64,
+    timestamp: u64,
   ) -> crate::Result<ArrayString<SIGNATURE_MAX_LEN>> {
     let mut mac = Hmac::<Sha256>::new_from_slice(self.api_secret.as_str().as_bytes())?;
     mac.update(ArrayString::<20>::try_from(format_args!("{}", timestamp))?.as_bytes());
