@@ -1,7 +1,6 @@
 mod attrs;
 
-use crate::{misc::create_ident, transport_group::TransportGroup};
-use alloc::borrow::Cow;
+use crate::{misc::create_ident, owned_or_ref::OwnedOrRef, transport_group::TransportGroup};
 use proc_macro2::{Ident, Span};
 use quote::ToTokens;
 use syn::{
@@ -25,9 +24,9 @@ pub(crate) fn api_types(
         ident: Ident::new("PkgsAux", Span::mixed_site()),
         arguments: PathArguments::None,
       });
-      Cow::Owned(Path { leading_colon: None, segments })
+      OwnedOrRef::Owned(Path { leading_colon: None, segments })
     },
-    Cow::Borrowed,
+    OwnedOrRef::Ref,
   );
 
   let api_ident = match item {

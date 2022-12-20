@@ -22,7 +22,7 @@ pub(crate) mod pkg {
     Option<GetTokenAccountBalanceConfig>,
   )
   where
-    S: AsRef<str> + Send;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type GetTokenAccountBalanceRes = JsonRpcResponseResultWithContext<AccountBalance>;

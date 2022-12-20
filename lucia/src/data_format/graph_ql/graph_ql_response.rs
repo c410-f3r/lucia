@@ -37,12 +37,10 @@ mod serde {
       {
         type Value = GraphQlResponse<D, E>;
 
-        #[inline]
         fn expecting(&self, formatter: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
           formatter.write_str("struct GraphQlResponse")
         }
 
-        #[inline]
         fn visit_map<V>(self, mut map: V) -> Result<GraphQlResponse<D, E>, V::Error>
         where
           V: serde::de::MapAccess<'de>,
@@ -179,12 +177,10 @@ mod simd_json {
     D: for<'de> serde::Deserialize<'de>,
     E: for<'de> serde::Deserialize<'de>,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut SimdJson) -> crate::Result<Self> {
       Ok(simd_json::from_reader(bytes)?)
     }
 
-    #[inline]
     fn seq_from_bytes<ERR>(
       _: &[u8],
       _: &mut SimdJson,
@@ -202,7 +198,6 @@ mod simd_json {
     D: serde::Serialize,
     E: serde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
     where
       BB: ByteBuffer,

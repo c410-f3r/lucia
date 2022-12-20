@@ -3,7 +3,10 @@ use serde::Serialize;
 
 #[derive(Debug)]
 /// Utility that serializes strings as a single string.
-pub(crate) struct ConcatArrayStr<'any, const N: usize>(pub(crate) [&'any str; N]);
+pub struct ConcatArrayStr<'any, const N: usize>(
+  /// Array
+  pub [&'any str; N],
+);
 
 impl<const N: usize> Display for ConcatArrayStr<'_, N> {
   #[inline]

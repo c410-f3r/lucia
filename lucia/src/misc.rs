@@ -20,7 +20,7 @@ use crate::{
   Api,
 };
 pub use byte_buffer::*;
-use core::time::Duration;
+use core::{any::type_name, time::Duration};
 pub use debug_display::*;
 pub use from_bytes::*;
 pub use generic_time::*;
@@ -30,6 +30,14 @@ pub use request_counter::*;
 pub use request_limit::*;
 pub use request_throttling::*;
 pub use url::*;
+
+/// Useful when a request returns an optional field but the actual usage is within a
+/// [core::result::Result] context.
+#[inline]
+#[track_caller]
+pub fn into_rslt<T>(opt: Option<T>) -> crate::Result<T> {
+  opt.ok_or(crate::Error::NoInnerValue(type_name::<T>()))
+}
 
 /// Sleeps for the specified amount of time.
 ///
@@ -71,7 +79,6 @@ pub async fn sleep(duration: Duration) -> crate::Result<()> {
   // Depends on the feature
   clippy::used_underscore_binding
 )]
-#[inline]
 pub(crate) fn log_req<DRSR, P, T>(
   _pgk: &mut P,
   _pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
@@ -99,19 +106,17 @@ pub(crate) fn log_req<DRSR, P, T>(
   // Depends on the feature
   clippy::used_underscore_binding
 )]
-#[inline]
 pub(crate) fn log_res(_res: &[u8]) {
   _debug!("Response: {:?}", core::str::from_utf8(_res));
 }
 
-#[inline]
 pub(crate) async fn manage_before_sending_related<DRSR, P, T>(
   pkg: &mut P,
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
   trans: &T,
 ) -> Result<(), P::Error>
 where
-  P: Package<DRSR, T::Params> + Send + Sync,
+  P: Package<DRSR, T::Params>,
   T: Transport<DRSR>,
 {
   log_req(pkg, pkgs_aux, trans);

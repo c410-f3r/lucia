@@ -52,7 +52,7 @@ pub enum AccountDataJsonParsed {
   /// SPL token account
   SplTokenAccount(GenericAccount),
   /// Unknown program
-  #[serde(deserialize_with = "crate::misc::_deserialize_ignore_any")]
+  #[serde(deserialize_with = "crate::misc::deserialize_ignore_any")]
   Unknown,
 }
 

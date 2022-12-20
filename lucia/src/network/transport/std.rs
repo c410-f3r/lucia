@@ -6,18 +6,12 @@ use crate::{
   },
   pkg::{Package, PkgsAux},
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use std::{
   io::{Read, Write},
   net::{TcpStream, UdpSocket},
 };
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for TcpStream
-where
-  DRSR: Send + Sync,
-{
+impl<DRSR> Transport<DRSR> for TcpStream {
   const GROUP: TransportGroup = TransportGroup::TCP;
   type Params = TcpParams;
 
@@ -28,7 +22,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, TcpParams> + Send + Sync,
+    P: Package<DRSR, TcpParams>,
   {
     send(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.write(bytes)?)).await?;
     Ok(())
@@ -41,17 +35,13 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, TcpParams> + Send + Sync,
+    P: Package<DRSR, TcpParams>,
   {
     send_and_retrieve(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.read(bytes)?)).await
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for UdpSocket
-where
-  DRSR: Send + Sync,
-{
+impl<DRSR> Transport<DRSR> for UdpSocket {
   const GROUP: TransportGroup = TransportGroup::UDP;
   type Params = UdpParams;
 
@@ -62,8 +52,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, UdpParams> + Send + Sync,
-    P::Api: Send + Sync,
+    P: Package<DRSR, UdpParams>,
   {
     send(pkg, pkgs_aux, self, |bytes, ext_req_params, trans| {
       Ok(trans.send_to(bytes, ext_req_params.url.url())?)
@@ -78,9 +67,9 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, UdpParams> + Send + Sync,
+    P: Package<DRSR, UdpParams>,
   {
-    Ok(send_and_retrieve(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.recv(bytes)?)).await?)
+    send_and_retrieve(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.recv(bytes)?)).await
   }
 }
 
@@ -95,9 +84,8 @@ async fn send<DRSR, P, T>(
   ) -> crate::Result<usize>,
 ) -> Result<(), P::Error>
 where
-  DRSR: Send + Sync,
-  P: Package<DRSR, T::Params> + Send + Sync,
-  T: Send + Sync + Transport<DRSR>,
+  P: Package<DRSR, T::Params>,
+  T: Transport<DRSR>,
 {
   pkgs_aux.byte_buffer.clear();
   manage_before_sending_related(pkg, pkgs_aux, trans).await?;
@@ -132,9 +120,8 @@ async fn send_and_retrieve<DRSR, P, T>(
   ) -> crate::Result<usize>,
 ) -> Result<usize, P::Error>
 where
-  DRSR: Send + Sync,
-  P: Package<DRSR, T::Params> + Send + Sync,
-  T: Send + Sync + Transport<DRSR>,
+  P: Package<DRSR, T::Params>,
+  T: Transport<DRSR>,
 {
   trans.send(pkg, pkgs_aux).await?;
   let slice = pkgs_aux.byte_buffer.as_mut();

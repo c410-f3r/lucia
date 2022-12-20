@@ -2,13 +2,12 @@
 
 #![allow(clippy::too_many_lines)]
 
-extern crate alloc;
-
 mod api_types;
 mod contained_attrs;
 mod error;
 mod item_with_attr_span;
 mod misc;
+mod owned_or_ref;
 mod pkg;
 mod transport_group;
 

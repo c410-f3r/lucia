@@ -28,7 +28,7 @@ pub enum InstructionJsonParsedInfo {
   /// Spl-token checked transfer
   TransferCheckedInstruction(TransferCheckedInstruction),
   /// Unsupported
-  #[serde(deserialize_with = "crate::misc::_deserialize_ignore_any")]
+  #[serde(deserialize_with = "crate::misc::deserialize_ignore_any")]
   Unknown,
 }
 

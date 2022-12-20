@@ -56,12 +56,10 @@ mod protobuf {
   where
     D: Message,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut Protobuf) -> crate::Result<Self> {
       Ok(Self { data: Message::parse_from_bytes(bytes)? })
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       _: &[u8],
       _: &mut Protobuf,

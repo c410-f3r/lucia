@@ -3,8 +3,6 @@ use crate::{
   network::{http::HttpMethod, transport::Transport, HttpParams, TransportGroup},
   pkg::{Package, PkgsAux},
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use surf::{
   http::headers::{CONTENT_TYPE, USER_AGENT},
   Client, RequestBuilder,
@@ -24,11 +22,7 @@ use surf::{
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for Client
-where
-  DRSR: Send + Sync,
-{
+impl<DRSR> Transport<DRSR> for Client {
   const GROUP: TransportGroup = TransportGroup::HTTP;
   type Params = HttpParams;
 
@@ -39,9 +33,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    DRSR: Send + Sync,
-    P: Package<DRSR, HttpParams> + Send + Sync,
-    P::Api: Send + Sync,
+    P: Package<DRSR, HttpParams>,
   {
     let _res = response(self, pkg, pkgs_aux).await?;
     Ok(())
@@ -54,7 +46,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, HttpParams> + Send + Sync,
+    P: Package<DRSR, HttpParams>,
   {
     let mut res = response(self, pkg, pkgs_aux).await?;
     let received_bytes = res.body_bytes().await.map_err(Into::into)?;
@@ -63,23 +55,19 @@ where
   }
 }
 
-#[inline]
 async fn response<DRSR, P>(
   client: &Client,
   pkg: &mut P,
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
 ) -> Result<surf::Response, P::Error>
 where
-  DRSR: Send + Sync,
-  P: Package<DRSR, HttpParams> + Send + Sync,
+  P: Package<DRSR, HttpParams>,
 {
   async fn manage_data<A, E, DRSR>(
     mut rb: RequestBuilder,
     pkgs_aux: &mut PkgsAux<A, DRSR, HttpParams>,
   ) -> Result<RequestBuilder, E>
-  where
-    DRSR: Send + Sync,
-  {
+where {
     if let Some(data_format) = pkgs_aux.ext_req_params.mime_type {
       rb = rb.header(CONTENT_TYPE, data_format._as_str());
     }

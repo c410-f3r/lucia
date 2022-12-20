@@ -19,7 +19,7 @@ pub(crate) mod sub {
     Option<AccountSubscribeConfig>,
   )
   where
-    S: AsRef<str> + Send;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type AccountSubscribeRes = u64;
@@ -51,7 +51,7 @@ pub(crate) mod unsub {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct AccountUnsubscribeReq(
-    #[serde(serialize_with = "crate::misc::_serialize_as_tuple")]
+    #[serde(serialize_with = "crate::misc::serialize_as_tuple")]
     #[pkg::field(name = "id")]
     u64,
   );

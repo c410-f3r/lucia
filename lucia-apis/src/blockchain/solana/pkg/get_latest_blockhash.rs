@@ -12,7 +12,7 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetLatestBlockhashReq(
     #[pkg::field(name = "config")]
-    #[serde(serialize_with = "crate::misc::_serialize_as_tuple")]
+    #[serde(serialize_with = "crate::misc::serialize_as_tuple")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetLatestBlockhashConfig>,
   );

@@ -80,6 +80,8 @@ pub enum Error {
   ItIsNotPossibleToUseTimeInNoStd,
   /// JSON-RPC response error
   JsonRpcResultErr(JsonRpcResponseError),
+  /// A variant used to transform `Option`s into `Result`s
+  NoInnerValue(&'static str),
   /// A given response id is not present in the set of sent packages.
   ResponseIdIsNotPresentInTheOfSentBatchPackages(Id),
   /// No stored test response to return a result from a request

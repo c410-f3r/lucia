@@ -116,12 +116,7 @@ impl<'attrs, 'module, 'others>
         let freqdiv_where_predicates_iter = freqdiv_where_predicates.iter();
         let tp = Self::transport_params(transport_group);
         let (lts, tys) = Self::pkg_params(&freqdiv, &fpiv);
-        #[cfg(feature = "async-trait")]
-        let async_trait_cfg = quote::quote!(#[async_trait::async_trait]);
-        #[cfg(not(feature = "async-trait"))]
-        let async_trait_cfg = TokenStream::new();
         package_impls.push(quote::quote!(
-          #async_trait_cfg
           impl<
             #(#lts,)*
             #(#tys,)*
@@ -139,7 +134,6 @@ impl<'attrs, 'module, 'others>
             lucia::data_format::#dfe_ext_res_ctnt_wrapper<
               #res_ident
             >: lucia::dnsn::Deserialize<DRSR>,
-            DRSR: Send + Sync,
           {
             type Api = #api;
             type Error = #error;
@@ -151,6 +145,7 @@ impl<'attrs, 'module, 'others>
             >;
             type PackageParams = #fpiv_ty;
 
+            #[inline]
             async fn after_sending(
               &mut self,
               _api: &mut Self::Api,
@@ -160,6 +155,7 @@ impl<'attrs, 'module, 'others>
               Ok(())
             }
 
+            #[inline]
             async fn before_sending(
               &mut self,
               _api: &mut Self::Api,
@@ -171,18 +167,22 @@ impl<'attrs, 'module, 'others>
               Ok(())
             }
 
+            #[inline]
             fn ext_req_content(&self) -> &Self::ExternalRequestContent {
               &self.content
             }
 
+            #[inline]
             fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
               &mut self.content
             }
 
+            #[inline]
             fn pkg_params(&self) -> &Self::PackageParams {
               &self.params
             }
 
+            #[inline]
             fn pkg_params_mut(&mut self) -> &mut Self::PackageParams {
               &mut self.params
             }

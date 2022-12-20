@@ -29,7 +29,6 @@ mod miniserde {
   where
     D: miniserde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut Miniserde) -> crate::Result<()>
     where
       BB: ByteBuffer,

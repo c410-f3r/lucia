@@ -1,6 +1,4 @@
 use crate::network::transport::TransportParams;
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 /// How the WebSocket request should be issued.
@@ -53,7 +51,6 @@ impl WsReqParams {
 pub struct WsResParams;
 
 /// Abstracts all WebSocket implementations.
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait WebSocket
 where
   Self: Sized,

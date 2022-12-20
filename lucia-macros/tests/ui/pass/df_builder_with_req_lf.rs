@@ -1,6 +1,9 @@
 //! Any request with lifetimes and custom data methods must have lifetimes that match
 //! both request and method signatures.
 
+#![allow(incomplete_features)]
+#![feature(async_fn_in_trait, impl_trait_projections)]
+
 lucia::create_packages_aux_wrapper!();
 
 type Api = ();

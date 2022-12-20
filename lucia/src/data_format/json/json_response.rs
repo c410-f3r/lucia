@@ -52,12 +52,10 @@ mod miniserde {
   where
     D: miniserde::Deserialize,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut Miniserde) -> crate::Result<Self> {
       Ok(Self { data: miniserde::json::from_str(core::str::from_utf8(bytes)?)? })
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       bytes: &[u8],
       _: &mut Miniserde,
@@ -150,12 +148,10 @@ mod simd_json {
   where
     D: for<'de> serde::Deserialize<'de>,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut SimdJson) -> crate::Result<Self> {
       Ok(JsonResponse { data: simd_json::from_reader(bytes)? })
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       _: &[u8],
       _: &mut SimdJson,
@@ -172,7 +168,6 @@ mod simd_json {
   where
     D: serde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
     where
       BB: ByteBuffer,

@@ -12,7 +12,6 @@ impl<'str, S> QueryWriter<'str, S>
 where
   S: DynString,
 {
-  #[inline]
   pub(crate) fn new(s: &'str mut S) -> Self {
     Self { initial_len: s.len(), s }
   }

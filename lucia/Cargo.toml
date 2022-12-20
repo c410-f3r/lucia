@@ -18,7 +18,6 @@ simd-json = { default-features = false, features = ["serde_impl"], optional = tr
 
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
-async-trait = { default-features = false, optional = true, version = "0.1" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tracing = { default-features = false, optional = true, version = "0.1" }
@@ -54,8 +53,7 @@ simd-json = ["serde", "dep:simd-json", "std"]
 
 arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
 async-std = ["dep:async-std", "async-std?/default"]
-async-trait = ["dep:async-trait", "lucia-macros?/async-trait"]
-default = ["async-trait"]
+default = []
 macros = ["dep:lucia-macros"]
 std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
 tokio = ["std", "dep:tokio", "tokio?/time"]

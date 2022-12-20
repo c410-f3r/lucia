@@ -33,7 +33,7 @@ pub(crate) mod unsub {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct SlotsUpdatesUnsubscribeReq(
-    #[serde(serialize_with = "crate::misc::_serialize_as_tuple")]
+    #[serde(serialize_with = "crate::misc::serialize_as_tuple")]
     #[pkg::field(name = "id")]
     u64,
   );

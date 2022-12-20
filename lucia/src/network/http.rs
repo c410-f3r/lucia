@@ -87,7 +87,6 @@ pub enum HttpMimeType {
 }
 
 impl HttpMimeType {
-  #[inline]
   pub(crate) fn _as_str(self) -> &'static str {
     match self {
       HttpMimeType::Bytes => "application/octet-stream",
@@ -109,7 +108,6 @@ pub enum HttpUserAgent {
 }
 
 impl HttpUserAgent {
-  #[inline]
   pub(crate) fn _as_str(self) -> &'static str {
     match self {
       Self::Mozilla => "Mozilla",

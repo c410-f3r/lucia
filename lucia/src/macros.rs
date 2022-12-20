@@ -55,6 +55,16 @@ macro_rules! create_packages_aux_wrapper {
         &mut self.0
       }
     }
+
+    impl<$($api_param,)? DRSR, TP> From<lucia::pkg::PkgsAux<$api_ty, DRSR, TP>> for $name<$api_ty, DRSR, TP>
+    where
+      TP: lucia::network::transport::TransportParams
+    {
+      #[inline]
+      fn from(from: lucia::pkg::PkgsAux<$api_ty, DRSR, TP>) -> Self {
+        Self(from)
+      }
+    }
   };
 }
 
@@ -73,8 +83,7 @@ macro_rules! _create_set_of_request_throttling {
     }
 
     impl $name {
-      #[inline]
-      pub fn new(
+            pub fn new(
         $( $method: $crate::utils::RequestLimit, )+
       ) -> Self {
         Self {

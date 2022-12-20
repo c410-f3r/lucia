@@ -20,7 +20,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "config")] Option<GetProgramAccountsConfig<'bytes, 'filter>>,
   )
   where
-    S: AsRef<str> + Send;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type GetProgramAccountsRes = Vec<GetProgramAccounts>;

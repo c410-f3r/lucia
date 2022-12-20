@@ -5,11 +5,6 @@ lucia = { default-features = false, features = ["arrayvec"], path = "../lucia", 
 lucia-macros = { default-features = false, path = "../lucia-macros", version = "0.2" }
 serde = { default-features = false, features = ["alloc", "derive"], version = "1.0" }
 
-# KuCoin
-
-hmac = { default-features = false, optional = true, version = "0.12" }
-sha2 = { default-features = false, optional = true, version = "0.10" }
-
 # Solana
 
 bincode = { default-features = false, optional = true, version = "1.0" }
@@ -17,14 +12,11 @@ solana-program = { default-features = false, optional = true, version = "1.0" }
 
 # Etc
 
-async-trait = { default-features = false, optional = true, version = "0.1" }
 base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.20" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
-crypto-common = { default-features = false, optional = true, version = "0.1" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 
 [dev-dependencies]
-dotenv = { default-features = false, version = "0.15" }
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
 lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
@@ -37,15 +29,13 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 # API
 
 json-placeholder = []
-ku-coin = ["base64", "crypto-common", "hmac", "sha2"]
 nager-date = []
 rick-and-morty = []
 solana = ["base64", "bincode", "bs58"]
 
 # Etc
 
-async-trait = ["dep:async-trait", "lucia/async-trait", "lucia-macros/async-trait"]
-default = ["async-trait"]
+default = []
 ed25519-dalek = ["dep:ed25519-dalek", "std"]
 std = []
 _integration-tests = []

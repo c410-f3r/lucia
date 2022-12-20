@@ -55,12 +55,10 @@ mod serde_yaml {
   where
     D: for<'de> serde::Deserialize<'de>,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut SerdeYaml) -> crate::Result<Self> {
       Ok(serde_yaml::from_reader(bytes)?)
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       bytes: &[u8],
       _: &mut SerdeYaml,
@@ -79,7 +77,6 @@ mod serde_yaml {
   where
     D: serde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SerdeYaml) -> crate::Result<()>
     where
       BB: ByteBuffer,

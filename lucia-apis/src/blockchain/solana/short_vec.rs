@@ -15,7 +15,6 @@ use short_vec_visitor::*;
 
 const MAX_ENCODING_LENGTH: usize = 3;
 
-#[inline]
 pub(crate) fn serialize<S, T>(elements: &[T], serializer: S) -> Result<S::Ok, S::Error>
 where
   S: Serializer,
@@ -38,7 +37,6 @@ where
   seq.end()
 }
 
-#[inline]
 pub(crate) fn deserialize<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
   D: Deserializer<'de>,

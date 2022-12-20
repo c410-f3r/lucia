@@ -28,7 +28,6 @@ mod borsh {
   where
     D: BorshSerialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut Borsh) -> crate::Result<()>
     where
       BB: ByteBuffer,
