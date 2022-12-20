@@ -16,7 +16,7 @@ It is possible to directly decode json responses using built-in methods provided
 
 For API consumers, the calling convention of `lucia` endpoints is based on fluent interfaces which makes the usage more pleasant and intuitive.
 
-In the future, the project may create automatic bindings for other languages in other to avoid having duplicated repositories or automatically generate packages from GraphQL schemas or `.proto` files.
+Moreover, the project may in the future create automatic bindings for other languages in order to avoid having duplicated API repositories.
 
 ## Infrastructure
 
