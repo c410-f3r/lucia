@@ -1,21 +1,26 @@
 //! Utility functions and structures
 
-pub(crate) mod concat_array_str;
-pub(crate) mod slice_by_commas;
+mod concat_array_str;
+mod slice_by_commas;
 
-use core::any::type_name;
+use core::{fmt::Display, str::FromStr};
+
+pub use concat_array_str::*;
 use lucia::create_packages_aux_wrapper;
+use serde::{de::IntoDeserializer, Deserialize, Deserializer, Serialize, Serializer};
+pub use slice_by_commas::*;
 
-pub(crate) const _MAX_ASSET_ABBR_LEN: usize = 10;
-/// The maximum length of any string number representation.
+pub(crate) const _MAX_ASSET_ABBR_LEN: usize = 5;
 pub(crate) const _MAX_NUMBER_LEN: usize = 31;
 
-pub(crate) type _MaxAssetAbbr = arrayvec::ArrayString<_MAX_ASSET_ABBR_LEN>;
-pub(crate) type _MaxAssetName = arrayvec::ArrayString<16>;
-pub(crate) type _MaxAssetFullName = arrayvec::ArrayString<48>;
-pub(crate) type _MaxNumberStr = arrayvec::ArrayString<_MAX_NUMBER_LEN>;
-pub(crate) type _MaxPairAbbr = arrayvec::ArrayString<{ 2 * _MAX_ASSET_ABBR_LEN + 1 }>;
-pub(crate) type _MaxUrl = arrayvec::ArrayString<96>;
+/// Maximum asset abbreviation like BTC.
+pub type MaxAssetAbbr = arrayvec::ArrayString<_MAX_ASSET_ABBR_LEN>;
+/// Maximum asset name like Bitcoin.
+pub type MaxAssetName = arrayvec::ArrayString<16>;
+/// Maximum string representation of a number.
+pub type MaxNumberStr = arrayvec::ArrayString<_MAX_NUMBER_LEN>;
+/// Maximum pair abbreviation like ETH-BTC
+pub type MaxPairAbbr = arrayvec::ArrayString<{ 2 * _MAX_ASSET_ABBR_LEN + 1 }>;
 
 _create_blockchain_constants!(
   pub address_hash: MaxAddressHash = 32,
@@ -28,24 +33,18 @@ _create_blockchain_constants!(
   pub transaction_hash_str: MaxTransactionHashStr = 90
 );
 
-/// Useful when a request returns an optional field but the actual usage is within a
-/// [core::result::Result] context.
-#[inline]
-#[track_caller]
-pub fn into_rslt<T>(opt: Option<T>) -> crate::Result<T> {
-  opt.ok_or(crate::Error::NoInnerValue(type_name::<T>()))
-}
+create_packages_aux_wrapper!();
 
+/// Deserializes an Base58 string as an array of bytes.
 #[cfg(feature = "bs58")]
 #[inline]
-pub(crate) fn deserialize_array_from_base58<'de, D, const N: usize>(
+pub fn deserialize_array_from_base58<'de, D, const N: usize>(
   deserializer: D,
 ) -> Result<[u8; N], D::Error>
 where
-  D: serde::Deserializer<'de>,
+  D: Deserializer<'de>,
 {
-  use serde::de::Error;
-  let s: &str = serde::Deserialize::deserialize(deserializer)?;
+  let s: &str = Deserialize::deserialize(deserializer)?;
   let mut array = [0; N];
   bs58::decode(s)
     .into(&mut array)
@@ -56,48 +55,62 @@ where
       }
       Some(())
     })
-    .ok_or_else(|| D::Error::custom("Could not deserialize base58 hash string"))?;
+    .ok_or_else(|| serde::de::Error::custom("Could not deserialize base58 hash string"))?;
   Ok(array)
 }
 
-pub(crate) fn _deserialize_from_str<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+/// Deserializes an arbitrary type from a string.
+#[inline]
+pub fn deserialize_from_str<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
-  T: core::str::FromStr,
-  T::Err: core::fmt::Display,
-  D: serde::Deserializer<'de>,
+  T: FromStr,
+  T::Err: Display,
+  D: Deserializer<'de>,
 {
-  let s: &str = serde::Deserialize::deserialize(deserializer)?;
+  let s: &str = Deserialize::deserialize(deserializer)?;
   T::from_str(s).map_err(serde::de::Error::custom)
 }
 
+/// Deserializes an arbitrary type ignoring its contents.
 #[inline]
-pub(crate) fn _deserialize_ignore_any<'de, D, T>(deserializer: D) -> Result<T, D::Error>
+pub fn deserialize_ignore_any<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
-  D: serde::Deserializer<'de>,
+  D: Deserializer<'de>,
   T: Default,
 {
-  use serde::Deserialize;
   serde::de::IgnoredAny::deserialize(deserializer).map(|_| T::default())
 }
 
+/// Deserializes an arbitrary type from an optional string.
+///
+/// If the deserialized string is empty, then returns `None`.
 #[inline]
-pub(crate) fn _deserialize_opt_considering_empty_str<'de, D, T>(
+pub fn deserialize_opt_considering_empty_str<'de, D, T>(
   deserializer: D,
 ) -> Result<Option<T>, D::Error>
 where
-  D: serde::Deserializer<'de>,
-  T: serde::Deserialize<'de>,
+  D: Deserializer<'de>,
+  T: Deserialize<'de>,
 {
-  use serde::{de::IntoDeserializer, Deserialize};
   match <Option<&str>>::deserialize(deserializer)? {
     None | Some("") => Ok(None),
     Some(s) => T::deserialize(s.into_deserializer()).map(Some),
   }
 }
 
-#[cfg(test)]
+/// Serializes an arbitrary type as a tuple
 #[inline]
-pub(crate) fn _init_tracing() {
+pub fn serialize_as_tuple<T, S>(field: T, serializer: S) -> Result<S::Ok, S::Error>
+where
+  T: Serialize,
+  S: Serializer,
+{
+  (field,).serialize(serializer)
+}
+
+#[allow(dead_code)]
+#[cfg(test)]
+pub(crate) fn init_test_cfg() {
   use tracing_subscriber::{
     fmt::{format::FmtSpan, Subscriber},
     util::SubscriberInitExt,
@@ -109,15 +122,3 @@ pub(crate) fn _init_tracing() {
     .finish()
     .try_init();
 }
-
-#[inline]
-pub(crate) fn _serialize_as_tuple<T, S>(field: T, serializer: S) -> Result<S::Ok, S::Error>
-where
-  T: serde::Serialize,
-  S: serde::Serializer,
-{
-  use serde::Serialize;
-  (field,).serialize(serializer)
-}
-
-create_packages_aux_wrapper!();

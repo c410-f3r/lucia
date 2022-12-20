@@ -24,8 +24,6 @@ use crate::{
   pkg::{BatchElems, BatchPkg, Package, PkgsAux},
   Id,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::borrow::Borrow;
 
@@ -37,7 +35,6 @@ use core::borrow::Borrow;
 /// # Types
 ///
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait Transport<DRSR> {
   /// Every transport has an [TransportGroup] identifier.
   const GROUP: TransportGroup;
@@ -51,7 +48,7 @@ pub trait Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, Self::Params> + Send + Sync;
+    P: Package<DRSR, Self::Params>;
 
   /// Sends a request and then awaits its counterpart data response.
   ///
@@ -62,7 +59,7 @@ pub trait Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, Self::Params> + Send + Sync;
+    P: Package<DRSR, Self::Params>;
 
   /// Convenient method similar to [Self::send_retrieve_and_decode_contained] but used for batch
   /// requests
@@ -74,13 +71,11 @@ pub trait Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    B: DynContigColl<P::ExternalResponseContent> + Send + Sync,
-    DRSR: Send + Sync,
-    P: Package<DRSR, Self::Params> + Send + Sync,
+    B: DynContigColl<P::ExternalResponseContent>,
+    P: Package<DRSR, Self::Params>,
     P::ExternalRequestContent: Borrow<Id> + Ord,
     P::ExternalResponseContent: Borrow<Id> + Ord,
     for<'any> BatchElems<'any, DRSR, P, Self::Params>: Serialize<DRSR>,
-    Self::Params: Send + Sync,
   {
     let batch_package = &mut BatchPkg::new(pkgs);
     let len = self.send_and_retrieve(batch_package, pkgs_aux).await?;
@@ -102,8 +97,7 @@ pub trait Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<P::ExternalResponseContent, P::Error>
   where
-    DRSR: Send + Sync,
-    P: Package<DRSR, Self::Params> + Send + Sync,
+    P: Package<DRSR, Self::Params>,
   {
     let len = self.send_and_retrieve(pkg, pkgs_aux).await?;
     log_res(pkgs_aux.byte_buffer.as_ref());
@@ -120,11 +114,9 @@ pub trait Transport<DRSR> {
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for &mut T
 where
-  DRSR: Send + Sync,
-  T: Send + Sync + Transport<DRSR>,
+  T: Transport<DRSR>,
 {
   const GROUP: TransportGroup = T::GROUP;
   type Params = T::Params;
@@ -136,7 +128,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, Self::Params> + Send + Sync,
+    P: Package<DRSR, Self::Params>,
   {
     (**self).send(pkg, pkgs_aux).await
   }
@@ -148,7 +140,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, Self::Params> + Send + Sync,
+    P: Package<DRSR, Self::Params>,
   {
     (**self).send_and_retrieve(pkg, pkgs_aux).await
   }
@@ -168,8 +160,7 @@ mod tests {
 
   impl<DRSR, TP> Package<DRSR, TP> for PingPong
   where
-    DRSR: Send + Sync,
-    TP: Send + Sync + TransportParams,
+    TP: TransportParams,
   {
     type Api = ();
     type Error = crate::Error;
@@ -211,13 +202,11 @@ mod tests {
   pub(crate) struct Pong(pub(crate) &'static str);
 
   impl<DRSR> Deserialize<DRSR> for Pong {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut DRSR) -> crate::Result<Self> {
       assert_eq!(bytes, b"ping");
       Ok(Self("pong"))
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       _: &[u8],
       _: &mut DRSR,

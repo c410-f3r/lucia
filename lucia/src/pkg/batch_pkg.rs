@@ -4,8 +4,6 @@ use crate::{
   pkg::Package,
   Id,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::{borrow::Borrow, marker::PhantomData};
 
@@ -65,7 +63,6 @@ where
     Ok(())
   }
 
-  #[inline]
   fn is_sorted<T>(mut iter: impl Iterator<Item = T>) -> crate::Result<()>
   where
     T: PartialOrd,
@@ -98,13 +95,11 @@ where
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<'slice, DRSR, P, TP> Package<DRSR, TP> for BatchPkg<'slice, DRSR, P, TP>
 where
   BatchElems<'slice, DRSR, P, TP>: Serialize<DRSR>,
-  DRSR: Send + Sync,
-  P: Package<DRSR, TP> + Send + Sync,
-  TP: TransportParams + Send + Sync,
+  P: Package<DRSR, TP>,
+  TP: TransportParams,
 {
   type Api = P::Api;
   type Error = P::Error;

@@ -57,8 +57,7 @@ impl SirAuxItemValues {
       let fpiv_params_iter = fpiv_params.iter();
       let method = quote::quote!(
         /// Final building method that creates a package with all the necessary values.
-        #[inline]
-        pub fn #fn_ident(self) -> #pkg_ident<
+                pub fn #fn_ident(self) -> #pkg_ident<
           #(#fpiv_params_iter,)*
           lucia::data_format::#wrapper_ident<#freqdiv_ident<#freqdiv_params>>
         > {

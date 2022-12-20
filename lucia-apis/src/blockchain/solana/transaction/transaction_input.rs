@@ -33,7 +33,6 @@ pub struct InstructionInput {
 impl TryFrom<solana_program::instruction::Instruction> for InstructionInput {
   type Error = crate::Error;
 
-  #[inline]
   fn try_from(from: solana_program::instruction::Instruction) -> Result<Self, Self::Error> {
     Ok(Self {
       accounts: from.accounts.into_iter().map(|elem| elem.into()).collect(),
@@ -45,7 +44,6 @@ impl TryFrom<solana_program::instruction::Instruction> for InstructionInput {
 
 #[cfg(feature = "solana-program")]
 impl From<InstructionInput> for solana_program::instruction::Instruction {
-  #[inline]
   fn from(from: InstructionInput) -> Self {
     Self {
       accounts: from.accounts.into_iter().map(|elem| elem.into()).collect(),
@@ -91,7 +89,6 @@ impl InstructionAccountInput {
 
 #[cfg(feature = "solana-program")]
 impl From<solana_program::instruction::AccountMeta> for InstructionAccountInput {
-  #[inline]
   fn from(from: solana_program::instruction::AccountMeta) -> Self {
     Self {
       is_signer: from.is_signer,
@@ -103,7 +100,6 @@ impl From<solana_program::instruction::AccountMeta> for InstructionAccountInput 
 
 #[cfg(feature = "solana-program")]
 impl From<InstructionAccountInput> for solana_program::instruction::AccountMeta {
-  #[inline]
   fn from(from: InstructionAccountInput) -> Self {
     Self { is_signer: from.is_signer, is_writable: from.is_writable, pubkey: from.pubkey.into() }
   }
@@ -128,7 +124,6 @@ pub struct MessageInput {
 impl MessageInput {
   /// Takes all the necessary parameters to validate and transform data into a suitable format for
   /// submission.
-  #[inline]
   pub fn with_params(
     instructions: &[InstructionInput],
     payer: Option<SolanaAddressHash>,
@@ -281,7 +276,6 @@ impl TransactionInput {
   /// Takes all the necessary parameters to validate and transform data into a suitable format for
   /// submission.
   #[cfg(feature = "ed25519-dalek")]
-  #[inline]
   pub fn new<'keypair, BB>(
     mut buffer: &mut BB,
     blockhash: SolanaBlockhash,
@@ -326,7 +320,6 @@ impl TransactionInput {
   }
 
   /// Checks if all signatures are actually signed.
-  #[inline]
   pub fn check_signatures(&self) -> crate::Result<()> {
     let default = SolanaSignatureHash::default();
     let mut filled: usize = 0;

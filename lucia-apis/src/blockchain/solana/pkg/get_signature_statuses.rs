@@ -19,7 +19,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "config")] Option<GetSignatureStatusesConfig>,
   )
   where
-    S: AsRef<str> + Send + Sync;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type GetSignatureStatusesRes =

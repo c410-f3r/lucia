@@ -23,7 +23,6 @@ pub(crate) struct SirAuxItemValues {
 }
 
 impl SirAuxItemValues {
-  #[inline]
   fn builder_params(
     bcv: BuilderCommonValues<'_>,
   ) -> (impl Iterator<Item = &GenericParam>, impl Iterator<Item = &GenericParam>) {
@@ -33,7 +32,6 @@ impl SirAuxItemValues {
     (a_lts.chain(b_lts).chain(c_lts), a_tys.chain(b_tys).chain(c_tys))
   }
 
-  #[inline]
   fn builder_where_predicates(
     bcv: BuilderCommonValues<'_>,
   ) -> impl Iterator<Item = &WherePredicate> {

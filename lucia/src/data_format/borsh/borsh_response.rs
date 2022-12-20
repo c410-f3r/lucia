@@ -55,12 +55,10 @@ mod borsh {
   where
     D: BorshDeserialize,
   {
-    #[inline]
     fn from_bytes(mut bytes: &[u8], _: &mut Borsh) -> crate::Result<Self> {
       Ok(Self { data: D::deserialize(&mut bytes)? })
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       _: &[u8],
       _: &mut Borsh,

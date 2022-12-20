@@ -2,7 +2,10 @@ use core::fmt::{Display, Formatter};
 
 #[derive(Debug)]
 /// Utility that displays slices separated by commas.
-pub(crate) struct SliceByCommas<'any, T>(pub(crate) &'any [T]);
+pub struct SliceByCommas<'any, T>(
+  /// Slice
+  pub &'any [T],
+);
 
 impl<T> Display for SliceByCommas<'_, T>
 where

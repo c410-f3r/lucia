@@ -1,5 +1,8 @@
 //! Custom transport through `transport(Custom)`.
 
+#![allow(incomplete_features)]
+#![feature(async_fn_in_trait, impl_trait_projections)]
+
 use lucia::pkg::PkgsAux;
 use lucia::pkg::Package;
 use lucia::network::TransportGroup;
@@ -8,34 +11,28 @@ use lucia::network::transport::TransportParams;
 
 struct CustomTransport;
 
-#[async_trait::async_trait]
-impl<DRSR> Transport<DRSR> for CustomTransport
-where
-  DRSR: Send + Sync,
-{
+impl<DRSR> Transport<DRSR> for CustomTransport {
   const GROUP: TransportGroup = TransportGroup::Custom("Custom");
   type Params = CustomTransportParams;
 
-  #[inline]
   async fn send<P>(
     &mut self,
     _: &mut P,
     _: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, Self::Params> + Send + Sync,
+    P: Package<DRSR, Self::Params>,
   {
     Ok(())
   }
 
-  #[inline]
   async fn send_and_retrieve<P>(
     &mut self,
     _: &mut P,
     _: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, Self::Params> + Send + Sync,
+    P: Package<DRSR, Self::Params>,
   {
     Ok(0)
   }
@@ -47,8 +44,7 @@ impl TransportParams for CustomTransportParams {
   type ExternalRequestParams = ();
   type ExternalResponseParams = ();
 
-  #[inline]
-  fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
+    fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
     ((), ())
   }
 }

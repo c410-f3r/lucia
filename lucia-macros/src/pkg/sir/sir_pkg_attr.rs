@@ -1,8 +1,8 @@
 use crate::{
+  owned_or_ref::OwnedOrRef,
   pkg::{data_format::DataFormat, fir::fir_pkg_attr::FirPkgAttr},
   transport_group::TransportGroup,
 };
-use alloc::borrow::Cow;
 use proc_macro2::{Ident, Span};
 use syn::{punctuated::Punctuated, Path, PathArguments, PathSegment};
 
@@ -10,7 +10,7 @@ use syn::{punctuated::Punctuated, Path, PathArguments, PathSegment};
 pub(crate) struct SirPkaAttr<'attrs> {
   pub(crate) api: &'attrs Path,
   pub(crate) data_formats: Vec<DataFormat>,
-  pub(crate) error: Cow<'attrs, Path>,
+  pub(crate) error: OwnedOrRef<'attrs, Path>,
   pub(crate) transport_groups: Vec<TransportGroup>,
 }
 
@@ -37,9 +37,9 @@ impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirPkaAttr<'attrs> {
             ident: Ident::new("Error", Span::mixed_site()),
             arguments: PathArguments::None,
           });
-          Cow::Owned(Path { leading_colon: None, segments })
+          OwnedOrRef::Owned(Path { leading_colon: None, segments })
         },
-        Cow::Borrowed,
+        OwnedOrRef::Ref,
       ),
       transport_groups: fea
         .transports

@@ -291,12 +291,10 @@ mod simd_json {
   where
     R: for<'serde_de> serde::Deserialize<'serde_de>,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut SimdJson) -> crate::Result<Self> {
       Ok(simd_json::from_reader(bytes)?)
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       _: &[u8],
       _: &mut SimdJson,
@@ -313,7 +311,6 @@ mod simd_json {
   where
     R: serde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
     where
       BB: crate::misc::ByteBuffer,

@@ -74,11 +74,9 @@ pub struct Solana {
   pub rt: Option<RequestThrottling>,
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for Solana {
   type Error = crate::Error;
 
-  #[inline]
   async fn before_sending(&mut self) -> Result<(), Self::Error> {
     if let Some(ref mut rt) = self.rt {
       rt.rc.update_params(&rt.rl).await?;
@@ -95,7 +93,6 @@ impl Solana {
 
   /// Make successive HTTP requests over a period defined in `cto` until the transaction is
   /// successful or expired.
-  #[inline]
   pub async fn confirm_transaction<'th, DRSR, T>(
     cto: ConfirmTransactionOptions,
     pkgs_aux: &mut SolanaHttpPkgsAux<DRSR>,
@@ -103,8 +100,7 @@ impl Solana {
     tx_hash: &'th str,
   ) -> crate::Result<bool>
   where
-    DRSR: Send + Sync,
-    T: Transport<DRSR, Params = HttpParams> + Send + Sync,
+    T: Transport<DRSR, Params = HttpParams>,
     for<'sig> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'sig, &'th str>>>:
       Package<
         DRSR,
@@ -159,7 +155,6 @@ impl Solana {
 
   /// If existing, extracts the parsed spl token account ([program::spl_token::MintAccount]) out of
   /// a generic [AccountData].
-  #[inline]
   pub fn spl_token_mint_account(
     account_data: &AccountData,
   ) -> crate::Result<&program::spl_token::MintAccount> {
@@ -173,7 +168,6 @@ impl Solana {
   }
 
   /// If existing, extracts the parsed spl token account out of a generic [AccountData].
-  #[inline]
   pub fn spl_token_normal_account(
     account_data: &AccountData,
   ) -> crate::Result<&program::spl_token::TokenAccount> {
@@ -186,7 +180,6 @@ impl Solana {
     }
   }
 
-  #[inline]
   fn spl_token_account(account_data: &AccountData) -> Option<&program::spl_token::GenericAccount> {
     if let &AccountData::Json(AccountDataJson {
       parsed: AccountDataJsonParsed::SplTokenAccount(ref spl_token_account),

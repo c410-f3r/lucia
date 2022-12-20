@@ -60,7 +60,6 @@ mod rkyv {
     for<'any> D::Archived:
       CheckBytes<DefaultValidator<'any>> + rkyv::Deserialize<D, SharedDeserializeMap>,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut Rkyv) -> crate::Result<Self> {
       Ok(Self {
         data: rkyv::from_bytes(bytes)
@@ -68,7 +67,6 @@ mod rkyv {
       })
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       _: &[u8],
       _: &mut Rkyv,

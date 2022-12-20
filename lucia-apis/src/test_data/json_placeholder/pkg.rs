@@ -14,7 +14,7 @@ pub use users::pkg::*;
 
 use alloc::{boxed::Box, vec::Vec};
 use lucia::{
-  misc::DebugDisplay,
+  misc::SyncDynDebugDisplay,
   network::{HttpMethod, HttpReqParams},
 };
 
@@ -54,7 +54,7 @@ pub struct GenericParams<'any> {
   id_opt: Option<u32>,
   method: HttpMethod,
   nested_opt: Option<&'any str>,
-  query: &'any [(&'any str, &'any (dyn DebugDisplay + Sync))],
+  query: &'any [(&'any str, &'any SyncDynDebugDisplay)],
 }
 
 impl<'any> GenericParams<'any> {
@@ -63,7 +63,7 @@ impl<'any> GenericParams<'any> {
     id_opt: Option<u32>,
     method: HttpMethod,
     nested_opt: Option<&'any str>,
-    query: &'any [(&'any str, &'any (dyn DebugDisplay + Sync))],
+    query: &'any [(&'any str, &'any SyncDynDebugDisplay)],
   ) -> Self {
     Self { id_opt, method, nested_opt, query }
   }

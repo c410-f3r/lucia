@@ -20,7 +20,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "config")] Option<GetMultipleAccountsConfig>,
   )
   where
-    S: AsRef<str> + Send + Sync;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type GetMultipleAccountsRes = JsonRpcResponseResultWithContext<Vec<Account>>;

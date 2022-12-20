@@ -2,9 +2,9 @@
 //!
 //! Most of the API structures are markers used to guide different type implementations.
 
+#![allow(incomplete_features)]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(not(feature = "async-trait"), allow(incomplete_features))]
-#![cfg_attr(not(feature = "async-trait"), feature(async_fn_in_trait, impl_trait_projections))]
+#![feature(async_fn_in_trait, impl_trait_projections)]
 
 extern crate alloc;
 
@@ -14,7 +14,6 @@ mod macros;
 pub mod blockchain;
 pub mod calendar;
 mod error;
-pub mod exchange;
 pub mod misc;
 pub mod series;
 pub mod test_data;

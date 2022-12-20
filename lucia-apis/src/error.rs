@@ -17,22 +17,10 @@ pub enum Error {
   /// See [ed25519_dalek::SignatureError].
   #[cfg(feature = "ed25519-dalek")]
   Ed25519Dalek(ed25519_dalek::SignatureError),
-  #[cfg(feature = "ku-coin")]
-  /// See [crypto_common::InvalidLength].
-  InvalidLength(crypto_common::InvalidLength),
   /// See [lucia::Error].
   Lucia(lucia::Error),
   /// See [core::num::TryFromIntError].
   TryFromIntError(core::num::TryFromIntError),
-  #[cfg(feature = "std")]
-  /// See [std::env::VarError].
-  VarError(std::env::VarError),
-
-  // Features
-  //
-  // KuCoin
-  /// Unsuccessful request explained in the contained string.
-  KuCoinUnsuccessfulRequest(String),
 
   // Solana
   /// Returned data from counterpart is everything but a spl-token account
@@ -56,8 +44,6 @@ pub enum Error {
   Generic(Cow<'static, str>),
   /// Request was expecting a different HTTP status code.
   IncompatibleStatusCode(StatusCode, StatusCode),
-  /// A variant used to transform `Option`s into `Result`s
-  NoInnerValue(&'static str),
 }
 
 #[cfg(feature = "solana")]
@@ -91,14 +77,6 @@ impl From<ed25519_dalek::SignatureError> for Error {
   }
 }
 
-#[cfg(feature = "ku-coin")]
-impl From<crypto_common::InvalidLength> for Error {
-  #[inline]
-  fn from(from: crypto_common::InvalidLength) -> Self {
-    Self::InvalidLength(from)
-  }
-}
-
 impl From<lucia::Error> for Error {
   #[inline]
   fn from(from: lucia::Error) -> Self {
@@ -110,14 +88,6 @@ impl From<core::num::TryFromIntError> for Error {
   #[inline]
   fn from(from: core::num::TryFromIntError) -> Self {
     Self::TryFromIntError(from)
-  }
-}
-
-#[cfg(feature = "std")]
-impl From<std::env::VarError> for Error {
-  #[inline]
-  fn from(from: std::env::VarError) -> Self {
-    Self::VarError(from)
   }
 }
 

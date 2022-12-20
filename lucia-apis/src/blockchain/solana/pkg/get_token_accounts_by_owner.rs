@@ -21,7 +21,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "config")] Option<GetTokenAccountsByOwnerConfig>,
   )
   where
-    S: AsRef<str> + Send;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type GetTokenAccountsByOwnerRes =

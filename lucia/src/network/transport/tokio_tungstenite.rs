@@ -3,8 +3,6 @@ use crate::{
   network::{transport::Transport, TransportGroup, WebSocket, WsParams, WsReqParamsTy},
   pkg::{Package, PkgsAux},
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use alloc::{string::String, vec::Vec};
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
@@ -32,11 +30,7 @@ pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for TokioTungstenite
-where
-  DRSR: Send + Sync,
-{
+impl<DRSR> Transport<DRSR> for TokioTungstenite {
   const GROUP: TransportGroup = TransportGroup::WebSocket;
   type Params = WsParams;
 
@@ -47,7 +41,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, WsParams> + Send + Sync,
+    P: Package<DRSR, WsParams>,
   {
     pkgs_aux.byte_buffer.clear();
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
@@ -70,9 +64,9 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, WsParams> + Send + Sync,
+    P: Package<DRSR, WsParams>,
   {
-    let _res = <Self as Transport<DRSR>>::send(self, pkg, pkgs_aux).await?;
+    <Self as Transport<DRSR>>::send(self, pkg, pkgs_aux).await?;
     Ok(if let Some(elem) = self.next().await {
       pkgs_aux.byte_buffer.extend(elem.map_err(Into::into)?.into_data());
       pkgs_aux.byte_buffer.len()
@@ -82,7 +76,6 @@ where
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl WebSocket for TokioTungstenite {
   #[inline]
   async fn from_url(url: &str) -> crate::Result<Self> {

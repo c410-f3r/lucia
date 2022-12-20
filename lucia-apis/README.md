@@ -8,7 +8,6 @@ All these native-supported interfaces are very important to test and exercise `l
 |---|---|---|:---:|
 | Blockchain | Solana | solana | 90% |
 | Calendar | Nager.Date | nager-date | 100% |
-| Exchange | KuCoin | ku-coin | 28% |
 | Series | Rick And Morty | rick-and-morty | 100% |
 | Test data | JSONPlaceholder | json-placeholder | 100% |
 

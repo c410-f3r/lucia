@@ -19,7 +19,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "config")] Option<GetTransactionConfig>,
   )
   where
-    S: AsRef<str> + Send;
+    S: AsRef<str>;
 
   #[pkg::res_data]
   pub type GetTransactionRes = TransactionOutput;

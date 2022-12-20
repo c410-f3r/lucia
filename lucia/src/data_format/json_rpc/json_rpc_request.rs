@@ -121,7 +121,6 @@ mod simd_json {
   where
     P: serde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SimdJson) -> crate::Result<()>
     where
       BB: ByteBuffer,

@@ -8,8 +8,6 @@ use crate::{
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use alloc::{
   borrow::{Cow, ToOwned},
   collections::VecDeque,
@@ -82,18 +80,15 @@ where
     self.responses.push_back(res);
   }
 
-  #[inline]
   fn pop_response(&mut self) -> crate::Result<Cow<'static, T>> {
     self.responses.pop_front().ok_or(crate::Error::TestTransportNoResponse)
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for Mock<T>
 where
-  DRSR: Send + Sync,
-  T: AsRef<[u8]> + Debug + PartialEq + ToOwned + Send + Sync + 'static + ?Sized,
-  <T as ToOwned>::Owned: Debug + FromBytes + Send + Sync,
+  T: AsRef<[u8]> + Debug + PartialEq + ToOwned + 'static + ?Sized,
+  <T as ToOwned>::Owned: Debug + FromBytes,
 {
   const GROUP: TransportGroup = TransportGroup::Stub;
   type Params = ();
@@ -105,7 +100,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, ()> + Send + Sync,
+    P: Package<DRSR, ()>,
   {
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
     self.requests.push(Cow::Owned(FromBytes::from_bytes(&pkgs_aux.byte_buffer)?));
@@ -121,7 +116,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<usize, P::Error>
   where
-    P: Package<DRSR, ()> + Send + Sync,
+    P: Package<DRSR, ()>,
   {
     <Self as Transport<DRSR>>::send(self, pkg, pkgs_aux).await?;
     let response = self.pop_response()?;

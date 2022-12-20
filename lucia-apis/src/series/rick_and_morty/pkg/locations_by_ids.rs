@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::{
-    misc::slice_by_commas::SliceByCommas,
+    misc::SliceByCommas,
     series::rick_and_morty::{Location, RickAndMortyHttpPkgsAux, CHARACTER_FRAGMENT},
   };
   use core::fmt::Write;

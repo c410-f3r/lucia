@@ -1,5 +1,5 @@
 error: Request data must end with the `Req` suffix.
- --> tests/ui/error_enum/bad_req.rs:5:14
+ --> tests/ui/error_enum/bad_req.rs:8:14
   |
-5 |   pub struct Rfdsqw;
+8 |   pub struct Rfdsqw;
   |              ^^^^^^

@@ -55,12 +55,10 @@ mod serde_xml_rs {
   where
     D: for<'de> serde::Deserialize<'de>,
   {
-    #[inline]
     fn from_bytes(bytes: &[u8], _: &mut SerdeXmlRs) -> crate::Result<Self> {
       Ok(serde_xml_rs::from_reader(bytes)?)
     }
 
-    #[inline]
     fn seq_from_bytes<E>(
       bytes: &[u8],
       _: &mut SerdeXmlRs,
@@ -79,7 +77,6 @@ mod serde_xml_rs {
   where
     D: serde::Serialize,
   {
-    #[inline]
     fn to_bytes<BB>(&mut self, bytes: &mut BB, _: &mut SerdeXmlRs) -> crate::Result<()>
     where
       BB: ByteBuffer,
