@@ -14,8 +14,12 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetBlocksReq(
     #[pkg::field(name = "start_slot")] u64,
-    #[pkg::field(name = "end_slot")] Option<u64>,
-    #[pkg::field(name = "config")] Option<GetBlocksConfig>,
+    #[pkg::field(name = "end_slot")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<u64>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetBlocksConfig>,
   );
 
   #[pkg::res_data]

@@ -10,13 +10,13 @@ use lucia::create_packages_aux_wrapper;
 use serde::{de::IntoDeserializer, Deserialize, Deserializer, Serialize, Serializer};
 pub use slice_by_commas::*;
 
-pub(crate) const _MAX_ASSET_ABBR_LEN: usize = 5;
+pub(crate) const _MAX_ASSET_ABBR_LEN: usize = 10;
 pub(crate) const _MAX_NUMBER_LEN: usize = 31;
 
 /// Maximum asset abbreviation like BTC.
 pub type MaxAssetAbbr = arrayvec::ArrayString<_MAX_ASSET_ABBR_LEN>;
 /// Maximum asset name like Bitcoin.
-pub type MaxAssetName = arrayvec::ArrayString<16>;
+pub type MaxAssetName = arrayvec::ArrayString<36>;
 /// Maximum string representation of a number.
 pub type MaxNumberStr = arrayvec::ArrayString<_MAX_NUMBER_LEN>;
 /// Maximum pair abbreviation like ETH-BTC

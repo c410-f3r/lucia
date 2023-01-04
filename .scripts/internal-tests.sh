@@ -37,6 +37,7 @@ LUCIA=(
 
   # Tranport
   reqwest
+  soketto
   "surf,_hack"
   std
   tokio-tungstenite

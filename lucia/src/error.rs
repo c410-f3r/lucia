@@ -56,6 +56,9 @@ pub enum Error {
   /// See [simd_json::Error]
   #[cfg(feature = "simd-json")]
   SimdJson(simd_json::Error),
+  /// See [soketto::connection::Error]
+  #[cfg(feature = "soketto")]
+  Soketto(soketto::connection::Error),
   /// See [surf::Error]
   #[cfg(feature = "surf")]
   Surf(surf::Error),
@@ -192,6 +195,14 @@ impl From<simd_json::Error> for Error {
   #[inline]
   fn from(from: simd_json::Error) -> Self {
     Self::SimdJson(from)
+  }
+}
+
+#[cfg(feature = "soketto")]
+impl From<soketto::connection::Error> for Error {
+  #[inline]
+  fn from(from: soketto::connection::Error) -> Self {
+    Self::Soketto(from)
   }
 }
 

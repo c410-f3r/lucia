@@ -14,7 +14,9 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetMinimumBalanceForRentExemptionReq(
     #[pkg::field(name = "data_len")] usize,
-    #[pkg::field(name = "config")] Option<GetMinimumBalanceForRentExemptionConfig>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetMinimumBalanceForRentExemptionConfig>,
   );
 
   #[pkg::res_data]

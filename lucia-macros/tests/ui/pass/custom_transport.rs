@@ -38,15 +38,34 @@ impl<DRSR> Transport<DRSR> for CustomTransport {
   }
 }
 
-struct CustomTransportParams;
+struct CustomTransportParams(());
 
 impl TransportParams for CustomTransportParams {
   type ExternalRequestParams = ();
   type ExternalResponseParams = ();
 
-    fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
-    ((), ())
+  #[inline]
+  fn ext_req_params(&self) -> &Self::ExternalRequestParams {
+    &self.0
   }
+
+  #[inline]
+  fn ext_req_params_mut(&mut self) -> &mut Self::ExternalRequestParams {
+    &mut self.0
+  }
+
+  #[inline]
+  fn ext_res_params(&self) -> &Self::ExternalResponseParams {
+    &self.0
+  }
+
+  #[inline]
+  fn ext_res_params_mut(&mut self) -> &mut Self::ExternalResponseParams {
+    &mut self.0
+  }
+
+  #[inline]
+  fn reset(&mut self) {}
 }
 
 type Nothing = ();

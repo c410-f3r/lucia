@@ -15,7 +15,7 @@ mod url;
 
 use crate::{
   dnsn::Serialize,
-  network::transport::Transport,
+  network::transport::{Transport, TransportParams},
   pkg::{Package, PkgsAux},
   Api,
 };
@@ -123,7 +123,7 @@ where
   pkg.ext_req_content_mut().to_bytes(&mut pkgs_aux.byte_buffer, &mut pkgs_aux.drsr)?;
   pkgs_aux.api.before_sending().await?;
   pkg
-    .before_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_req_params, &pkgs_aux.byte_buffer)
+    .before_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_req_params_mut(), &pkgs_aux.byte_buffer)
     .await?;
   Ok(())
 }

@@ -1,4 +1,7 @@
-use crate::{misc::init_test_cfg, series::rick_and_morty::RickAndMorty};
+use crate::{
+  misc::{init_test_cfg, PkgsAux},
+  series::rick_and_morty::RickAndMorty,
+};
 use lucia::{
   dnsn::SerdeJson,
   network::{transport::Transport, HttpParams},

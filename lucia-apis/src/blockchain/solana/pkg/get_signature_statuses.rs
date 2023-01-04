@@ -16,7 +16,9 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetSignatureStatusesReq<'signatures, S>(
     #[pkg::field(name = "signatures")] &'signatures [S],
-    #[pkg::field(name = "config")] Option<GetSignatureStatusesConfig>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetSignatureStatusesConfig>,
   )
   where
     S: AsRef<str>;

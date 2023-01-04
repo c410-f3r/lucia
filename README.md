@@ -110,6 +110,7 @@ Custom transport implementations can be declared in `lucia-macros` using the `tr
 | Name | Feature | URL |
 |---|---|---|
 | Reqwest | reqwest | <https://docs.rs/reqwest> |
+| Soketto | soketto | <https://docs.rs/soketto> |
 | Surf | surf | <https://docs.rs/surf> |
 | TcpStream | std | <https://doc.rust-lang.org/std/net/struct.TcpStream.html> |
 | tokio-tungstenite | tokio-tungstenite |<https://docs.rs/tokio-tungstenite> |

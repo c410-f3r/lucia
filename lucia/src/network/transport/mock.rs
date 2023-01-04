@@ -105,7 +105,7 @@ where
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
     self.requests.push(Cow::Owned(FromBytes::from_bytes(&pkgs_aux.byte_buffer)?));
     pkgs_aux.byte_buffer.clear();
-    pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
+    pkg.after_sending(&mut pkgs_aux.api, &mut ()).await?;
     Ok(())
   }
 

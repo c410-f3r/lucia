@@ -204,8 +204,10 @@ impl<'attrs, 'module, 'others>
         where
           #fpiv_where_predicates
         {
-          content: C,
-          params: #fpiv_ty,
+          /// Content. Data format containing request data.
+          pub content: C,
+          /// Parameters. Used across the package lifetime.
+          pub params: #fpiv_ty,
         }
       ),
       package_impls,

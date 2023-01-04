@@ -14,8 +14,10 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetBlocksWithLimitReq(
     #[pkg::field(name = "start_slot")] u64,
-    #[pkg::field(name = "limit")] Option<u64>,
-    #[pkg::field(name = "config")] Option<GetBlocksWithLimitConfig>,
+    #[pkg::field(name = "limit")] u64,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetBlocksWithLimitConfig>,
   );
 
   #[pkg::res_data]

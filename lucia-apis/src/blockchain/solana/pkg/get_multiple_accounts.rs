@@ -17,7 +17,9 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetMultipleAccountsReq<'pks, S>(
     #[pkg::field(name = "pks")] &'pks [S],
-    #[pkg::field(name = "config")] Option<GetMultipleAccountsConfig>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetMultipleAccountsConfig>,
   )
   where
     S: AsRef<str>;

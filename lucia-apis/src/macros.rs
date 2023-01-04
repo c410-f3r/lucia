@@ -5,30 +5,23 @@ macro_rules! create_generic_test {
     #[$executor::test]
     async fn $test() {
       fn parts_cb_infer<'pair, API, DRSR, O, T>(
-        pkgs_aux: &'pair mut $crate::misc::PkgsAux<API, DRSR, T::Params>,
+        pkgs_aux: &'pair mut PkgsAux<API, DRSR, T::Params>,
         trans: &'pair mut T,
-        cb: impl FnOnce(
-          &'pair mut $crate::misc::PkgsAux<API, DRSR, T::Params>,
-          &'pair mut T
-        ) -> O,
+        cb: impl FnOnce(&'pair mut PkgsAux<API, DRSR, T::Params>, &'pair mut T) -> O,
       ) -> O
       where
-        T: Transport<DRSR>
+        T: Transport<DRSR>,
       {
         cb(pkgs_aux, trans)
       }
       fn rslt_cb_infer<'pair, API, DRSR, O, R, T>(
-        pkgs_aux: &'pair mut $crate::misc::PkgsAux<API, DRSR, T::Params>,
+        pkgs_aux: &'pair mut PkgsAux<API, DRSR, T::Params>,
         trans: &'pair mut T,
         rslt: R,
-        cb: impl FnOnce(
-          &'pair mut $crate::misc::PkgsAux<API, DRSR, T::Params>,
-          &'pair mut T,
-          R
-        ) -> O,
+        cb: impl FnOnce(&'pair mut PkgsAux<API, DRSR, T::Params>, &'pair mut T, R) -> O,
       ) -> O
       where
-      T: Transport<DRSR>
+        T: Transport<DRSR>,
       {
         cb(pkgs_aux, trans, rslt)
       }
@@ -51,7 +44,7 @@ macro_rules! create_http_test {
       {
         let (drsr, ext_req_params) = $drsr_erp;
         lucia::misc::Pair::new(
-          $crate::misc::PkgsAux::from_minimum($api, drsr, ext_req_params),
+          PkgsAux::from_minimum($api, drsr, ext_req_params),
           reqwest::Client::default()
         )
       },
@@ -79,7 +72,7 @@ macro_rules! create_ws_test {
         let (drsr, ext_req_params) = $drsr_erp;
         let (trans, _) = tokio_tungstenite::connect_async($url).await.unwrap();
         lucia::misc::Pair::new(
-          $crate::misc::PkgsAux::from_minimum($api, drsr, ext_req_params),
+          PkgsAux::from_minimum($api, drsr, ext_req_params),
           trans
         )
       },
@@ -91,70 +84,6 @@ macro_rules! create_ws_test {
       }
     }
   };
-}
-
-/// Sometimes a received blockhash is not valid so this macro tries to perform additional calls
-/// with different blockhashes.
-#[macro_export]
-#[cfg(feature = "solana")]
-macro_rules! try_with_solana_blockhashes {
-  (
-    let $local_blockhash:ident = $initial_blockhash:expr;
-
-    $additional_tries:expr,
-    $pair:expr,
-    $procedure:expr $(,)?
-  ) => {{
-    let initial_try = {
-      let $local_blockhash = $initial_blockhash;
-      $procedure
-    };
-    match initial_try {
-      Err(err) => {
-        let inferred_additional_tries: u8 = $additional_tries;
-        if let Some(n) = inferred_additional_tries.checked_sub(1) {
-          let mut opt = None;
-          for _ in 0..n {
-            let $local_blockhash = {
-              let pair_mut = &mut $pair;
-              let (pkgs_aux, trans) = pair_mut.parts_mut();
-              let res = trans
-                .send_retrieve_and_decode_contained(
-                  &mut pkgs_aux.get_latest_blockhash().data(None).build(),
-                  pkgs_aux,
-                )
-                .await?;
-              res.result?.value.blockhash
-            };
-            if let Ok(elem) = $procedure {
-              opt = Some((elem, Some($local_blockhash)));
-              break;
-            }
-          }
-          if let Some(elem) = opt {
-            Ok(elem)
-          } else {
-            let $local_blockhash = {
-              let pair_mut = &mut $pair;
-              let (pkgs_aux, trans) = pair_mut.parts_mut();
-              let res = trans
-                .send_retrieve_and_decode_contained(
-                  &mut pkgs_aux.get_latest_blockhash().data(None).build(),
-                  pkgs_aux,
-                )
-                .await?;
-              res.result?.value.blockhash
-            };
-            let last = $procedure?;
-            Ok((last, Some($local_blockhash)))
-          }
-        } else {
-          Err(err)
-        }
-      }
-      Ok(elem) => Ok((elem, None)),
-    }
-  }};
 }
 
 macro_rules! _create_blockchain_constants {

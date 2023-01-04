@@ -92,7 +92,7 @@ where
   let mut slice = pkgs_aux.byte_buffer.as_ref();
   let mut everything_was_sent = false;
   for _ in 0..16 {
-    let sent = cb(slice, &pkgs_aux.ext_req_params, trans)?;
+    let sent = cb(slice, pkgs_aux.tp.ext_req_params(), trans)?;
     if sent == slice.len() {
       everything_was_sent = true;
       break;
@@ -101,7 +101,7 @@ where
   }
   pkgs_aux.byte_buffer.clear();
   pkgs_aux.byte_buffer.extend((0..pkgs_aux.byte_buffer.capacity()).map(|_| 0));
-  pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
+  pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
   if everything_was_sent {
     Ok(())
   } else {
@@ -125,7 +125,7 @@ where
 {
   trans.send(pkg, pkgs_aux).await?;
   let slice = pkgs_aux.byte_buffer.as_mut();
-  let len = cb(slice, &pkgs_aux.ext_req_params, trans)?;
+  let len = cb(slice, pkgs_aux.tp.ext_req_params(), trans)?;
   Ok(len)
 }
 

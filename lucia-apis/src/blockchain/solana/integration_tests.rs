@@ -3,9 +3,9 @@ use crate::{
     AccountEncoding, AccountSubscribeConfig, Commitment, DataSlice, Filter, GetAccountInfoConfig,
     GetBlockConfig, GetProgramAccountsConfig, GetTokenAccountsByOwnerConfig, GetTransactionConfig,
     Memcmp, MemcmpEncodedBytes, MessageInput, MintOrProgramId, Solana, SolanaAddressHash,
-    TransactionDetails, TransactionEncoding, TransactionInput,
+    SolanaPkgsAux, TransactionDetails, TransactionEncoding, TransactionInput,
   },
-  misc::init_test_cfg,
+  misc::{init_test_cfg, PkgsAux},
 };
 use alloc::vec::Vec;
 use ed25519_dalek::Keypair;
@@ -13,6 +13,7 @@ use lucia::{
   dnsn::SerdeJson,
   network::{transport::Transport, HttpParams, WsParams},
 };
+use reqwest::Client;
 
 const ALICE_PUBLIC_KEY: SolanaAddressHash = [
   72, 221, 15, 10, 15, 203, 187, 109, 166, 124, 138, 38, 199, 74, 146, 72, 63, 245, 197, 247, 201,
@@ -63,16 +64,13 @@ create_http_test!(Solana::new(None), http(), get_balance, |pkgs_aux, trans| asyn
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
 create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async {
-  let slot = trans
-    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
-    .await
-    .unwrap()
-    .result
-    .unwrap();
+  let slot = slot(pkgs_aux, trans).await;
   let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux
@@ -90,38 +88,34 @@ create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async 
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
 create_http_test!(Solana::new(None), http(), get_blocks, |pkgs_aux, trans| async {
-  let slot = trans
-    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
-    .await
-    .unwrap()
-    .result
-    .unwrap();
+  let slot = slot(pkgs_aux, trans).await;
   let _res = trans
     .send_retrieve_and_decode_contained(
       &mut pkgs_aux.get_blocks().data(slot, None, None).build(),
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
 create_http_test!(Solana::new(None), http(), get_blocks_with_limit, |pkgs_aux, trans| async {
-  let slot = trans
-    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
-    .await
-    .unwrap()
-    .result
-    .unwrap();
+  let slot = slot(pkgs_aux, trans).await;
   let _res = trans
     .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_blocks_with_limit().data(slot, None, None).build(),
+      &mut pkgs_aux.get_blocks_with_limit().data(slot, 1, None).build(),
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -132,16 +126,21 @@ create_http_test!(Solana::new(None), http(), get_block_height, |pkgs_aux, trans|
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
 create_http_test!(Solana::new(None), http(), get_block_commitment, |pkgs_aux, trans| async {
+  let slot = slot(pkgs_aux, trans).await;
   let _res = trans
     .send_retrieve_and_decode_contained(
-      &mut pkgs_aux.get_block_commitment().data(2).build(),
+      &mut pkgs_aux.get_block_commitment().data(slot).build(),
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -152,6 +151,30 @@ create_http_test!(Solana::new(None), http(), get_block_production, |pkgs_aux, tr
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_block_time, |pkgs_aux, trans| async {
+  let slot = slot(pkgs_aux, trans).await;
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_block_time().data(slot).build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_epoch_info, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_epoch_info().data(None, None).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -159,6 +182,8 @@ create_http_test!(Solana::new(None), http(), get_cluster_nodes, |pkgs_aux, trans
   let _res = trans
     .send_retrieve_and_decode_contained(&mut pkgs_aux.get_cluster_nodes().build(), pkgs_aux)
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -208,6 +233,8 @@ create_http_test!(
         pkgs_aux,
       )
       .await
+      .unwrap()
+      .result
       .unwrap();
   }
 );
@@ -222,6 +249,8 @@ create_http_test!(Solana::new(None), http(), get_multiple_accounts, |pkgs_aux, t
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -273,6 +302,8 @@ create_http_test!(Solana::new(None), http(), get_slot_leader, |pkgs_aux, trans| 
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -283,6 +314,8 @@ create_http_test!(Solana::new(None), http(), get_slot_leaders, |pkgs_aux, trans|
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -293,6 +326,8 @@ create_http_test!(Solana::new(None), http(), get_token_account_balance, |pkgs_au
       pkgs_aux,
     )
     .await
+    .unwrap()
+    .result
     .unwrap();
 });
 
@@ -533,6 +568,15 @@ fn alice_keypair() -> [u8; 64] {
 
 fn http() -> (SerdeJson, HttpParams) {
   (SerdeJson, HttpParams::from_url("http://localhost:8899").unwrap())
+}
+
+async fn slot(pkgs_aux: &mut SolanaPkgsAux<SerdeJson, HttpParams>, trans: &mut Client) -> u64 {
+  trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_slot().data(None).build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap()
 }
 
 #[cfg(feature = "solana-program")]

@@ -11,7 +11,7 @@ pub type UrlString = Url<String>;
 /// Constructors do not verify if an URL has actual valid content.
 #[derive(Debug)]
 pub struct Url<S> {
-  _initial_url_len: usize,
+  initial_len: usize,
   origin_end: usize,
   path_end: usize,
   url: S,
@@ -24,8 +24,8 @@ where
   /// Creates all inner parts from an URL. For example, https://localhost/api_version/endpoint?foo=bar.
   #[inline]
   pub fn from_url(url: S) -> crate::Result<Self> {
-    let [initial_url_len, origin_end, path_end] = Self::instance_params_from_url(&url);
-    Ok(Self { _initial_url_len: initial_url_len, origin_end, path_end, url })
+    let [origin_end, path_end] = Self::instance_params_from_url(&url);
+    Ok(Self { initial_len: url.as_ref().len(), origin_end, path_end, url })
   }
 
   /// For example, /api_version/endpoint?foo=bar
@@ -58,7 +58,7 @@ where
     self.url.as_ref()
   }
 
-  fn instance_params_from_url(url: &S) -> [usize; 3] {
+  fn instance_params_from_url(url: &S) -> [usize; 2] {
     let mut slash_iter = url
       .as_ref()
       .as_bytes()
@@ -67,7 +67,7 @@ where
       .filter_map(|(idx, elem)| (*elem == b'/').then_some(idx));
     let _ = slash_iter.next();
     let _ = slash_iter.next();
-    let Some(origin_end) = slash_iter.next() else { return [url.as_ref().len(); 3]; };
+    let Some(origin_end) = slash_iter.next() else { return [url.as_ref().len(); 2]; };
     let after_origin = url.as_ref().get(origin_end..).unwrap_or_default();
     let path_end = if let Some(elem) = after_origin
       .as_bytes()
@@ -79,7 +79,7 @@ where
     } else {
       url.as_ref().len()
     };
-    [url.as_ref().len(), origin_end, path_end]
+    [origin_end, path_end]
   }
 }
 
@@ -116,7 +116,7 @@ where
       s.push(query_str)?;
       s
     };
-    Ok(Self { _initial_url_len: url.as_ref().len(), origin_end, path_end, url })
+    Ok(Self { initial_len: url.as_ref().len(), origin_end, path_end, url })
   }
 
   /// Clears the internal storage.
@@ -150,10 +150,23 @@ where
 
   /// Erases any subsequent content after the origin.
   #[inline]
-  pub fn retain_origin(&mut self) -> crate::Result<()> {
+  pub fn retain_origin(&mut self) {
     self.url.truncate(self.origin_end);
     self.path_end = self.origin_end;
-    Ok(())
+  }
+
+  /// Truncates the internal storage with the length of the URL initially created in this instance.
+  ///
+  /// If the current length is lesser than the original URL length, nothing will happen.
+  #[inline]
+  pub fn retain_with_initial_len(&mut self) {
+    if self.url.len() <= self.initial_len {
+      return;
+    }
+    self.url.truncate(self.initial_len);
+    let [origin_end, path_end] = Self::instance_params_from_url(&self.url);
+    self.origin_end = origin_end;
+    self.path_end = path_end;
   }
 
   /// Sets the origin if, and only if the inner length is equal to zero.
@@ -202,7 +215,7 @@ mod tests {
     assert_eq!(url.query(), "");
     assert_eq!(url.url(), "http://dasdas.com/rewqd/tretre");
 
-    url.retain_origin().unwrap();
+    url.retain_origin();
     assert_eq!(url.origin(), "http://dasdas.com");
 
     url.clear();
