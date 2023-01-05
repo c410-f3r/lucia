@@ -16,14 +16,14 @@ pub struct PkgWithHelper<H, P> {
   /// Helper
   pub helper: H,
   /// Package
-  pub package: P,
+  pub pkg: P,
 }
 
 impl<H, P> PkgWithHelper<H, P> {
   /// Constructor shortcut
   #[inline]
-  pub fn new(aux: H, package: P) -> Self {
-    Self { helper: aux, package }
+  pub fn new(helper: H, pkg: P) -> Self {
+    Self { helper, pkg }
   }
 }
 
@@ -44,7 +44,7 @@ where
     api: &mut Self::Api,
     ext_res_params: &mut TP::ExternalResponseParams,
   ) -> Result<(), Self::Error> {
-    self.package.after_sending(api, ext_res_params).await
+    self.pkg.after_sending(api, ext_res_params).await
   }
 
   #[inline]
@@ -54,34 +54,34 @@ where
     ext_req_params: &mut TP::ExternalRequestParams,
     req_bytes: &[u8],
   ) -> Result<(), Self::Error> {
-    self.package.before_sending(api, ext_req_params, req_bytes).await
+    self.pkg.before_sending(api, ext_req_params, req_bytes).await
   }
 
   #[inline]
   fn ext_req_content(&self) -> &Self::ExternalRequestContent {
-    self.package.ext_req_content()
+    self.pkg.ext_req_content()
   }
 
   #[inline]
   fn ext_req_content_mut(&mut self) -> &mut Self::ExternalRequestContent {
-    self.package.ext_req_content_mut()
+    self.pkg.ext_req_content_mut()
   }
 
   #[inline]
   fn pkg_params(&self) -> &Self::PackageParams {
-    self.package.pkg_params()
+    self.pkg.pkg_params()
   }
 
   #[inline]
   fn pkg_params_mut(&mut self) -> &mut Self::PackageParams {
-    self.package.pkg_params_mut()
+    self.pkg.pkg_params_mut()
   }
 }
 
 impl<H, RP> Borrow<Id> for PkgWithHelper<H, JsonRpcRequest<RP>> {
   #[inline]
   fn borrow(&self) -> &Id {
-    &self.package.id
+    &self.pkg.id
   }
 }
 
@@ -96,7 +96,7 @@ where
   where
     HA: Hasher,
   {
-    self.package.hash(state);
+    self.pkg.hash(state);
   }
 }
 
@@ -106,7 +106,7 @@ where
 {
   #[inline]
   fn cmp(&self, other: &Self) -> Ordering {
-    self.package.cmp(&other.package)
+    self.pkg.cmp(&other.pkg)
   }
 }
 
@@ -116,7 +116,7 @@ where
 {
   #[inline]
   fn eq(&self, other: &Self) -> bool {
-    self.package == other.package
+    self.pkg == other.pkg
   }
 }
 
@@ -126,6 +126,6 @@ where
 {
   #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    self.package.partial_cmp(&other.package)
+    self.pkg.partial_cmp(&other.pkg)
   }
 }

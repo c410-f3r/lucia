@@ -1,6 +1,10 @@
 use crate::{
   misc::manage_before_sending_related,
-  network::{http::HttpMethod, transport::Transport, HttpParams, TransportGroup},
+  network::{
+    http::HttpMethod,
+    transport::{Transport, TransportParams},
+    HttpParams, TransportGroup,
+  },
   pkg::{Package, PkgsAux},
 };
 use reqwest::{
@@ -63,11 +67,11 @@ async fn response<DRSR, P>(
 where
   P: Package<DRSR, HttpParams>,
 {
-  fn manage_data<A, DRSR>(
+  fn manage_data<API, DRSR>(
     mut rb: RequestBuilder,
-    pkgs_aux: &mut PkgsAux<A, DRSR, HttpParams>,
+    pkgs_aux: &mut PkgsAux<API, DRSR, HttpParams>,
   ) -> RequestBuilder {
-    if let Some(data_format) = pkgs_aux.ext_req_params.mime_type {
+    if let Some(data_format) = pkgs_aux.tp.ext_req_params().mime_type {
       rb = rb.header(CONTENT_TYPE, HeaderValue::from_static(data_format._as_str()));
     }
     rb = rb.body(pkgs_aux.byte_buffer.clone());
@@ -75,24 +79,25 @@ where
   }
   pkgs_aux.byte_buffer.clear();
   manage_before_sending_related(pkg, pkgs_aux, client).await?;
-  let mut rb = match pkgs_aux.ext_req_params.method {
-    HttpMethod::Delete => client.delete(pkgs_aux.ext_req_params.url.url()),
-    HttpMethod::Get => client.get(pkgs_aux.ext_req_params.url.url()),
-    HttpMethod::Patch => manage_data(client.patch(pkgs_aux.ext_req_params.url.url()), pkgs_aux),
-    HttpMethod::Post => manage_data(client.post(pkgs_aux.ext_req_params.url.url()), pkgs_aux),
-    HttpMethod::Put => manage_data(client.put(pkgs_aux.ext_req_params.url.url()), pkgs_aux),
+  let mut rb = match pkgs_aux.tp.ext_req_params().method {
+    HttpMethod::Delete => client.delete(pkgs_aux.tp.ext_req_params().url.url()),
+    HttpMethod::Get => client.get(pkgs_aux.tp.ext_req_params().url.url()),
+    HttpMethod::Patch => {
+      manage_data(client.patch(pkgs_aux.tp.ext_req_params().url.url()), pkgs_aux)
+    }
+    HttpMethod::Post => manage_data(client.post(pkgs_aux.tp.ext_req_params().url.url()), pkgs_aux),
+    HttpMethod::Put => manage_data(client.put(pkgs_aux.tp.ext_req_params().url.url()), pkgs_aux),
   };
   pkgs_aux.byte_buffer.clear();
-  for (key, value) in pkgs_aux.ext_req_params.headers.iter() {
+  for (key, value) in pkgs_aux.tp.ext_req_params().headers.iter() {
     rb = rb.header(key, value);
   }
-  if let Some(elem) = pkgs_aux.ext_req_params.user_agent {
+  if let Some(elem) = pkgs_aux.tp.ext_req_params().user_agent {
     rb = rb.header(USER_AGENT, HeaderValue::from_static(elem._as_str()));
   }
-  pkgs_aux.ext_req_params.url.retain_origin()?;
   let res = rb.send().await.map_err(Into::into)?;
-  pkgs_aux.ext_res_params.status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
-  pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
-  pkgs_aux.ext_req_params.headers.clear();
+  pkgs_aux.tp.ext_res_params_mut().status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
+  pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
+  pkgs_aux.tp.reset();
   Ok(res)
 }

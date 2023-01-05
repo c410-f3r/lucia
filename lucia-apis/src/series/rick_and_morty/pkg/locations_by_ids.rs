@@ -12,7 +12,7 @@ pub(crate) mod pkg {
   use core::fmt::Write;
   use lucia::{
     data_format::{GraphQlRequest, GraphQlResponse},
-    network::HttpMethod,
+    network::{transport::TransportParams, HttpMethod},
   };
 
   #[pkg::aux]
@@ -44,7 +44,7 @@ pub(crate) mod pkg {
           SliceByCommas(ids)
         ))
         .map_err(|err| lucia::Error::from(err))?;
-      self.ext_req_params.method = HttpMethod::Post;
+      self.tp.ext_req_params_mut().method = HttpMethod::Post;
       Ok(LocationsByIdsReq { operation_name: None, query: buffer, variables: None })
     }
   }

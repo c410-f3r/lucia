@@ -16,7 +16,9 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetTransactionReq<S>(
     #[pkg::field(name = "hash")] S,
-    #[pkg::field(name = "config")] Option<GetTransactionConfig>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetTransactionConfig>,
   )
   where
     S: AsRef<str>;

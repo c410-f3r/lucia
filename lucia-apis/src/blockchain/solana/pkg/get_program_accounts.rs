@@ -17,7 +17,9 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetProgramAccountsReq<'bytes, 'filter, S>(
     #[pkg::field(name = "pk")] S,
-    #[pkg::field(name = "config")] Option<GetProgramAccountsConfig<'bytes, 'filter>>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetProgramAccountsConfig<'bytes, 'filter>>,
   )
   where
     S: AsRef<str>;

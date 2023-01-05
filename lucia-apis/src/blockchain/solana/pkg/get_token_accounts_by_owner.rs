@@ -18,7 +18,9 @@ pub(crate) mod pkg {
   pub struct GetTokenAccountsByOwnerReq<S>(
     #[pkg::field(name = "pk")] S,
     #[pkg::field(name = "criteria")] MintOrProgramId<S>,
-    #[pkg::field(name = "config")] Option<GetTokenAccountsByOwnerConfig>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetTokenAccountsByOwnerConfig>,
   )
   where
     S: AsRef<str>;

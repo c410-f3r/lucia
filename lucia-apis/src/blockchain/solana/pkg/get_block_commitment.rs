@@ -1,11 +1,11 @@
 #[lucia_macros::pkg(
   api(crate::blockchain::solana::Solana),
-  data_format(json_rpc("GetBlockCommitment")),
+  data_format(json_rpc("getBlockCommitment")),
   error(crate::Error),
   transport(http)
 )]
 pub(crate) mod pkg {
-  use crate::blockchain::solana::{JsonRpcResponseResultWithContext, SolanaHttpPkgsAux};
+  use crate::blockchain::solana::SolanaHttpPkgsAux;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -13,13 +13,13 @@ pub(crate) mod pkg {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct GetBlockCommitmentReq(
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "block")]
+    #[serde(serialize_with = "crate::misc::serialize_as_tuple")]
     u64,
   );
 
   #[pkg::res_data]
-  pub type GetBlockCommitmentRes = JsonRpcResponseResultWithContext<GetBlockCommitment>;
+  pub type GetBlockCommitmentRes = GetBlockCommitment;
 
   /// Block commitment
   #[derive(Debug, serde::Deserialize)]

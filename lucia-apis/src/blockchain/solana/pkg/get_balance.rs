@@ -16,7 +16,9 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetBalanceReq<S>(
     #[pkg::field(name = "pk")] S,
-    #[pkg::field(name = "config")] Option<GetBalanceConfig>,
+    #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
+    Option<GetBalanceConfig>,
   )
   where
     S: AsRef<str>;

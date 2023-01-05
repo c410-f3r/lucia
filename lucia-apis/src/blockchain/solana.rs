@@ -36,6 +36,7 @@ use crate::blockchain::{
 pub use account::*;
 use arrayvec::ArrayString;
 pub use block::*;
+use core::{future::Future, pin::Pin};
 pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
@@ -177,6 +178,72 @@ impl Solana {
       Ok(elem)
     } else {
       Err(crate::Error::SolanaAccountIsNotSplToken)
+    }
+  }
+
+  /// Sometimes a received blockhash is not valid so this function tries to perform additional calls
+  /// with different blockhashes.
+  pub async fn try_with_blockhashes<A, DRSR, E, O, T>(
+    mut aux: A,
+    additional_tries: u8,
+    initial_blockhash: SolanaBlockhash,
+    pair: &mut SolanaPair<DRSR, T>,
+    mut cb: impl for<'any> FnMut(
+      &'any mut A,
+      SolanaBlockhash,
+      &'any mut SolanaPair<DRSR, T>,
+    ) -> Pin<Box<dyn Future<Output = Result<O, E>> + Send + 'any>>,
+  ) -> Result<(O, Option<SolanaBlockhash>), E>
+  where
+    E: From<crate::Error>,
+    T: Transport<DRSR, Params = HttpParams>,
+    GetLatestBlockhashPkg<JsonRpcRequest<GetLatestBlockhashReq>>: Package<
+      DRSR,
+      T::Params,
+      Api = Solana,
+      Error = crate::Error,
+      ExternalResponseContent = JsonRpcResponse<GetLatestBlockhashRes>,
+    >,
+  {
+    macro_rules! local_blockhash {
+      ($local_pair:expr) => {
+        $local_pair
+          .trans
+          .send_retrieve_and_decode_contained(
+            &mut $local_pair.pkgs_aux.get_latest_blockhash().data(None).build(),
+            &mut $local_pair.pkgs_aux,
+          )
+          .await
+          .map_err(Into::into)?
+          .result
+          .map_err(Into::into)?
+          .value
+          .blockhash
+      };
+    }
+    match cb(&mut aux, initial_blockhash, pair).await {
+      Err(err) => {
+        if let Some(n) = additional_tries.checked_sub(1) {
+          let mut opt = None;
+          for _ in 0..n {
+            let local_blockhash = local_blockhash!(pair);
+            if let Ok(elem) = cb(&mut aux, local_blockhash, pair).await {
+              opt = Some((elem, Some(local_blockhash)));
+              break;
+            }
+          }
+          if let Some(elem) = opt {
+            Ok(elem)
+          } else {
+            let local_blockhash = local_blockhash!(pair);
+            let last = cb(&mut aux, local_blockhash, pair).await?;
+            Ok((last, Some(local_blockhash)))
+          }
+        } else {
+          Err(err)
+        }
+      }
+      Ok(elem) => Ok((elem, None)),
     }
   }
 

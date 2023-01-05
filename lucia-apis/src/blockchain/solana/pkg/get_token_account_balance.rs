@@ -17,8 +17,8 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct GetTokenAccountBalanceReq<S>(
     #[pkg::field(name = "pk")] S,
-    #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "config")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetTokenAccountBalanceConfig>,
   )
   where

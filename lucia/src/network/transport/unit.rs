@@ -27,7 +27,7 @@ impl<DRSR> Transport<DRSR> for () {
     P: Package<DRSR, ()>,
   {
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
-    pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
+    pkg.after_sending(&mut pkgs_aux.api, &mut ()).await?;
     Ok(())
   }
 

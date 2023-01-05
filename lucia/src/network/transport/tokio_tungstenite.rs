@@ -1,9 +1,12 @@
 use crate::{
   misc::manage_before_sending_related,
-  network::{transport::Transport, TransportGroup, WebSocket, WsParams, WsReqParamsTy},
+  network::{
+    transport::{BiTransport, Transport, TransportParams},
+    TransportGroup, WebSocket, WsParams, WsReqParamsTy,
+  },
   pkg::{Package, PkgsAux},
 };
-use alloc::{string::String, vec::Vec};
+use alloc::string::String;
 use futures::{SinkExt, StreamExt};
 use tokio::net::TcpStream;
 use tokio_tungstenite::{connect_async, MaybeTlsStream, WebSocketStream};
@@ -12,8 +15,6 @@ use tungstenite::Message;
 /// Shortcut of `WebSocketStream<MaybeTlsStream<TcpStream>>`.
 pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 
-/// Handy constructor to avoid having to explicitly import `tokio_tungstenite` dependencies.
-///
 /// ```rust,no_run
 /// # async fn fun() -> lucia::Result<()> {
 /// use lucia::{
@@ -46,14 +47,14 @@ impl<DRSR> Transport<DRSR> for TokioTungstenite {
     pkgs_aux.byte_buffer.clear();
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
     let vec = pkgs_aux.byte_buffer.clone();
-    let msg = match pkgs_aux.ext_req_params.ty {
+    let msg = match pkgs_aux.tp.ext_req_params_mut().ty {
       WsReqParamsTy::Bytes => Message::Binary(vec),
       WsReqParamsTy::String => Message::Text(String::from_utf8(vec).map_err(Into::into)?),
     };
     <Self as SinkExt<_>>::send(self, msg).await.map_err(Into::into)?;
     pkgs_aux.byte_buffer.clear();
-    pkg.after_sending(&mut pkgs_aux.api, &mut pkgs_aux.ext_res_params).await?;
-    pkgs_aux.ext_req_params.clear();
+    pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
+    pkgs_aux.tp.reset();
     Ok(())
   }
 
@@ -76,21 +77,26 @@ impl<DRSR> Transport<DRSR> for TokioTungstenite {
   }
 }
 
-impl WebSocket for TokioTungstenite {
+impl<DRSR> BiTransport<DRSR> for TokioTungstenite {
   #[inline]
-  async fn from_url(url: &str) -> crate::Result<Self> {
-    Ok(connect_async(url).await?.0)
-  }
-
-  #[inline]
-  async fn receive_with_buffer(&mut self, bytes: &mut Vec<u8>) -> crate::Result<usize> {
+  async fn retrieve<API>(
+    &mut self,
+    pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
+  ) -> crate::Result<usize> {
     if let Some(rslt) = self.next().await {
       let data = rslt?.into_data();
       let len = data.len();
-      bytes.extend(data);
+      pkgs_aux.byte_buffer.extend(data);
       Ok(len)
     } else {
       Ok(0)
     }
+  }
+}
+
+impl WebSocket for TokioTungstenite {
+  #[inline]
+  async fn from_url(url: &str) -> crate::Result<Self> {
+    Ok(connect_async(url).await?.0)
   }
 }

@@ -1,5 +1,4 @@
 use crate::network::transport::TransportParams;
-use alloc::vec::Vec;
 
 /// How the WebSocket request should be issued.
 #[derive(Clone, Copy, Debug)]
@@ -19,15 +18,35 @@ impl TransportParams for WsParams {
   type ExternalResponseParams = WsResParams;
 
   #[inline]
-  fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
-    (self.0, self.1)
+  fn ext_req_params(&self) -> &Self::ExternalRequestParams {
+    &self.0
+  }
+
+  #[inline]
+  fn ext_req_params_mut(&mut self) -> &mut Self::ExternalRequestParams {
+    &mut self.0
+  }
+
+  #[inline]
+  fn ext_res_params(&self) -> &Self::ExternalResponseParams {
+    &self.1
+  }
+
+  #[inline]
+  fn ext_res_params_mut(&mut self) -> &mut Self::ExternalResponseParams {
+    &mut self.1
+  }
+
+  #[inline]
+  fn reset(&mut self) {
+    self.0.ty = WsReqParamsTy::String;
   }
 }
 
 impl Default for WsParams {
   #[inline]
   fn default() -> Self {
-    Self(WsReqParams { ty: WsReqParamsTy::Bytes }, WsResParams)
+    Self(WsReqParams { ty: WsReqParamsTy::String }, WsResParams)
   }
 }
 
@@ -36,14 +55,6 @@ impl Default for WsParams {
 pub struct WsReqParams {
   /// Type
   pub ty: WsReqParamsTy,
-}
-
-impl WsReqParams {
-  /// Clears modified parameters.
-  #[inline]
-  pub fn clear(&mut self) {
-    self.ty = WsReqParamsTy::Bytes;
-  }
 }
 
 #[derive(Debug)]
@@ -58,7 +69,4 @@ where
   /// Different from other protocols, WebSockets only need an initial URL in order to create
   /// a channel or connection.
   async fn from_url(url: &str) -> crate::Result<Self>;
-
-  /// Polls one single message and stores the result in the passed `bytes`.
-  async fn receive_with_buffer(&mut self, bytes: &mut Vec<u8>) -> crate::Result<usize>;
 }

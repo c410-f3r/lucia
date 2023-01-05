@@ -1,8 +1,11 @@
 //! Implementations of the [Transport] trait.
 
+mod bi_transport;
 mod mock;
 #[cfg(feature = "reqwest")]
 mod reqwest;
+#[cfg(feature = "soketto")]
+mod soketto;
 #[cfg(feature = "std")]
 mod std;
 #[cfg(feature = "surf")]
@@ -14,6 +17,7 @@ mod unit;
 
 #[cfg(feature = "tokio-tungstenite")]
 pub use self::tokio_tungstenite::*;
+pub use bi_transport::*;
 pub use mock::*;
 pub use transport_params::*;
 
@@ -62,7 +66,9 @@ pub trait Transport<DRSR> {
     P: Package<DRSR, Self::Params>;
 
   /// Convenient method similar to [Self::send_retrieve_and_decode_contained] but used for batch
-  /// requests
+  /// requests.
+  ///
+  /// All the expected data must be available in a single response.
   #[inline]
   async fn send_retrieve_and_decode_batch<B, P>(
     &mut self,

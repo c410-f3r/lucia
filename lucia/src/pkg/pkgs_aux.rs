@@ -15,7 +15,7 @@ use alloc::vec::Vec;
 ///
 /// * `API`: Application Programming Interface
 /// * `DRSR`: DeserializeR/SerializeR
-/// * `T`: Transport
+/// * `TP`: Transport Parameters
 #[derive(Debug)]
 pub struct PkgsAux<API, DRSR, TP>
 where
@@ -29,10 +29,8 @@ where
   pub byte_buffer: Vec<u8>,
   /// Deserializer/Serializer instance
   pub drsr: DRSR,
-  /// External Request Parameters.
-  pub ext_req_params: TP::ExternalRequestParams,
-  /// External Response Parameters.
-  pub ext_res_params: TP::ExternalResponseParams,
+  /// External request and response parameters.
+  pub tp: TP,
   built_requests: Id,
 }
 
@@ -43,8 +41,7 @@ where
   /// Creates an instance with the minimum amount of mandatory parameters.
   #[inline]
   pub fn from_minimum(api: API, drsr: DRSR, tp: TP) -> Self {
-    let (ext_req_params, ext_res_params) = tp.into_parts();
-    Self { api, byte_buffer: Vec::new(), drsr, ext_req_params, ext_res_params, built_requests: 0 }
+    Self { api, byte_buffer: Vec::new(), drsr, tp, built_requests: 0 }
   }
 
   /// The number of constructed requests that is not necessarily equal the number of sent requests.

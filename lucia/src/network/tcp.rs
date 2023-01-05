@@ -17,8 +17,28 @@ impl TransportParams for TcpParams {
   type ExternalResponseParams = TcpResParams;
 
   #[inline]
-  fn into_parts(self) -> (Self::ExternalRequestParams, Self::ExternalResponseParams) {
-    (self.0, self.1)
+  fn ext_req_params(&self) -> &Self::ExternalRequestParams {
+    &self.0
+  }
+
+  #[inline]
+  fn ext_req_params_mut(&mut self) -> &mut Self::ExternalRequestParams {
+    &mut self.0
+  }
+
+  #[inline]
+  fn ext_res_params(&self) -> &Self::ExternalResponseParams {
+    &self.1
+  }
+
+  #[inline]
+  fn ext_res_params_mut(&mut self) -> &mut Self::ExternalResponseParams {
+    &mut self.1
+  }
+
+  #[inline]
+  fn reset(&mut self) {
+    self.0.url.retain_with_initial_len();
   }
 }
 
