@@ -1,5 +1,10 @@
+use crate::misc::AsyncTrait;
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
+
 /// Api definitions group different packages into a common namespace and define custom additional
 /// logical through hooks.
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait Api {
   /// Any custom error structure that can be constructed from [crate::Error].
   type Error: From<crate::Error>;
@@ -15,9 +20,10 @@ impl Api for () {
   type Error = crate::Error;
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<T> Api for &mut T
 where
-  T: Api,
+  T: Api + AsyncTrait,
 {
   type Error = T::Error;
 

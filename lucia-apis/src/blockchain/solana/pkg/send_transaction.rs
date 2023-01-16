@@ -9,6 +9,7 @@ pub(crate) mod pkg {
     Commitment, SolanaHttpPkgsAux, SolanaTransactionHashStr, TransactionInput,
   };
   use alloc::string::String;
+  use base64::Engine;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {
@@ -25,7 +26,7 @@ pub(crate) mod pkg {
         ..
       }) = config
       {
-        base64::encode(&self.byte_buffer)
+        base64::engine::general_purpose::STANDARD.encode(&self.byte_buffer)
       } else {
         bs58::encode(&self.byte_buffer).into_string()
       };

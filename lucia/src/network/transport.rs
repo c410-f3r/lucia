@@ -17,19 +17,20 @@ mod unit;
 
 #[cfg(feature = "tokio-tungstenite")]
 pub use self::tokio_tungstenite::*;
-pub use bi_transport::*;
-pub use mock::*;
-pub use transport_params::*;
-
 use crate::{
   dnsn::{Deserialize, Serialize},
-  misc::log_res,
+  misc::{log_res, AsyncTrait},
   network::TransportGroup,
   pkg::{BatchElems, BatchPkg, Package, PkgsAux},
   Id,
 };
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
+pub use bi_transport::*;
 use cl_aux::DynContigColl;
 use core::borrow::Borrow;
+pub use mock::*;
+pub use transport_params::*;
 
 /// Any means of transferring data between two parties.
 ///
@@ -39,7 +40,8 @@ use core::borrow::Borrow;
 /// # Types
 ///
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
-pub trait Transport<DRSR> {
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+pub trait Transport<DRSR>: AsyncTrait {
   /// Every transport has an [TransportGroup] identifier.
   const GROUP: TransportGroup;
   /// Every transport has request and response parameters.
@@ -77,7 +79,8 @@ pub trait Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    B: DynContigColl<P::ExternalResponseContent>,
+    B: AsyncTrait + DynContigColl<P::ExternalResponseContent>,
+    DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
     P::ExternalRequestContent: Borrow<Id> + Ord,
     P::ExternalResponseContent: Borrow<Id> + Ord,
@@ -103,6 +106,7 @@ pub trait Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<P::ExternalResponseContent, P::Error>
   where
+    DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
   {
     let len = self.send_and_retrieve(pkg, pkgs_aux).await?;
@@ -120,8 +124,10 @@ pub trait Transport<DRSR> {
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for &mut T
 where
+  DRSR: AsyncTrait,
   T: Transport<DRSR>,
 {
   const GROUP: TransportGroup = T::GROUP;

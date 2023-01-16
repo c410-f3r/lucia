@@ -55,6 +55,7 @@ LUCIA_APIS=(
   solana
 
   # Etc
+  async-trait
   default
   std
 )

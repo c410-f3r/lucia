@@ -4,9 +4,14 @@ quote = { default-features = false, features = ["proc-macro"], version = "1.0" }
 syn = { default-features = false, features = ["full", "parsing", "printing", "extra-traits", "proc-macro"], version = "1.0" }
 
 [dev-dependencies]
-lucia = { default-features = false, path = "../lucia" }
-lucia-macros = { default-features = false, path = "../lucia-macros" }
+async-trait = { default-features = false, version = "0.1" }
+lucia = { default-features = false, features = ["async-trait"], path = "../lucia" }
+lucia-macros = { default-features = false, features = ["async-trait"], path = "../lucia-macros" }
 trybuild = { default-features = false, version = "1.0" }
+
+[features]
+default = []
+async-trait = []
 
 [lib]
 proc-macro = true

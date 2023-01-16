@@ -12,7 +12,8 @@ solana-program = { default-features = false, optional = true, version = "1.0" }
 
 # Etc
 
-base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.20" }
+async-trait = { default-features = false, optional = true, version = "0.1" }
+base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.21" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.4" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 
@@ -35,6 +36,7 @@ solana = ["base64", "bincode", "bs58"]
 
 # Etc
 
+async-trait = ["dep:async-trait", "lucia/async-trait", "lucia-macros/async-trait"]
 default = []
 ed25519-dalek = ["dep:ed25519-dalek", "std"]
 std = []

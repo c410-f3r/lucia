@@ -4,10 +4,12 @@
 )]
 
 use crate::{
-  misc::{manage_before_sending_related, FromBytes},
+  misc::{manage_before_sending_related, AsyncTrait, FromBytes},
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
 use alloc::{
   borrow::{Cow, ToOwned},
   collections::VecDeque,
@@ -85,10 +87,12 @@ where
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for Mock<T>
 where
-  T: AsRef<[u8]> + Debug + PartialEq + ToOwned + 'static + ?Sized,
-  <T as ToOwned>::Owned: Debug + FromBytes,
+  DRSR: AsyncTrait,
+  T: AsyncTrait + AsRef<[u8]> + Debug + PartialEq + ToOwned + 'static + ?Sized,
+  <T as ToOwned>::Owned: AsyncTrait + Debug + FromBytes,
 {
   const GROUP: TransportGroup = TransportGroup::Stub;
   type Params = ();

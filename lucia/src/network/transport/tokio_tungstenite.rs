@@ -1,5 +1,5 @@
 use crate::{
-  misc::manage_before_sending_related,
+  misc::{manage_before_sending_related, AsyncTrait},
   network::{
     transport::{BiTransport, Transport, TransportParams},
     TransportGroup, WebSocket, WsParams, WsReqParamsTy,
@@ -31,7 +31,11 @@ pub type TokioTungstenite = WebSocketStream<MaybeTlsStream<TcpStream>>;
 ///   .await?;
 /// # Ok(()) }
 /// ```
-impl<DRSR> Transport<DRSR> for TokioTungstenite {
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl<DRSR> Transport<DRSR> for TokioTungstenite
+where
+  DRSR: AsyncTrait,
+{
   const GROUP: TransportGroup = TransportGroup::WebSocket;
   type Params = WsParams;
 
@@ -77,12 +81,19 @@ impl<DRSR> Transport<DRSR> for TokioTungstenite {
   }
 }
 
-impl<DRSR> BiTransport<DRSR> for TokioTungstenite {
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl<DRSR> BiTransport<DRSR> for TokioTungstenite
+where
+  DRSR: AsyncTrait,
+{
   #[inline]
   async fn retrieve<API>(
     &mut self,
     pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
-  ) -> crate::Result<usize> {
+  ) -> crate::Result<usize>
+  where
+    API: AsyncTrait,
+  {
     if let Some(rslt) = self.next().await {
       let data = rslt?.into_data();
       let len = data.len();
@@ -94,6 +105,7 @@ impl<DRSR> BiTransport<DRSR> for TokioTungstenite {
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl WebSocket for TokioTungstenite {
   #[inline]
   async fn from_url(url: &str) -> crate::Result<Self> {

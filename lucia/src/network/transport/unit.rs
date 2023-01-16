@@ -1,8 +1,10 @@
 use crate::{
-  misc::manage_before_sending_related,
+  misc::{manage_before_sending_related, AsyncTrait},
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
 
 /// Does absolutely nothing. Good for demonstration purposes.
 ///
@@ -13,7 +15,11 @@ use crate::{
 ///   ().send_retrieve_and_decode_contained(&mut (), &mut PkgsAux::from_minimum((), (), ())).await?;
 /// # Ok(()) }
 /// ```
-impl<DRSR> Transport<DRSR> for () {
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl<DRSR> Transport<DRSR> for ()
+where
+  DRSR: AsyncTrait,
+{
   const GROUP: TransportGroup = TransportGroup::Stub;
   type Params = ();
 
