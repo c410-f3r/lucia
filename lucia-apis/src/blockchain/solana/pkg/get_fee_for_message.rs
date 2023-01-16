@@ -9,6 +9,7 @@ pub(crate) mod pkg {
     Commitment, JsonRpcResponseResultWithContext, MessageInput, SolanaHttpPkgsAux,
   };
   use alloc::string::String;
+  use base64::Engine;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {
@@ -20,7 +21,7 @@ pub(crate) mod pkg {
     ) -> crate::Result<GetFeeForMessageReq> {
       self.byte_buffer.clear();
       bincode::serialize_into(&mut self.byte_buffer, message)?;
-      let string = base64::encode(&self.byte_buffer);
+      let string = base64::engine::general_purpose::STANDARD.encode(&self.byte_buffer);
       self.byte_buffer.clear();
       Ok(GetFeeForMessageReq(string, config))
     }

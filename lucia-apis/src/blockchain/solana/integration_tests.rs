@@ -1,9 +1,10 @@
 use crate::{
   blockchain::solana::{
     AccountEncoding, AccountSubscribeConfig, Commitment, DataSlice, Filter, GetAccountInfoConfig,
-    GetBlockConfig, GetProgramAccountsConfig, GetTokenAccountsByOwnerConfig, GetTransactionConfig,
-    Memcmp, MemcmpEncodedBytes, MessageInput, MintOrProgramId, Solana, SolanaAddressHash,
-    SolanaPkgsAux, TransactionDetails, TransactionEncoding, TransactionInput,
+    GetBlockConfig, GetLargestAccountsConfig, GetProgramAccountsConfig,
+    GetTokenAccountsByOwnerConfig, GetTransactionConfig, Memcmp, MemcmpEncodedBytes, MessageInput,
+    MintOrProgramId, Solana, SolanaAddressHash, SolanaPkgsAux, TransactionDetails,
+    TransactionEncoding, TransactionInput,
   },
   misc::{init_test_cfg, PkgsAux},
 };
@@ -166,6 +167,15 @@ create_http_test!(Solana::new(None), http(), get_block_time, |pkgs_aux, trans| a
     .unwrap();
 });
 
+create_http_test!(Solana::new(None), http(), get_cluster_nodes, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_cluster_nodes().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
 create_http_test!(Solana::new(None), http(), get_epoch_info, |pkgs_aux, trans| async {
   let _res = trans
     .send_retrieve_and_decode_contained(
@@ -178,9 +188,9 @@ create_http_test!(Solana::new(None), http(), get_epoch_info, |pkgs_aux, trans| a
     .unwrap();
 });
 
-create_http_test!(Solana::new(None), http(), get_cluster_nodes, |pkgs_aux, trans| async {
+create_http_test!(Solana::new(None), http(), get_epoch_schedule, |pkgs_aux, trans| async {
   let _res = trans
-    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_cluster_nodes().build(), pkgs_aux)
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_epoch_schedule().build(), pkgs_aux)
     .await
     .unwrap()
     .result
@@ -220,6 +230,85 @@ create_http_test!(Solana::new(None), http(), get_fee_for_message, |pkgs_aux, tra
       .unwrap(),
     5000
   );
+});
+
+create_http_test!(Solana::new(None), http(), get_first_available_block, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_first_available_block().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_genesis_hash, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_genesis_hash().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_health, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_health().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_highest_snapshot_slot, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_highest_snapshot_slot().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_identity, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_identity().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_inflation_governor, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_inflation_governor().data(None).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_inflation_rate, |pkgs_aux, trans| async {
+  let _res = trans
+    .send_retrieve_and_decode_contained(&mut pkgs_aux.get_inflation_rate().build(), pkgs_aux)
+    .await
+    .unwrap()
+    .result
+    .unwrap();
+});
+
+create_http_test!(Solana::new(None), http(), get_largest_accounts, |pkgs_aux, trans| async {
+  let data: Option<GetLargestAccountsConfig<&str>> = None;
+  let _res = trans
+    .send_retrieve_and_decode_contained(
+      &mut pkgs_aux.get_largest_accounts().data(data).build(),
+      pkgs_aux,
+    )
+    .await
+    .unwrap()
+    .result
+    .unwrap();
 });
 
 create_http_test!(

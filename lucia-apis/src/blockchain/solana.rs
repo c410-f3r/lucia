@@ -40,7 +40,7 @@ use core::{future::Future, pin::Pin};
 pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
-  misc::RequestThrottling,
+  misc::{AsyncTrait, RequestThrottling},
   network::{transport::Transport, HttpParams},
   pkg::Package,
   Api,
@@ -75,17 +75,6 @@ pub struct Solana {
   pub rt: Option<RequestThrottling>,
 }
 
-impl Api for Solana {
-  type Error = crate::Error;
-
-  async fn before_sending(&mut self) -> Result<(), Self::Error> {
-    if let Some(ref mut rt) = self.rt {
-      rt.rc.update_params(&rt.rl).await?;
-    }
-    Ok(())
-  }
-}
-
 impl Solana {
   /// If desired, it is possible to instantiate directly instead of using this method.
   pub fn new(rt: Option<RequestThrottling>) -> Self {
@@ -101,6 +90,7 @@ impl Solana {
     tx_hash: &'th str,
   ) -> crate::Result<bool>
   where
+    DRSR: AsyncTrait,
     T: Transport<DRSR, Params = HttpParams>,
     for<'sig> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'sig, &'th str>>>:
       Package<
@@ -195,6 +185,7 @@ impl Solana {
     ) -> Pin<Box<dyn Future<Output = Result<O, E>> + Send + 'any>>,
   ) -> Result<(O, Option<SolanaBlockhash>), E>
   where
+    DRSR: AsyncTrait,
     E: From<crate::Error>,
     T: Transport<DRSR, Params = HttpParams>,
     GetLatestBlockhashPkg<JsonRpcRequest<GetLatestBlockhashReq>>: Package<
@@ -257,5 +248,17 @@ impl Solana {
     } else {
       None
     }
+  }
+}
+
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl Api for Solana {
+  type Error = crate::Error;
+
+  async fn before_sending(&mut self) -> Result<(), Self::Error> {
+    if let Some(ref mut rt) = self.rt {
+      rt.rc.update_params(&rt.rl).await?;
+    }
+    Ok(())
   }
 }

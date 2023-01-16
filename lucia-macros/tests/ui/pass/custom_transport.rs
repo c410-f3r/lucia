@@ -11,7 +11,11 @@ use lucia::network::transport::TransportParams;
 
 struct CustomTransport;
 
-impl<DRSR> Transport<DRSR> for CustomTransport {
+#[async_trait::async_trait]
+impl<DRSR> Transport<DRSR> for CustomTransport
+where
+  DRSR: lucia::misc::AsyncTrait
+{
   const GROUP: TransportGroup = TransportGroup::Custom("Custom");
   type Params = CustomTransportParams;
 

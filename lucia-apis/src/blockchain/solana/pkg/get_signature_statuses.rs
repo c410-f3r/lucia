@@ -8,6 +8,7 @@ pub(crate) mod pkg {
   use crate::blockchain::solana::{
     Commitment, JsonRpcResponseResultWithContext, SolanaHttpPkgsAux, TransactionError,
   };
+  use lucia::misc::AsyncTrait;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -21,7 +22,7 @@ pub(crate) mod pkg {
     Option<GetSignatureStatusesConfig>,
   )
   where
-    S: AsRef<str>;
+    S: AsyncTrait + AsRef<str>;
 
   #[pkg::res_data]
   pub type GetSignatureStatusesRes =

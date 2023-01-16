@@ -17,6 +17,7 @@ simd-json = { default-features = false, features = ["serde_impl"], optional = tr
 # Etc
 
 arrayvec = { default-features = false, optional = true, version = "0.7" }
+async-trait = { default-features = false, optional = true, version = "0.1" }
 async-std = { default-features = false, optional = true, version = "1.0" }
 futures = { default-features = false, optional = true, version = "0.3" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
