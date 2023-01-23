@@ -3,7 +3,7 @@ cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 
 # Deserializer/Serializer
 
-borsh = { default-features = false, features = ["std"], optional = true, version = "0.9" }
+borsh = { default-features = false, features = ["std"], optional = true, version = "0.10" }
 bytecheck = { default-features = false, optional = true, version = "0.6" }
 miniserde = { default-features = false, optional = true, version = "0.1" }
 protobuf = { default-features = false, optional = true, version = "3.0" }
