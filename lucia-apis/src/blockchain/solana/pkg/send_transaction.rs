@@ -6,7 +6,8 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{
-    Commitment, SolanaHttpPkgsAux, SolanaTransactionHashStr, TransactionInput,
+    Commitment, SendTransactionEncoding, SolanaHttpPkgsAux, SolanaTransactionHashStr,
+    TransactionInput,
   };
   use alloc::string::String;
   use base64::Engine;
@@ -37,7 +38,10 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
-  pub struct SendTransactionReq(String, Option<SendTransactionConfig>);
+  pub struct SendTransactionReq(
+    String,
+    #[serde(skip_serializing_if = "Option::is_none")] Option<SendTransactionConfig>,
+  );
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
@@ -59,16 +63,6 @@ pub(crate) mod pkg {
     pub preflight_commitment: Option<Commitment>,
     /// If true, skip the preflight transaction checks
     pub skip_preflight: bool,
-  }
-
-  /// Send transaction encoding
-  #[derive(Debug, serde::Serialize)]
-  #[serde(rename_all = "camelCase")]
-  pub enum SendTransactionEncoding {
-    /// Represents binary data in alphanumeric text.
-    Base58,
-    /// Represents binary data in sequences of 24 bits.
-    Base64,
   }
 
   #[pkg::res_data]

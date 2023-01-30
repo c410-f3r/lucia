@@ -30,7 +30,7 @@ jobs:
       - run: .scripts/internal-tests.sh
 
   integration-tests:
-    container: projectserum/build:v0.24.2
+    container: projectserum/build:v0.26.0
     name: Integration tests
     runs-on: ubuntu-latest
     steps:

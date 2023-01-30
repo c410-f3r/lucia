@@ -92,18 +92,17 @@ impl Solana {
   where
     DRSR: AsyncTrait,
     T: Transport<DRSR, Params = HttpParams>,
-    for<'sig> GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<'sig, &'th str>>>:
-      Package<
-        DRSR,
-        T::Params,
-        Api = Solana,
-        Error = crate::Error,
-        ExternalResponseContent = JsonRpcResponse<GetSignatureStatusesRes>,
-      >,
+    GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<[&'th str; 1]>>>: Package<
+      DRSR,
+      T::Params,
+      Api = Solana,
+      Error = crate::Error,
+      ExternalResponseContent = JsonRpcResponse<GetSignatureStatusesRes>,
+    >,
   {
     macro_rules! call {
       () => {{
-        let signatures = &[tx_hash];
+        let signatures = [tx_hash];
         if let Some(Some(GetSignatureStatuses {
           confirmation_status: Commitment::Finalized, ..
         })) = trans

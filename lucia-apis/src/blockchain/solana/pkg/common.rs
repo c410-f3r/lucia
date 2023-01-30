@@ -10,6 +10,16 @@ pub enum Commitment {
   Processed,
 }
 
+/// Send transaction encoding
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub enum SendTransactionEncoding {
+  /// Represents binary data in alphanumeric text.
+  Base58,
+  /// Represents binary data in sequences of 24 bits.
+  Base64,
+}
+
 /// Used to filter a sequence of bytes
 #[derive(Debug, serde::Serialize)]
 pub struct DataSlice {
@@ -30,6 +40,19 @@ where
   Mint(S),
   /// Address is a program
   ProgramId(S),
+}
+
+/// Skate state related to an account.
+#[derive(Debug, serde::Deserialize)]
+pub enum StakeActivationState {
+  /// Processing activation.
+  Activating,
+  /// Successful activation.
+  Active,
+  /// Deactivated.
+  Deactivating,
+  /// Inactive
+  Inactive,
 }
 
 /// Response metadata

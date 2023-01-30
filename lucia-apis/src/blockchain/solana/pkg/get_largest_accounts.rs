@@ -9,6 +9,7 @@ pub(crate) mod pkg {
     Commitment, JsonRpcResponseResultWithContext, SolanaAddressHashStr, SolanaHttpPkgsAux,
   };
   use lucia::misc::AsyncTrait;
+  use serde::Serialize;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -18,10 +19,11 @@ pub(crate) mod pkg {
   pub struct GetLargestAccountsReq<S>(
     #[pkg::field(name = "config")]
     #[serde(serialize_with = "crate::misc::serialize_as_tuple")]
+    #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetLargestAccountsConfig<S>>,
   )
   where
-    S: AsRef<str> + AsyncTrait + serde::Serialize;
+    S: AsRef<str> + AsyncTrait + Serialize;
 
   #[pkg::res_data]
   pub type GetLargestAccountsRes = JsonRpcResponseResultWithContext<Vec<GetLargestAccounts>>;
