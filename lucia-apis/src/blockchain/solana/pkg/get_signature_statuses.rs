@@ -15,14 +15,14 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
-  pub struct GetSignatureStatusesReq<'signatures, S>(
-    #[pkg::field(name = "signatures")] &'signatures [S],
+  pub struct GetSignatureStatusesReq<S>(
+    #[pkg::field(name = "signatures")] S,
     #[pkg::field(name = "config")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetSignatureStatusesConfig>,
   )
   where
-    S: AsyncTrait + AsRef<str>;
+    S: AsyncTrait;
 
   #[pkg::res_data]
   pub type GetSignatureStatusesRes =

@@ -6,7 +6,7 @@ All these native-supported interfaces are very important to test and exercise `l
 
 | Category | Name | Feature | Pct |
 |---|---|---|:---:|
-| Blockchain | Solana | solana | 90% |
+| Blockchain | Solana | solana | 100% |
 | Calendar | Nager.Date | nager-date | 100% |
 | Series | Rick And Morty | rick-and-morty | 100% |
 | Test data | JSONPlaceholder | json-placeholder | 100% |

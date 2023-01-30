@@ -5,9 +5,8 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use lucia::misc::AsyncTrait;
-
   use crate::blockchain::solana::{Commitment, SolanaHttpPkgsAux};
+  use lucia::misc::AsyncTrait;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}

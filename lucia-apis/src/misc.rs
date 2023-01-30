@@ -3,24 +3,24 @@
 mod concat_array_str;
 mod slice_by_commas;
 
-use core::{fmt::Display, str::FromStr};
-
+use arrayvec::ArrayString;
 pub use concat_array_str::*;
+use core::{fmt::Display, str::FromStr};
 use lucia::create_packages_aux_wrapper;
 use serde::{de::IntoDeserializer, Deserialize, Deserializer, Serialize, Serializer};
 pub use slice_by_commas::*;
 
-pub(crate) const _MAX_ASSET_ABBR_LEN: usize = 10;
-pub(crate) const _MAX_NUMBER_LEN: usize = 31;
+const MAX_ASSET_ABBR_LEN: usize = 10;
+const MAX_NUMBER_LEN: usize = 31;
 
 /// Maximum asset abbreviation like BTC.
-pub type MaxAssetAbbr = arrayvec::ArrayString<_MAX_ASSET_ABBR_LEN>;
+pub type MaxAssetAbbr = ArrayString<MAX_ASSET_ABBR_LEN>;
 /// Maximum asset name like Bitcoin.
-pub type MaxAssetName = arrayvec::ArrayString<36>;
+pub type MaxAssetName = ArrayString<36>;
 /// Maximum string representation of a number.
-pub type MaxNumberStr = arrayvec::ArrayString<_MAX_NUMBER_LEN>;
+pub type MaxNumberStr = ArrayString<MAX_NUMBER_LEN>;
 /// Maximum pair abbreviation like ETH-BTC
-pub type MaxPairAbbr = arrayvec::ArrayString<{ 2 * _MAX_ASSET_ABBR_LEN + 1 }>;
+pub type MaxPairAbbr = ArrayString<{ 2 * MAX_ASSET_ABBR_LEN + 1 }>;
 
 _create_blockchain_constants!(
   pub address_hash: MaxAddressHash = 32,
