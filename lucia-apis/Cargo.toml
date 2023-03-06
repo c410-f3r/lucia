@@ -21,7 +21,7 @@ ed25519-dalek = { default-features = false, features = ["u64_backend"], optional
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
 lucia-apis = { features = ["async-trait", "ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.26" }
 tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.18" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
