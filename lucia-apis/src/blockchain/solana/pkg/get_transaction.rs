@@ -36,5 +36,8 @@ pub(crate) mod pkg {
     /// Transaction encoding
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<TransactionEncoding>,
+    /// Maxixmum transaction version
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub max_supported_transaction_version: Option<u8>,
   }
 }

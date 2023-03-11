@@ -1,5 +1,6 @@
 use crate::blockchain::solana::{
   GenericTransaction, Reward, SolanaAddressHashStr, SolanaSignatureHashStr, TransactionMeta,
+  TransactionVersion,
 };
 use alloc::vec::Vec;
 
@@ -33,4 +34,6 @@ pub struct BlockTransaction {
   pub meta: TransactionMeta,
   /// Generic transaction
   pub transaction: GenericTransaction,
+  /// Transaction version
+  pub version: Option<TransactionVersion>,
 }
