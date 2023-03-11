@@ -6,6 +6,14 @@ pub use transaction_input::*;
 pub use transaction_json::*;
 pub use transaction_output::*;
 
+/// Type that serializes to the string "legacy"
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum Legacy {
+  /// Legacy
+  Legacy,
+}
+
 /// Types of data representation of an transaction.
 #[derive(Clone, Copy, Debug, serde::Deserialize, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -30,4 +38,19 @@ pub enum TransactionDetails {
   Signatures,
   /// No additional data
   None,
+}
+
+/// Transaction version
+#[derive(Clone, Copy, Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum TransactionVersion {
+  /// Legacy
+  Legacy(Legacy),
+  /// Number
+  Number(u8),
+}
+
+impl TransactionVersion {
+  /// Shortcut of `TransactionVersion::Legacy(Legacy::Legacy)`.
+  pub const LEGACY: Self = Self::Legacy(Legacy::Legacy);
 }

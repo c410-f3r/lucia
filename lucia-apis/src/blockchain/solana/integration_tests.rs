@@ -81,6 +81,7 @@ create_http_test!(Solana::new(None), http(), get_block, |pkgs_aux, trans| async 
           Some(GetBlockConfig {
             commitment: Some(Commitment::Finalized),
             encoding: Some(TransactionEncoding::JsonParsed),
+            max_supported_transaction_version: Some(0),
             rewards: Some(true),
             transaction_details: Some(TransactionDetails::Full),
           }),
@@ -650,6 +651,7 @@ create_http_test!(
             Some(GetTransactionConfig {
               commitment: Some(Commitment::Finalized),
               encoding: Some(TransactionEncoding::Base64),
+              max_supported_transaction_version: Some(0),
             }),
           )
           .build(),

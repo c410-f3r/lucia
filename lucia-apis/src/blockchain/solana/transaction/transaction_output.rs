@@ -1,7 +1,7 @@
 use crate::blockchain::solana::{
   program::spl_token::AccountBalance, CompiledInstructionJson, InnerInstructionJson,
   InstructionJson, MessageJsonAccountKey, SolanaAddressHashStr, TransactionEncoding,
-  TransactionJson,
+  TransactionJson, TransactionVersion,
 };
 use alloc::{string::String, vec::Vec};
 
@@ -306,6 +306,8 @@ pub struct TransactionOutput {
   pub slot: u64,
   /// Generic transaction
   pub transaction: GenericTransaction,
+  /// Transaction version
+  pub version: Option<TransactionVersion>,
 }
 
 /// Pre and pos transaction balance information.
