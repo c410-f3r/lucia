@@ -21,7 +21,7 @@ async-trait = { default-features = false, optional = true, version = "0.1" }
 async-std = { default-features = false, optional = true, version = "1.0" }
 futures = { default-features = false, optional = true, version = "0.3" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
-tokio = { default-features = false, optional = true, version = "1.0" }
+tokio = { default-features = false, optional = true, version = "1.27" }
 tracing = { default-features = false, optional = true, version = "0.1" }
 
 # Network
@@ -36,7 +36,7 @@ tokio-tungstenite = { default-features = false, features = ["connect"], optional
 tungstenite = { default-features = false, optional = true, version = "0.18" }
 
 [dev-dependencies]
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.27" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
 [features]
