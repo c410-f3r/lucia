@@ -1,10 +1,14 @@
+mod message_input;
 mod transaction_input;
 mod transaction_json;
 mod transaction_output;
+mod versioned_message_input;
 
+pub use message_input::*;
 pub use transaction_input::*;
 pub use transaction_json::*;
 pub use transaction_output::*;
+pub use versioned_message_input::*;
 
 /// Type that serializes to the string "legacy"
 #[derive(Clone, Copy, Debug, serde::Deserialize)]

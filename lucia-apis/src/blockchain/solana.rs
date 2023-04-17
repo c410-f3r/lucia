@@ -17,6 +17,7 @@
 mod macros;
 
 mod account;
+mod address_lookup_table_account;
 mod block;
 mod filter;
 #[cfg(all(test, feature = "_integration-tests"))]
@@ -34,13 +35,14 @@ use crate::blockchain::{
   ConfirmTransactionOptions,
 };
 pub use account::*;
+pub use address_lookup_table_account::*;
 use arrayvec::ArrayString;
 pub use block::*;
 use core::{future::Future, pin::Pin};
 pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
-  misc::{AsyncTrait, RequestThrottling},
+  misc::{AsyncTrait, PairMut, RequestThrottling},
   network::{transport::Transport, HttpParams},
   pkg::Package,
   Api,
@@ -50,8 +52,6 @@ pub use pkg::*;
 pub use reward::*;
 pub use slot_update::*;
 pub use transaction::*;
-
-pub(crate) const MAX_TRANSACTION_ACCOUNTS_NUM: usize = 240;
 
 pub(crate) type Epoch = u64;
 pub(crate) type SolanaProgramName = ArrayString<32>;
@@ -85,10 +85,9 @@ impl Solana {
   /// successful or expired.
   pub async fn confirm_transaction<'th, DRSR, T>(
     cto: ConfirmTransactionOptions,
-    pkgs_aux: &mut SolanaHttpPkgsAux<DRSR>,
-    trans: &mut T,
+    pair: &mut PairMut<'_, SolanaHttpPkgsAux<DRSR>, T>,
     tx_hash: &'th str,
-  ) -> crate::Result<bool>
+  ) -> crate::Result<()>
   where
     DRSR: AsyncTrait,
     T: Transport<DRSR, Params = HttpParams>,
@@ -105,10 +104,11 @@ impl Solana {
         let signatures = [tx_hash];
         if let Some(Some(GetSignatureStatuses {
           confirmation_status: Commitment::Finalized, ..
-        })) = trans
+        })) = pair
+          .trans
           .send_retrieve_and_decode_contained(
-            &mut pkgs_aux.get_signature_statuses().data(signatures, None).build(),
-            pkgs_aux,
+            &mut pair.pkgs_aux.get_signature_statuses().data(signatures, None).build(),
+            &mut pair.pkgs_aux,
           )
           .await?
           .result?
@@ -126,21 +126,21 @@ impl Solana {
       ConfirmTransactionOptions::Tries { number } => {
         for _ in 0u16..number {
           if call!() {
-            return Ok(true);
+            return Ok(());
           }
         }
       }
       ConfirmTransactionOptions::TriesWithInterval { interval, number } => {
         for _ in 0u16..number {
           if call!() {
-            return Ok(true);
+            return Ok(());
           }
           lucia::misc::sleep(interval).await?;
         }
       }
     }
 
-    Ok(false)
+    Err(crate::Error::CouldNotConfirmTransaction)
   }
 
   /// If existing, extracts the parsed spl token account ([program::spl_token::MintAccount]) out of
@@ -178,11 +178,12 @@ impl Solana {
     initial_blockhash: SolanaBlockhash,
     pair: &mut SolanaPair<DRSR, T>,
     mut cb: impl for<'any> FnMut(
+      u8,
       &'any mut A,
       SolanaBlockhash,
       &'any mut SolanaPair<DRSR, T>,
     ) -> Pin<Box<dyn Future<Output = Result<O, E>> + Send + 'any>>,
-  ) -> Result<(O, Option<SolanaBlockhash>), E>
+  ) -> Result<O, E>
   where
     DRSR: AsyncTrait,
     E: From<crate::Error>,
@@ -211,14 +212,14 @@ impl Solana {
           .blockhash
       };
     }
-    match cb(&mut aux, initial_blockhash, pair).await {
+    match cb(0, &mut aux, initial_blockhash, pair).await {
       Err(err) => {
         if let Some(n) = additional_tries.checked_sub(1) {
           let mut opt = None;
-          for _ in 0..n {
+          for idx in 1..=n {
             let local_blockhash = local_blockhash!(pair);
-            if let Ok(elem) = cb(&mut aux, local_blockhash, pair).await {
-              opt = Some((elem, Some(local_blockhash)));
+            if let Ok(elem) = cb(idx, &mut aux, local_blockhash, pair).await {
+              opt = Some(elem);
               break;
             }
           }
@@ -226,14 +227,14 @@ impl Solana {
             Ok(elem)
           } else {
             let local_blockhash = local_blockhash!(pair);
-            let last = cb(&mut aux, local_blockhash, pair).await?;
-            Ok((last, Some(local_blockhash)))
+            let last = cb(additional_tries, &mut aux, local_blockhash, pair).await?;
+            Ok(last)
           }
         } else {
           Err(err)
         }
       }
-      Ok(elem) => Ok((elem, None)),
+      Ok(elem) => Ok(elem),
     }
   }
 

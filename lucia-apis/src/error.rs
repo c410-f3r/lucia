@@ -32,14 +32,22 @@ pub enum Error {
   /// Usually means that no signing public key is available in the list of all public keys
   #[cfg(feature = "solana")]
   SolanaInexistentOrOutOfBoundsSignatureIndex(usize, Option<usize>),
-  /// Hard-coded behavior specified by the Solana blockchain
-  #[cfg(feature = "solana")]
-  SolanaMessageCanNotHaveMoreThan240Accounts,
   /// The number of signers is not equal the number os signed signatures
   #[cfg(feature = "solana")]
   SolanaSignersShouldHaveSignedAllTransactionSignatures(usize, usize),
+  /// Many collections have a maximum limit of 256 items.
+  #[cfg(feature = "solana")]
+  SolanaU8Overflow,
+  /// A instruction required an account that does not exist
+  #[cfg(feature = "solana")]
+  SolanaUnknownIxPubKey,
+  /// The system only supports v0 messages
+  #[cfg(feature = "solana")]
+  SolanaUnsupportedMessageFormat,
 
   // Internal
+  /// An submitted transaction could not be confirmed by an external actor.
+  CouldNotConfirmTransaction,
   /// For third-party dependencies that throws strings errors
   Generic(Cow<'static, str>),
   /// Request was expecting a different HTTP status code.

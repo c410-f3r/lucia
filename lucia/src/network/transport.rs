@@ -72,14 +72,14 @@ pub trait Transport<DRSR>: AsyncTrait {
   ///
   /// All the expected data must be available in a single response.
   #[inline]
-  async fn send_retrieve_and_decode_batch<B, P>(
+  async fn send_retrieve_and_decode_batch<P, RESS>(
     &mut self,
-    buffer: &mut B,
+    ress: &mut RESS,
     pkgs: &mut [P],
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    B: AsyncTrait + DynContigColl<P::ExternalResponseContent>,
+    RESS: AsyncTrait + DynContigColl<P::ExternalResponseContent>,
     DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
     P::ExternalRequestContent: Borrow<Id> + Ord,
@@ -90,7 +90,7 @@ pub trait Transport<DRSR>: AsyncTrait {
     let len = self.send_and_retrieve(batch_package, pkgs_aux).await?;
     log_res(pkgs_aux.byte_buffer.as_ref());
     batch_package.decode_and_push_from_bytes(
-      buffer,
+      ress,
       pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
       &mut pkgs_aux.drsr,
     )?;

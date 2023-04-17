@@ -1,6 +1,6 @@
 use crate::blockchain::solana::{
   program::spl_token::AccountBalance, CompiledInstructionJson, InnerInstructionJson,
-  InstructionJson, MessageJsonAccountKey, SolanaAddressHashStr, TransactionEncoding,
+  InstructionJsonParsedGeneric, MessageJsonAccountKey, SolanaAddressHashStr, TransactionEncoding,
   TransactionJson, TransactionVersion,
 };
 use alloc::{string::String, vec::Vec};
@@ -15,7 +15,7 @@ pub enum GenericTransaction {
   /// Decoded bytes as JSON.
   Json(TransactionJson<SolanaAddressHashStr, CompiledInstructionJson>),
   /// Decoded bytes as JSON with additional metadata.
-  JsonParsed(TransactionJson<MessageJsonAccountKey, InstructionJson>),
+  JsonParsed(TransactionJson<MessageJsonAccountKey, InstructionJsonParsedGeneric>),
 }
 
 /// An instruction wasn't successful.

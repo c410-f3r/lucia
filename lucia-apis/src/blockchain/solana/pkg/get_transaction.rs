@@ -29,6 +29,7 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
+  #[serde(rename_all = "camelCase")]
   pub struct GetTransactionConfig {
     #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -36,7 +37,7 @@ pub(crate) mod pkg {
     /// Transaction encoding
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<TransactionEncoding>,
-    /// Maxixmum transaction version
+    /// Maximum transaction version
     #[serde(skip_serializing_if = "Option::is_none")]
     pub max_supported_transaction_version: Option<u8>,
   }
