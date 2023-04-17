@@ -117,7 +117,10 @@ impl<'attrs, 'module, 'others>
         let tp = Self::transport_params(transport_group);
         let (lts, tys) = Self::pkg_params(&freqdiv, &fpiv);
         #[cfg(feature = "async-trait")]
-        let async_trait_cfg = quote::quote!(#[async_trait::async_trait]);
+        let async_trait_cfg = quote::quote!(
+          use alloc::boxed::Box;
+          #[async_trait::async_trait]
+        );
         #[cfg(not(feature = "async-trait"))]
         let async_trait_cfg = TokenStream::new();
         package_impls.push(quote::quote!(

@@ -1,15 +1,15 @@
-use crate::{blockchain::solana::SolanaAddressHashStr, misc::MaxNumberStr};
+//! Native instructions
+
+use crate::blockchain::solana::SolanaAddressHashStr;
 
 /// Data related to the transfer instruction.
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TransferInstruction {
-  /// Transferred lamports
-  pub amount: MaxNumberStr,
-  /// Authority
-  pub authority: SolanaAddressHashStr,
   /// Receiving Base58 identifier
   pub destination: SolanaAddressHashStr,
+  /// Transferred lamports
+  pub lamports: u64,
   /// Sending Base58 identifier
   pub source: SolanaAddressHashStr,
 }

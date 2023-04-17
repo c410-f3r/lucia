@@ -1,4 +1,9 @@
-use crate::{misc::AsyncTrait, network::transport::Transport, pkg::PkgsAux};
+use crate::{
+  dnsn::Deserialize,
+  misc::{log_res, AsyncTrait},
+  network::transport::Transport,
+  pkg::{Package, PkgsAux},
+};
 #[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
 
@@ -19,6 +24,27 @@ pub trait BiTransport<DRSR>: Transport<DRSR> {
   ) -> crate::Result<usize>
   where
     API: AsyncTrait;
+
+  /// Internally calls [Self::retrieve] and then tries to decode the defined response specified
+  /// in [Package::ExternalResponseContent].
+  #[inline]
+  async fn retrieve_and_decode_contained<P>(
+    &mut self,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+  ) -> Result<P::ExternalResponseContent, P::Error>
+  where
+    DRSR: AsyncTrait,
+    P: Package<DRSR, Self::Params>,
+  {
+    let len = self.retrieve(pkgs_aux).await?;
+    log_res(pkgs_aux.byte_buffer.as_ref());
+    let rslt = P::ExternalResponseContent::from_bytes(
+      pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
+      &mut pkgs_aux.drsr,
+    )?;
+    pkgs_aux.byte_buffer.clear();
+    Ok(rslt)
+  }
 }
 
 #[cfg_attr(feature = "async-trait", async_trait::async_trait)]

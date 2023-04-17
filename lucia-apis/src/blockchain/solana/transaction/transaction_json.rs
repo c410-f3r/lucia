@@ -1,5 +1,8 @@
 use crate::blockchain::solana::{
-  program::spl_token::{TransferCheckedInstruction, TransferInstruction},
+  program::{
+    spl_token::{self, TransferCheckedInstruction},
+    system,
+  },
   SolanaAddressHashStr, SolanaBlockhashStr, SolanaProgramName, SolanaSignatureHashStr,
 };
 use alloc::{string::String, vec::Vec};
@@ -12,11 +15,21 @@ use arrayvec::ArrayString;
 )]
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase", untagged)]
-pub enum GenericInstructionJson {
+pub enum InstructionJsonGeneric {
   /// Compiled
   Compiled(CompiledInstructionJson),
+  /// Legacy name that actually means different sets of JSON-based instructions
+  Parsed(InstructionJsonParsedGeneric),
+}
+
+/// A parsed json instruction can be expressed in even more different formats
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase", untagged)]
+pub enum InstructionJsonParsedGeneric {
+  /// Partially decoded
+  PartiallyDecoded(InstructionPartiallyDecoded),
   /// Parsed
-  Parsed(InstructionJson),
+  Parsed(InstructionJsonParsedOverall),
 }
 
 /// Contains known instructions that can be represented.
@@ -24,9 +37,11 @@ pub enum GenericInstructionJson {
 #[serde(rename_all = "camelCase", untagged)]
 pub enum InstructionJsonParsedInfo {
   /// Spl-token transfer
-  TransferInstruction(TransferInstruction),
+  SplTokenTransferInstruction(spl_token::TransferInstruction),
   /// Spl-token checked transfer
-  TransferCheckedInstruction(TransferCheckedInstruction),
+  SplTokenTransferCheckedInstruction(TransferCheckedInstruction),
+  /// Spl-token transfer
+  SystemTransferInstruction(system::TransferInstruction),
   /// Unsupported
   #[serde(deserialize_with = "crate::misc::deserialize_ignore_any")]
   Unknown,
@@ -50,29 +65,41 @@ pub struct InnerInstructionJson {
   /// Index in regards to the block array of instructions.
   pub index: u8,
   /// Instructions
-  pub instructions: Vec<GenericInstructionJson>,
+  pub instructions: Vec<InstructionJsonGeneric>,
 }
 
 /// With decoded JSON data.
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InstructionJson {
+pub struct InstructionJsonParsedOverall {
   /// Known program name
   pub program: Option<SolanaProgramName>,
   /// Program Base58 identifier.
   pub program_id: SolanaAddressHashStr,
   /// Parsed instruction.
-  pub parsed: Option<InstructionJsonParsed>,
+  pub parsed: Option<InstructionJsonParsedDecoded>,
 }
 
 /// Basic decoded instruction that may have a known information.
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InstructionJsonParsed {
+pub struct InstructionJsonParsedDecoded {
   /// Information
   pub info: InstructionJsonParsedInfo,
   /// Type
   pub r#type: ArrayString<32>,
+}
+
+/// With decoded JSON data.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InstructionPartiallyDecoded {
+  /// Program Base58 identifier.
+  pub program_id: SolanaAddressHashStr,
+  /// Instruction accounts
+  pub accounts: Vec<SolanaAddressHashStr>,
+  /// Raw data
+  pub data: String,
 }
 
 /// Decoded block message.

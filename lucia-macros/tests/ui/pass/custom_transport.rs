@@ -3,6 +3,8 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait, impl_trait_projections)]
 
+extern crate alloc;
+
 use lucia::pkg::PkgsAux;
 use lucia::pkg::Package;
 use lucia::network::TransportGroup;

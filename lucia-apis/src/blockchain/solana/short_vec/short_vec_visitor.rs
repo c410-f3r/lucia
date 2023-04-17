@@ -28,7 +28,7 @@ where
     let len: usize = short_u16.0.into();
 
     let mut result = T::with_capacity(len)
-      .map_err(|_err| de::Error::custom("Collection can not hold teh desired capacity"))?;
+      .map_err(|_err| de::Error::custom("Collection can not hold the desired capacity"))?;
     for i in 0..len {
       let elem = seq.next_element()?.ok_or_else(|| de::Error::invalid_length(i, &self))?;
       result.push(elem).map_err(|_err| de::Error::custom("Insufficient space"))?;

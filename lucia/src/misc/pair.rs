@@ -1,3 +1,6 @@
+/// Express an instance with mutable references instead of their owned representations.
+pub type PairMut<'any, PA, T> = Pair<&'any mut PA, &'any mut T>;
+
 /// A convenient wrapper intended for anything that mutable dereferences to
 /// [crate::pkg::PkgsAux] along side any given `T: Transport`.
 ///
@@ -23,6 +26,12 @@ impl<PA, T> Pair<PA, T> {
     Self { pkgs_aux, trans }
   }
 
+  /// Gives an instance with mutable references.
+  #[inline]
+  pub fn as_mut(&mut self) -> PairMut<'_, PA, T> {
+    PairMut { pkgs_aux: &mut self.pkgs_aux, trans: &mut self.trans }
+  }
+
   /// Owned version of [Self::parts_mut].
   #[inline]
   pub fn into_parts(self) -> (PA, T) {
@@ -43,7 +52,7 @@ impl<PA, T> From<(PA, T)> for Pair<PA, T> {
   }
 }
 
-impl<'this, PA, T> From<&'this mut Pair<PA, T>> for Pair<&'this mut PA, &'this mut T> {
+impl<'this, PA, T> From<&'this mut Pair<PA, T>> for PairMut<'this, PA, T> {
   #[inline]
   fn from(from: &'this mut Pair<PA, T>) -> Self {
     Pair::new(&mut from.pkgs_aux, &mut from.trans)

@@ -627,7 +627,7 @@ create_http_test!(
     let tx = TransactionInput::new(
       &mut pkgs_aux.byte_buffer,
       blockhash,
-      transfer_message(blockhash, from_keypair.public.to_bytes()),
+      transfer_message(blockhash, from_keypair.public.to_bytes()).into(),
       &[from_keypair],
     )
     .unwrap();
@@ -640,7 +640,13 @@ create_http_test!(
       .unwrap()
       .result
       .unwrap();
-    assert!(Solana::confirm_transaction(<_>::default(), pkgs_aux, trans, &tx_hash).await.unwrap());
+    Solana::confirm_transaction(
+      <_>::default(),
+      &mut (&mut *pkgs_aux, &mut *trans).into(),
+      &tx_hash,
+    )
+    .await
+    .unwrap();
 
     let _res = trans
       .send_retrieve_and_decode_contained(
@@ -840,7 +846,8 @@ fn transfer_message(blockhash: [u8; 32], from_public_key: [u8; 32]) -> MessageIn
   )
   .try_into()
   .unwrap();
-  MessageInput::with_params(&[transfer], Some(from_public_key), blockhash).unwrap()
+  MessageInput::with_params(&[], &mut <_>::default(), &[transfer], Some(from_public_key), blockhash)
+    .unwrap()
 }
 
 fn ws() -> (SerdeJson, WsParams) {

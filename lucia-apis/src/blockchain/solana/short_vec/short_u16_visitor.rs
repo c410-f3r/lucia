@@ -17,10 +17,6 @@ impl<'de> Visitor<'de> for ShortU16Visitor {
   where
     A: SeqAccess<'de>,
   {
-    // Decodes an unsigned 16 bit integer one-to-one encoded as follows:
-    // 1 byte  : 0xxxxxxx                   => 00000000 0xxxxxxx :      0 -    127
-    // 2 bytes : 1xxxxxxx 0yyyyyyy          => 00yyyyyy yxxxxxxx :    128 - 16,383
-    // 3 bytes : 1xxxxxxx 1yyyyyyy 000000zz => zzyyyyyy yxxxxxxx : 16,384 - 65,535
     let mut val: u16 = 0;
     for nth_byte in 0..MAX_ENCODING_LENGTH {
       let elem: u8 = seq

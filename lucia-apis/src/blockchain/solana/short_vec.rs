@@ -21,16 +21,14 @@ where
   T: Serialize,
 {
   let mut seq = serializer.serialize_tuple(1)?;
-
   let len_u16 = if let Ok(elem) = u16::try_from(elements.len()) {
     elem
   } else {
     return Err(ser::Error::custom("length larger than u16"));
   };
-
   let short_len = ShortU16(len_u16);
-  seq.serialize_element(&short_len)?;
 
+  seq.serialize_element(&short_len)?;
   for element in elements {
     seq.serialize_element(element)?;
   }
@@ -129,7 +127,7 @@ fn visit_byte(elem: u8, val: u16, nth_byte: usize) -> Result<VisitStatus, VisitE
   } else {
   }
 
-  let shift = u32::try_from(nth_byte).unwrap_or(u32::MAX).saturating_mul(7);
+  let shift = u32::try_from(nth_byte).ok().and_then(|el| el.checked_mul(7)).unwrap_or(u32::MAX);
   let shifted_elem_val = elem_val.checked_shl(shift).unwrap_or(u32::MAX);
 
   let new_val = val_u32 | shifted_elem_val;
