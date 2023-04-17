@@ -1683,7 +1683,7 @@ dependencies = [
  "tokio-tungstenite",
  "tracing",
  "tracing-subscriber",
- "tungstenite",
+ "tungstenite 0.19.0",
 ]
 
 [[package]]
@@ -3074,7 +3074,7 @@ dependencies = [
  "rustls",
  "tokio",
  "tokio-rustls",
- "tungstenite",
+ "tungstenite 0.18.0",
  "webpki",
  "webpki-roots",
 ]
@@ -3196,6 +3196,20 @@ dependencies = [
  "url",
  "utf-8",
  "webpki",
+]
+
+[[package]]
+name = "tungstenite"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "15fba1a6d6bb030745759a9a2a588bfe8490fc8b4751a277db3a0be1c9ebbf67"
+dependencies = [
+ "byteorder",
+ "bytes",
+ "log",
+ "rand 0.8.5",
+ "thiserror",
+ "utf-8",
 ]
 
 [[package]]

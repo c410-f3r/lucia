@@ -33,7 +33,7 @@ surf = { default-features = false, optional = true, version = "2.0" }
 soketto = { default-features = false, optional = true, version = "0.7" }
 
 tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.18" }
-tungstenite = { default-features = false, optional = true, version = "0.18" }
+tungstenite = { default-features = false, optional = true, version = "0.19" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
