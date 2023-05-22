@@ -41,9 +41,9 @@ pub struct V3PublicHoliday {
   /// The date.
   pub date: ArrayString<10>,
   /// Local name.
-  pub local_name: Option<ArrayString<96>>,
+  pub local_name: Option<ArrayString<144>>,
   /// English name.
-  pub name: Option<ArrayString<96>>,
+  pub name: Option<ArrayString<144>>,
   /// ISO 3166-1 alpha-2.
   pub country_code: Option<ArrayString<2>>,
   /// Is this public holiday every year on the same date.
