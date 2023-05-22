@@ -9,6 +9,12 @@ pub trait Api {
   /// Any custom error structure that can be constructed from [crate::Error].
   type Error: From<crate::Error>;
 
+  /// Fallible hook that is automatically called after sending any related request.
+  #[inline]
+  async fn after_sending(&mut self) -> Result<(), Self::Error> {
+    Ok(())
+  }
+
   /// Fallible hook that is automatically called before sending any related request.
   #[inline]
   async fn before_sending(&mut self) -> Result<(), Self::Error> {
@@ -26,6 +32,11 @@ where
   T: Api + AsyncTrait,
 {
   type Error = T::Error;
+
+  #[inline]
+  async fn after_sending(&mut self) -> Result<(), Self::Error> {
+    (**self).before_sending().await
+  }
 
   #[inline]
   async fn before_sending(&mut self) -> Result<(), Self::Error> {

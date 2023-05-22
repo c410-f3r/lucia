@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{
     transport::{BiTransport, Transport, TransportParams},
     TransportGroup, WebSocket, WsParams, WsReqParamsTy,
@@ -57,7 +57,7 @@ where
     };
     <Self as SinkExt<_>>::send(self, msg).await.map_err(Into::into)?;
     pkgs_aux.byte_buffer.clear();
-    pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
+    manage_after_sending_related(pkg, pkgs_aux, self).await?;
     pkgs_aux.tp.reset();
     Ok(())
   }

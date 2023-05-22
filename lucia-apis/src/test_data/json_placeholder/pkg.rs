@@ -59,6 +59,7 @@ pub struct GenericParams<'any> {
 
 impl<'any> GenericParams<'any> {
   /// Constructor shortcut
+  #[inline]
   pub const fn new(
     id_opt: Option<u32>,
     method: HttpMethod,

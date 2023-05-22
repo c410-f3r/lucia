@@ -56,7 +56,7 @@ pub(crate) mod pkg {
             }}
           "#
         ))
-        .map_err(|err| lucia::Error::from(err))?;
+        .map_err(lucia::Error::from)?;
       self.tp.ext_req_params_mut().method = HttpMethod::Post;
       Ok(CharactersReq { operation_name: None, query: buffer, variables: None })
     }

@@ -22,6 +22,11 @@ pub enum Error {
   /// See [core::num::TryFromIntError].
   TryFromIntError(core::num::TryFromIntError),
 
+  // Aptos
+  /// Some endpoints require a minimum set of response headers.
+  #[cfg(feature = "aptos")]
+  MandatoryResponseHeadersWereNotFound,
+
   // Solana
   /// Returned data from counterpart is everything but a spl-token account
   #[cfg(feature = "solana")]

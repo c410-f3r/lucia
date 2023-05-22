@@ -33,6 +33,8 @@ pub enum Error {
   #[cfg(feature = "miniserde")]
   /// See [miniserde::Error].
   Miniserde(miniserde::Error),
+  /// See [core::num::ParseIntError].
+  ParseIntErr(core::num::ParseIntError),
   /// See [protobuf::Error]
   #[cfg(feature = "protobuf")]
   Protobuf(protobuf::Error),
@@ -131,6 +133,13 @@ impl From<miniserde::Error> for Error {
   #[inline]
   fn from(from: miniserde::Error) -> Self {
     Self::Miniserde(from)
+  }
+}
+
+impl From<core::num::ParseIntError> for Error {
+  #[inline]
+  fn from(from: core::num::ParseIntError) -> Self {
+    Self::ParseIntErr(from)
   }
 }
 
