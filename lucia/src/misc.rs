@@ -112,6 +112,20 @@ pub(crate) fn log_res(_res: &[u8]) {
   _debug!("Response: {:?}", core::str::from_utf8(_res));
 }
 
+pub(crate) async fn manage_after_sending_related<DRSR, P, T>(
+  pkg: &mut P,
+  pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
+  _: &T,
+) -> Result<(), P::Error>
+where
+  P: Package<DRSR, T::Params>,
+  T: Transport<DRSR>,
+{
+  pkgs_aux.api.after_sending().await?;
+  pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
+  Ok(())
+}
+
 pub(crate) async fn manage_before_sending_related<DRSR, P, T>(
   pkg: &mut P,
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,

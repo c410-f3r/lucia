@@ -27,23 +27,23 @@ pub(crate) mod pkg {
       buffer
         .write_fmt(format_args!(
           r#"
-              {CHARACTER_FRAGMENT}
-              query {{
-                episodesByIds(ids: ["{}"]) {{
-                    air_date
-                    characters {{
-                      ...CharacterFrag
-                    }}
-                    created
-                    episode
-                    id
-                    name
-                }}
+            {CHARACTER_FRAGMENT}
+            query {{
+              episodesByIds(ids: ["{}"]) {{
+                  air_date
+                  characters {{
+                    ...CharacterFrag
+                  }}
+                  created
+                  episode
+                  id
+                  name
               }}
-            "#,
+            }}
+          "#,
           SliceByCommas(ids)
         ))
-        .map_err(|err| lucia::Error::from(err))?;
+        .map_err(lucia::Error::from)?;
       self.tp.ext_req_params_mut().method = HttpMethod::Post;
       Ok(EpisodesByIdsReq { operation_name: None, query: buffer, variables: None })
     }

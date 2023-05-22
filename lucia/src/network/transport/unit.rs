@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
@@ -33,7 +33,7 @@ where
     P: Package<DRSR, ()>,
   {
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
-    pkg.after_sending(&mut pkgs_aux.api, &mut ()).await?;
+    manage_after_sending_related(pkg, pkgs_aux, self).await?;
     Ok(())
   }
 

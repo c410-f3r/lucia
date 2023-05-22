@@ -29,6 +29,7 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 # API
 
+aptos = []
 json-placeholder = []
 nager-date = []
 rick-and-morty = []

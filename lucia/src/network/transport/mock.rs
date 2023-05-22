@@ -4,7 +4,7 @@
 )]
 
 use crate::{
-  misc::{manage_before_sending_related, AsyncTrait, FromBytes},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait, FromBytes},
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
@@ -109,7 +109,7 @@ where
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
     self.requests.push(Cow::Owned(FromBytes::from_bytes(&pkgs_aux.byte_buffer)?));
     pkgs_aux.byte_buffer.clear();
-    pkg.after_sending(&mut pkgs_aux.api, &mut ()).await?;
+    manage_after_sending_related(pkg, pkgs_aux, self).await?;
     Ok(())
   }
 

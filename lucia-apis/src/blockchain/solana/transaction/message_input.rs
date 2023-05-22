@@ -45,7 +45,7 @@ impl From<InstructionInput> for solana_program::instruction::Instruction {
   fn from(from: InstructionInput) -> Self {
     Self {
       accounts: from.accounts.into_iter().map(|elem| elem.into()).collect(),
-      data: from.data.into_iter().map(|elem| elem.into()).collect(),
+      data: from.data.into_iter().collect(),
       program_id: from.program_id.into(),
     }
   }

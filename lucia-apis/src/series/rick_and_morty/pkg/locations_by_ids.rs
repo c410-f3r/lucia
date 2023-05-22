@@ -43,7 +43,7 @@ pub(crate) mod pkg {
           "#,
           SliceByCommas(ids)
         ))
-        .map_err(|err| lucia::Error::from(err))?;
+        .map_err(lucia::Error::from)?;
       self.tp.ext_req_params_mut().method = HttpMethod::Post;
       Ok(LocationsByIdsReq { operation_name: None, query: buffer, variables: None })
     }

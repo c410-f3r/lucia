@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{
     http::HttpMethod,
     transport::{Transport, TransportParams},
@@ -7,6 +7,7 @@ use crate::{
   },
   pkg::{Package, PkgsAux},
 };
+use core::str;
 use reqwest::{
   header::{HeaderValue, CONTENT_TYPE, USER_AGENT},
   Client, RequestBuilder,
@@ -76,7 +77,7 @@ where
     mut rb: RequestBuilder,
     pkgs_aux: &mut PkgsAux<API, DRSR, HttpParams>,
   ) -> RequestBuilder {
-    if let Some(data_format) = pkgs_aux.tp.ext_req_params().mime_type {
+    if let Some(data_format) = &pkgs_aux.tp.ext_req_params().mime_type {
       rb = rb.header(CONTENT_TYPE, HeaderValue::from_static(data_format._as_str()));
     }
     rb = rb.body(pkgs_aux.byte_buffer.clone());
@@ -101,8 +102,15 @@ where
     rb = rb.header(USER_AGENT, HeaderValue::from_static(elem._as_str()));
   }
   let res = rb.send().await.map_err(Into::into)?;
+  for (key, value) in res.headers() {
+    pkgs_aux
+      .tp
+      .ext_res_params_mut()
+      .headers
+      .push_str(key.as_str(), str::from_utf8(value.as_bytes()).map_err(Into::into)?)?;
+  }
   pkgs_aux.tp.ext_res_params_mut().status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
-  pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
+  manage_after_sending_related(pkg, pkgs_aux, client).await?;
   pkgs_aux.tp.reset();
   Ok(res)
 }

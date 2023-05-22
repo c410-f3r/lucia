@@ -24,7 +24,7 @@ impl HttpParams {
         url: UrlString::from_url(url.into())?,
         user_agent: None,
       },
-      HttpResParams { status_code: StatusCode::Forbidden },
+      HttpResParams { headers: <_>::default(), status_code: StatusCode::Forbidden },
     ))
   }
 }
@@ -60,6 +60,7 @@ impl TransportParams for HttpParams {
     self.0.mime_type = None;
     self.0.url.retain_with_initial_len();
     self.0.user_agent = None;
+    self.1.headers.clear();
     self.1.status_code = StatusCode::Forbidden;
   }
 }
@@ -93,10 +94,12 @@ impl From<HttpMethod> for &'static str {
 }
 
 /// Used to specify the data type that is going to be sent to a counterpart.
-#[derive(Clone, Copy, Debug)]
+#[derive(Debug)]
 pub enum HttpMimeType {
   /// Opaque bytes
   Bytes,
+  /// Anything
+  Custom(&'static str),
   /// JSON
   Json,
   /// JSON:API
@@ -112,9 +115,10 @@ pub enum HttpMimeType {
 }
 
 impl HttpMimeType {
-  pub(crate) fn _as_str(self) -> &'static str {
+  pub(crate) fn _as_str(&self) -> &'static str {
     match self {
       HttpMimeType::Bytes => "application/octet-stream",
+      HttpMimeType::Custom(el) => el,
       HttpMimeType::Json => "application/json",
       HttpMimeType::JsonApi => "application/vnd.api+json",
       HttpMimeType::Protobuf => "application/vnd.google.protobuf",
@@ -158,15 +162,13 @@ pub struct HttpReqParams {
 #[doc = generic_trans_res_params_doc!("HTTP")]
 #[derive(Debug)]
 pub struct HttpResParams {
+  /// Http headers.
+  pub headers: HttpHeaders,
   /// Status code.
   pub status_code: StatusCode,
 }
 
-impl HttpResParams {
-  pub(crate) const _DUMMY: &Self = &Self { status_code: StatusCode::Ok };
-}
-
-/// List of pairs sent on every request.
+/// List of pairs sent and received on every request.
 #[derive(Debug, Default)]
 pub struct HttpHeaders {
   buffer: String,
