@@ -39,8 +39,11 @@ pub(crate) mod pkg {
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
   pub struct SendTransactionReq(
-    String,
-    #[serde(skip_serializing_if = "Option::is_none")] Option<SendTransactionConfig>,
+    /// Encoded tx
+    pub String,
+    /// Configuration
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub Option<SendTransactionConfig>,
   );
 
   #[derive(Debug, serde::Serialize)]
