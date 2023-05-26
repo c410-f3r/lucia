@@ -94,19 +94,15 @@ mod serde_json {
     dnsn::SerdeJson,
     misc::{seq_visitor::_SeqVisitor, ByteBuffer},
   };
-  use core::{any::type_name, fmt::Display};
-  use serde::de::{Deserializer, IgnoredAny};
+  use core::fmt::Display;
+  use serde::de::Deserializer;
 
   impl<D> crate::dnsn::Deserialize<SerdeJson> for JsonResponse<D>
   where
     D: for<'de> serde::Deserialize<'de>,
   {
     #[inline]
-    fn from_bytes(mut bytes: &[u8], _: &mut SerdeJson) -> crate::Result<Self> {
-      let first = bytes.first().copied().unwrap_or_default();
-      if type_name::<D>() == type_name::<IgnoredAny>() && first != b'{' && first != b'[' {
-        bytes = "{}".as_bytes();
-      }
+    fn from_bytes(bytes: &[u8], _: &mut SerdeJson) -> crate::Result<Self> {
       Ok(JsonResponse { data: serde_json::from_slice(bytes)? })
     }
 

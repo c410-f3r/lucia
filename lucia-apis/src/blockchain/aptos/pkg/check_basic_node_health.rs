@@ -1,6 +1,6 @@
 #[lucia_macros::pkg(
   api(crate::blockchain::aptos::Aptos),
-  data_format(json),
+  data_format(verbatim),
   error(crate::Error),
   transport(http)
 )]

@@ -18,8 +18,11 @@ impl<'attrs> TryFrom<FirPkgAttr<'attrs>> for SirPkaAttr<'attrs> {
   type Error = crate::Error;
 
   fn try_from(fea: FirPkgAttr<'attrs>) -> Result<Self, Self::Error> {
-    let data_formats =
-      fea.data_formats.into_iter().map(TryInto::try_into).collect::<crate::Result<Vec<_>>>()?;
+    let data_formats = fea
+      .data_formats
+      .into_iter()
+      .map(TryInto::try_into)
+      .collect::<crate::Result<Vec<DataFormat>>>()?;
     if data_formats.is_empty() {
       return Err(crate::Error::MandatoryOuterAttrsAreNotPresent);
     }
