@@ -463,6 +463,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "771fe0050b883fcc3ea2359b1a96bcfbc090b7116eae7c3c512c7a083fdf23d3"
 
 [[package]]
+name = "bs58"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f5353f36341f7451062466f0b755b96ac3a9547e4d7f6b70d603fc721a7d7896"
+dependencies = [
+ "tinyvec",
+]
+
+[[package]]
 name = "bumpalo"
 version = "3.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1643,7 +1652,7 @@ dependencies = [
  "async-trait",
  "base64 0.21.1",
  "bincode",
- "bs58",
+ "bs58 0.5.0",
  "cl-aux",
  "ed25519-dalek",
  "lucia",
@@ -2614,7 +2623,7 @@ dependencies = [
  "ahash 0.7.6",
  "blake3",
  "block-buffer 0.9.0",
- "bs58",
+ "bs58 0.4.0",
  "bv",
  "byteorder",
  "cc",
@@ -2663,7 +2672,7 @@ dependencies = [
  "blake3",
  "borsh 0.9.3",
  "borsh-derive 0.9.3",
- "bs58",
+ "bs58 0.4.0",
  "bv",
  "bytemuck",
  "cc",
@@ -2706,7 +2715,7 @@ version = "1.14.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43cff60ba1f94594f1de7baf649bf781383e806e834e26607ff8857a9452cd3c"
 dependencies = [
- "bs58",
+ "bs58 0.4.0",
  "proc-macro2",
  "quote",
  "rustversion",
