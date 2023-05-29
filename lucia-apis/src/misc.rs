@@ -47,7 +47,7 @@ where
   let s: &str = Deserialize::deserialize(deserializer)?;
   let mut array = [0; N];
   bs58::decode(s)
-    .into(&mut array)
+    .onto(&mut array)
     .ok()
     .and_then(|len| {
       if len != N {
