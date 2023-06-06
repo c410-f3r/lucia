@@ -8,7 +8,7 @@ serde = { default-features = false, features = ["alloc", "derive"], version = "1
 # Solana
 
 bincode = { default-features = false, optional = true, version = "1.0" }
-solana-program = { default-features = false, optional = true, version = "1.0" }
+solana-program = { default-features = false, optional = true, version = "1.16" }
 
 # Etc
 
