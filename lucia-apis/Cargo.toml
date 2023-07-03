@@ -5,22 +5,29 @@ lucia = { default-features = false, features = ["arrayvec"], path = "../lucia", 
 lucia-macros = { default-features = false, path = "../lucia-macros", version = "0.2" }
 serde = { default-features = false, features = ["alloc", "derive"], version = "1.0" }
 
-# Solana
-
-bincode = { default-features = false, optional = true, version = "1.0" }
-solana-program = { default-features = false, optional = true, version = "1.16" }
-
 # Etc
 
-async-trait = { default-features = false, optional = true, version = "0.1" }
 base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.21" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.5" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 
+# Ethereum
+
+ethabi = { default-features = false, features = ["full-serde"], optional = true, version = "17.0" }
+ethereum-types = { default-features = false, features = ["serialize"], optional = true, version = "0.13" }
+hex = { default-features = false, optional = true, version = "0.4" }
+primitive-types = { default-features = false, features = ["serde"], optional = true, version = "0.11" }
+
+# Solana
+
+bincode = { default-features = false, optional = true, version = "1.0" }
+solana-program = { default-features = false, optional = true, version = "1.0" }
+
 [dev-dependencies]
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
-lucia-apis = { features = ["async-trait", "ed25519-dalek"], path = "." }
+lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
+serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.19" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
@@ -30,6 +37,7 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 # API
 
 aptos = []
+ethereum = ["dep:ethabi", "dep:ethereum-types", "dep:hex", "dep:primitive-types"]
 json-placeholder = []
 nager-date = []
 rick-and-morty = []
@@ -37,7 +45,6 @@ solana = ["base64", "bincode", "bs58"]
 
 # Etc
 
-async-trait = ["dep:async-trait", "lucia/async-trait", "lucia-macros/async-trait"]
 default = []
 ed25519-dalek = ["dep:ed25519-dalek", "std"]
 std = []

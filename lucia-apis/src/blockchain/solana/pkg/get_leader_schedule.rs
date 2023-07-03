@@ -5,10 +5,8 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use std::collections::HashMap;
-
   use crate::blockchain::solana::{Commitment, SolanaBlockhash, SolanaHttpPkgsAux};
-  use lucia::misc::AsyncTrait;
+  use std::collections::HashMap;
 
   #[derive(Debug, serde::Serialize)]
   #[pkg::req_data]
@@ -19,9 +17,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetLeaderScheduleConfig<S>>,
-  )
-  where
-    S: AsRef<str> + AsyncTrait;
+  );
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}

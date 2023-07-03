@@ -21,8 +21,8 @@ impl SirAuxItemValues {
     let single_elem = |is_trivial| (quote::quote!(elem: #ty), quote::quote!(elem), is_trivial);
     let (fn_args, fn_ret_constr, is_trivial) = match item {
       EnumStructOrType::Enum => single_elem(false),
-      EnumStructOrType::Struct(item) => match item.fields {
-        Fields::Named(ref fields_named) => {
+      EnumStructOrType::Struct(item) => match &item.fields {
+        Fields::Named(fields_named) => {
           if fields_attrs.is_empty() {
             (quote::quote!(), quote::quote!(#ident {}), true)
           } else {
@@ -46,7 +46,7 @@ impl SirAuxItemValues {
             )
           }
         }
-        Fields::Unnamed(ref fields_unnamed) => {
+        Fields::Unnamed(fields_unnamed) => {
           if fields_attrs.is_empty() {
             (quote::quote!(), quote::quote!(#ident ()), true)
           } else {
@@ -70,7 +70,7 @@ impl SirAuxItemValues {
         Fields::Unit => (quote::quote!(), quote::quote!(#ident), true),
       },
       EnumStructOrType::Type(item) => {
-        if let Type::Tuple(ref type_tuple) = *item.ty {
+        if let Type::Tuple(type_tuple) = &*item.ty {
           if is_unit_type(type_tuple) {
             (quote::quote!(), quote::quote!(()), true)
           } else {
@@ -130,7 +130,7 @@ impl SirAuxItemValues {
     let (fn_params, fn_where_predicates) = parts_from_generics(&iim.sig.generics);
     let fn_args_iter_fn = || {
       iim.sig.inputs.iter().filter_map(|fn_arg| {
-        if let FnArg::Typed(ref pat_type) = *fn_arg {
+        if let FnArg::Typed(pat_type) = fn_arg {
           Some(pat_type)
         } else {
           None
@@ -144,7 +144,7 @@ impl SirAuxItemValues {
     let mut fn_ret_wrapper_segments = EMPTY_PATH_SEGS;
     let mut fn_ret_wrapper_variant_ident = None;
     let mut has_short_circuit = false;
-    if let ReturnType::Type(_, ref ret_ty) = iim.sig.output {
+    if let ReturnType::Type(_, ret_ty) = &iim.sig.output {
       if let Some((tp, ps, abga)) = inner_angle_bracketed_values(ret_ty) {
         match ps.ident.to_string().as_str() {
           "Option" => {
@@ -201,14 +201,14 @@ impl SirAuxItemValues {
           params_field_constr: builder_params_field_constr,
         },
       fn_common_values:
-        &FnCommonValues {
-          ref fn_args,
+        FnCommonValues {
+          fn_args,
           fn_params,
           fn_ret_angle_bracket_left,
           fn_ret_angle_bracket_right,
           fn_ret_wrapper_last_segment_gen_args,
           fn_ret_wrapper_segments,
-          ref fn_ret_wrapper_variant_ident,
+          fn_ret_wrapper_variant_ident,
           fn_where_predicates,
         },
       fn_name_ident,

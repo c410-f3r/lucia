@@ -18,14 +18,14 @@ jobs:
           components: clippy,rustfmt
           override: true
           profile: minimal
-          toolchain: nightly-2022-12-03
+          toolchain: nightly-2023-06-17
 
       - uses: actions-rs/install@v0.1
         with:
           crate: rust-tools
           use-tool-cache: true
 
-      - uses: Swatinem/rust-cache@v1
+      - uses: Swatinem/rust-cache@v2
 
       - run: .scripts/internal-tests.sh
 
@@ -35,6 +35,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - run: rustup default nightly-2022-12-03
+      - run: rustup default nightly-2023-06-17
       - run: solana config set --url http:localhost:8899
       - run: .scripts/ci.sh

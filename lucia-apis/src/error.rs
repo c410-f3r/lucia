@@ -17,8 +17,14 @@ pub enum Error {
   /// See [ed25519_dalek::SignatureError].
   #[cfg(feature = "ed25519-dalek")]
   Ed25519Dalek(ed25519_dalek::SignatureError),
+  /// See [ethabi::Error]
+  #[cfg(feature = "ethereum")]
+  EthAbi(ethabi::Error),
   /// See [lucia::Error].
   Lucia(lucia::Error),
+  /// See [primitive_types::Error].
+  #[cfg(feature = "ethereum")]
+  PrimitiveTypes(primitive_types::Error),
   /// See [core::num::TryFromIntError].
   TryFromIntError(core::num::TryFromIntError),
 
@@ -26,6 +32,11 @@ pub enum Error {
   /// Some endpoints require a minimum set of response headers.
   #[cfg(feature = "aptos")]
   MandatoryResponseHeadersWereNotFound,
+
+  // Ethereum
+  /// Bad data serialization
+  #[cfg(feature = "ethereum")]
+  TokensInvalidOutputType(String),
 
   // Solana
   /// Returned data from counterpart is everything but a spl-token account
@@ -90,10 +101,26 @@ impl From<ed25519_dalek::SignatureError> for Error {
   }
 }
 
+#[cfg(feature = "ethereum")]
+impl From<ethabi::Error> for Error {
+  #[inline]
+  fn from(from: ethabi::Error) -> Self {
+    Self::EthAbi(from)
+  }
+}
+
 impl From<lucia::Error> for Error {
   #[inline]
   fn from(from: lucia::Error) -> Self {
     Self::Lucia(from)
+  }
+}
+
+#[cfg(feature = "ethereum")]
+impl From<primitive_types::Error> for Error {
+  #[inline]
+  fn from(from: primitive_types::Error) -> Self {
+    Self::PrimitiveTypes(from)
   }
 }
 

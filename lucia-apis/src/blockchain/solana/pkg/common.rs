@@ -32,10 +32,7 @@ pub struct DataSlice {
 /// Used by the `getTokenAccountsByDelegate` and `getTokenAccountsByOwner` endpoints.
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
-pub enum MintOrProgramId<S>
-where
-  S: AsRef<str>,
-{
+pub enum MintOrProgramId<S> {
   /// Address is the mint of a token
   Mint(S),
   /// Address is a program

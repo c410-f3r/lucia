@@ -4,3 +4,4 @@ members = [
   "lucia-apis",
   "lucia-macros"
 ]
+resolver = "2"

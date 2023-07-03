@@ -6,7 +6,6 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{Commitment, SolanaAddressHashStr, SolanaHttpPkgsAux};
-  use lucia::misc::AsyncTrait;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -17,9 +16,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetVoteAccountsConfig<S>>,
-  )
-  where
-    S: AsyncTrait + AsRef<str>;
+  );
 
   #[derive(Debug, serde::Deserialize)]
   #[pkg::res_data]

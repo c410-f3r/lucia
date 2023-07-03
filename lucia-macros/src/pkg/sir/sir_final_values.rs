@@ -32,8 +32,8 @@ impl SirFinalValues {
     (a_lts.chain(b_lts), a_tys.chain(b_tys))
   }
   fn transport_params(transport_group: &TransportGroup) -> TokenStream {
-    match *transport_group {
-      TransportGroup::Custom(ref tt) => {
+    match transport_group {
+      TransportGroup::Custom(tt) => {
         quote::quote!(<#tt as lucia::network::transport::Transport<DRSR>>::Params)
       }
       TransportGroup::Http => quote::quote!(lucia::network::HttpParams),
@@ -71,10 +71,10 @@ impl<'attrs, 'module, 'others>
       Option<FirBeforeSendingItemValues<'module>>,
     ),
   ) -> Result<Self, Self::Error> {
-    let FirParamsItemValues { ref fpiv_ty, fpiv_params, fpiv_where_predicates, .. } = fpiv;
+    let FirParamsItemValues { fpiv_ty, fpiv_params, fpiv_where_predicates, .. } = &fpiv;
     let FirReqItemValues { freqdiv_ident, freqdiv_params, freqdiv_where_predicates, .. } = freqdiv;
     let FirResItemValues { res_ident } = fresdiv;
-    let SirPkaAttr { api, ref data_formats, ref error, ref transport_groups } = spa;
+    let SirPkaAttr { api, data_formats, error, transport_groups } = &spa;
     let camel_case_pkg_ident = &{
       let idx = camel_case_id.len();
       camel_case_id.push_str("Pkg");
@@ -116,15 +116,7 @@ impl<'attrs, 'module, 'others>
         let freqdiv_where_predicates_iter = freqdiv_where_predicates.iter();
         let tp = Self::transport_params(transport_group);
         let (lts, tys) = Self::pkg_params(&freqdiv, &fpiv);
-        #[cfg(feature = "async-trait")]
-        let async_trait_cfg = quote::quote!(
-          use alloc::boxed::Box;
-          #[async_trait::async_trait]
-        );
-        #[cfg(not(feature = "async-trait"))]
-        let async_trait_cfg = TokenStream::new();
         package_impls.push(quote::quote!(
-          #async_trait_cfg
           impl<
             #(#lts,)*
             #(#tys,)*
@@ -142,7 +134,6 @@ impl<'attrs, 'module, 'others>
             lucia::data_format::#dfe_ext_res_ctnt_wrapper<
               #res_ident
             >: lucia::dnsn::Deserialize<DRSR>,
-            DRSR: lucia::misc::AsyncTrait,
           {
             type Api = #api;
             type Error = #error;

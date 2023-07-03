@@ -5,8 +5,6 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use lucia::misc::AsyncTrait;
-
   use crate::blockchain::solana::{Commitment, SolanaHttpPkgsAux, StakeActivationState};
 
   #[pkg::aux]
@@ -19,9 +17,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetStakeActivationConfig>,
-  )
-  where
-    S: AsyncTrait + AsRef<str>;
+  );
 
   #[derive(Debug, serde::Deserialize)]
   #[pkg::res_data]

@@ -5,8 +5,6 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use lucia::misc::AsyncTrait;
-
   use crate::{
     blockchain::solana::{
       Commitment, JsonRpcResponseResultWithContext, SolanaAddressHashStr, SolanaHttpPkgsAux,
@@ -25,9 +23,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetTokenLargestAccountsConfig>,
-  )
-  where
-    S: AsyncTrait + AsRef<str>;
+  );
 
   #[pkg::res_data]
   pub type GetTokenLargestAccountsRes =

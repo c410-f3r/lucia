@@ -19,13 +19,11 @@ mod unit;
 pub use self::tokio_tungstenite::*;
 use crate::{
   dnsn::{Deserialize, Serialize},
-  misc::{log_res, AsyncTrait},
+  misc::log_res,
   network::TransportGroup,
   pkg::{BatchElems, BatchPkg, Package, PkgsAux},
   Id,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 pub use bi_transport::*;
 use cl_aux::DynContigColl;
 use core::borrow::Borrow;
@@ -40,8 +38,7 @@ pub use transport_params::*;
 /// # Types
 ///
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-pub trait Transport<DRSR>: AsyncTrait {
+pub trait Transport<DRSR> {
   /// Every transport has an [TransportGroup] identifier.
   const GROUP: TransportGroup;
   /// Every transport has request and response parameters.
@@ -79,8 +76,7 @@ pub trait Transport<DRSR>: AsyncTrait {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    RESS: AsyncTrait + DynContigColl<P::ExternalResponseContent>,
-    DRSR: AsyncTrait,
+    RESS: DynContigColl<P::ExternalResponseContent>,
     P: Package<DRSR, Self::Params>,
     P::ExternalRequestContent: Borrow<Id> + Ord,
     P::ExternalResponseContent: Borrow<Id> + Ord,
@@ -106,7 +102,6 @@ pub trait Transport<DRSR>: AsyncTrait {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<P::ExternalResponseContent, P::Error>
   where
-    DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
   {
     let len = self.send_and_retrieve(pkg, pkgs_aux).await?;
@@ -124,10 +119,8 @@ pub trait Transport<DRSR>: AsyncTrait {
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for &mut T
 where
-  DRSR: AsyncTrait,
   T: Transport<DRSR>,
 {
   const GROUP: TransportGroup = T::GROUP;

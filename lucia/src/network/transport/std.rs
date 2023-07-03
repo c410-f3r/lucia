@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related},
   network::{
     transport::{Transport, TransportParams},
     TcpParams, TransportGroup, UdpParams,
@@ -11,11 +11,7 @@ use std::{
   net::{TcpStream, UdpSocket},
 };
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for TcpStream
-where
-  DRSR: AsyncTrait,
-{
+impl<DRSR> Transport<DRSR> for TcpStream {
   const GROUP: TransportGroup = TransportGroup::TCP;
   type Params = TcpParams;
 
@@ -45,11 +41,7 @@ where
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for UdpSocket
-where
-  DRSR: AsyncTrait,
-{
+impl<DRSR> Transport<DRSR> for UdpSocket {
   const GROUP: TransportGroup = TransportGroup::UDP;
   type Params = UdpParams;
 

@@ -8,12 +8,9 @@ mod pkgs_aux;
 
 use crate::{
   dnsn::{Deserialize, Serialize},
-  misc::AsyncTrait,
   network::transport::TransportParams,
   Api,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 pub use batch_pkg::{BatchElems, BatchPkg};
 use core::fmt::Display;
 pub use pkg_with_helper::*;
@@ -26,13 +23,12 @@ pub use pkgs_aux::*;
 ///
 /// `DRSR`: DeserializeR/SerializeR
 /// `TP`: Transport Parameters
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-pub trait Package<DRSR, TP>: AsyncTrait
+pub trait Package<DRSR, TP>
 where
   TP: TransportParams,
 {
   /// Which API this package is attached to.
-  type Api: Api<Error = Self::Error> + AsyncTrait;
+  type Api: Api<Error = Self::Error>;
   /// Any custom error structure that can be constructed from [crate::Error].
   type Error: Display + From<crate::Error>;
   /// The expected data format that is going to be sent to an external actor.
@@ -82,7 +78,6 @@ where
   fn pkg_params_mut(&mut self) -> &mut Self::PackageParams;
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, TP> Package<DRSR, TP> for ()
 where
   TP: TransportParams,
@@ -114,7 +109,6 @@ where
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, P, TP> Package<DRSR, TP> for &mut P
 where
   P: Package<DRSR, TP>,

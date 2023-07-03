@@ -3,8 +3,6 @@
 #![allow(incomplete_features)]
 #![feature(async_fn_in_trait, impl_trait_projections)]
 
-extern crate alloc;
-
 use lucia::pkg::PkgsAux;
 use lucia::pkg::Package;
 use lucia::network::TransportGroup;
@@ -13,11 +11,7 @@ use lucia::network::transport::TransportParams;
 
 struct CustomTransport;
 
-#[async_trait::async_trait]
-impl<DRSR> Transport<DRSR> for CustomTransport
-where
-  DRSR: lucia::misc::AsyncTrait
-{
+impl<DRSR> Transport<DRSR> for CustomTransport {
   const GROUP: TransportGroup = TransportGroup::Custom("Custom");
   type Params = CustomTransportParams;
 

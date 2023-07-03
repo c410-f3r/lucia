@@ -2,7 +2,6 @@
 
 pub(crate) mod seq_visitor;
 
-mod async_trait;
 mod byte_buffer;
 mod debug_display;
 mod from_bytes;
@@ -14,7 +13,6 @@ mod request_limit;
 mod request_throttling;
 mod url;
 
-pub use self::async_trait::*;
 use crate::{
   dnsn::Serialize,
   network::transport::{Transport, TransportParams},
