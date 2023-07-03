@@ -20,11 +20,6 @@ jobs:
           profile: minimal
           toolchain: nightly-2023-06-17
 
-      - uses: actions-rs/install@v0.1
-        with:
-          crate: rust-tools
-          use-tool-cache: true
-
       - uses: Swatinem/rust-cache@v2
 
       - run: .scripts/internal-tests.sh
