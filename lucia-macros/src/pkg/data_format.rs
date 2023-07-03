@@ -54,7 +54,7 @@ impl DataFormat {
 
   pub(crate) fn elems(&self) -> DataFormatElems {
     let ident_fn = |name| Ident::new(name, Span::mixed_site());
-    match *self {
+    match self {
       DataFormat::Borsh => DataFormatElems {
         dfe_data_format_builder_fn: ident_fn("build_borsh"),
         dfe_ext_req_ctnt_wrapper: ident_fn("BorshRequest"),
@@ -67,7 +67,7 @@ impl DataFormat {
         dfe_ext_res_ctnt_wrapper: ident_fn("JsonResponse"),
         dfe_pkgs_aux_call: quote::quote!(json_request(data)),
       },
-      DataFormat::JsonRpc(ref method) => DataFormatElems {
+      DataFormat::JsonRpc(method) => DataFormatElems {
         dfe_data_format_builder_fn: ident_fn("build_json_rpc"),
         dfe_ext_req_ctnt_wrapper: ident_fn("JsonRpcRequest"),
         dfe_ext_res_ctnt_wrapper: ident_fn("JsonRpcResponse"),
@@ -114,13 +114,13 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for DataFormat {
         }
       };
     }
-    let NestedMeta::Meta(ref meta) = *from else {
+    let NestedMeta::Meta(meta) = from else {
       return Err(crate::Error::UnknownDataFormat);
     };
-    if let Meta::List(ref elem) = *meta {
+    if let Meta::List(elem) = meta {
       let first_path_seg_ident = first_path_seg_ident!(elem.path);
       if first_path_seg_ident == "json_rpc" {
-        if let Some(&NestedMeta::Lit(Lit::Str(ref elem))) = elem.nested.first() {
+        if let Some(NestedMeta::Lit(Lit::Str(elem))) = elem.nested.first() {
           Ok(Self::JsonRpc(elem.value()))
         } else {
           Err(crate::Error::IncorrectJsonRpcDataFormat)
@@ -128,7 +128,7 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for DataFormat {
       } else {
         Err(crate::Error::UnknownDataFormat)
       }
-    } else if let Meta::Path(ref elem) = *meta {
+    } else if let Meta::Path(elem) = meta {
       match first_path_seg_ident!(elem).to_string().as_str() {
         "borsh" => Ok(Self::Borsh),
         "json" => Ok(Self::Json),

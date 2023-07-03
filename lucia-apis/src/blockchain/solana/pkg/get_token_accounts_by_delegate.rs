@@ -5,8 +5,6 @@
   transport(http)
 )]
 pub(crate) mod pkg {
-  use lucia::misc::AsyncTrait;
-
   use crate::blockchain::solana::{
     Account, AccountEncoding, Commitment, DataSlice, JsonRpcResponseResultWithContext,
     MintOrProgramId, SolanaAddressHashStr, SolanaHttpPkgsAux,
@@ -23,9 +21,7 @@ pub(crate) mod pkg {
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetTokenAccountsByDelegateConfig>,
-  )
-  where
-    S: AsyncTrait + AsRef<str>;
+  );
 
   #[pkg::res_data]
   pub type GetTokenAccountsByDelegateRes =

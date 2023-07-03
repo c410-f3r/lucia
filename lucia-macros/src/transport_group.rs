@@ -18,8 +18,8 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for TransportGroup {
 
   fn try_from(from: &'attrs NestedMeta) -> Result<Self, Self::Error> {
     let err = |span| Err(crate::Error::UnknownTransport(span));
-    match *from {
-      NestedMeta::Meta(Meta::Path(ref path)) => {
+    match from {
+      NestedMeta::Meta(Meta::Path(path)) => {
         let ps = single_path_segment(path)?;
         Ok(match ps.ident.to_string().as_str() {
           "http" => Self::Http,
@@ -30,10 +30,10 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for TransportGroup {
           _ => return err(ps.ident.span()),
         })
       }
-      NestedMeta::Meta(Meta::List(ref meta_list)) => {
+      NestedMeta::Meta(Meta::List(meta_list)) => {
         let ps = single_path_segment(&meta_list.path)?;
         if ps.ident.to_string().as_str() == "custom" {
-          if let NestedMeta::Meta(Meta::Path(ref path)) = *single_nested(&meta_list.nested)? {
+          if let NestedMeta::Meta(Meta::Path(path)) = single_nested(&meta_list.nested)? {
             return Ok(Self::Custom(path.to_token_stream()));
           }
         }

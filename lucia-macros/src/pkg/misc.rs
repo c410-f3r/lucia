@@ -55,11 +55,11 @@ pub(crate) fn from_camel_case_to_snake_case(string: &str) -> String {
 pub(crate) fn inner_angle_bracketed_values(
   ty: &Type,
 ) -> Option<(&TypePath, &PathSegment, &AngleBracketedGenericArguments)> {
-  let Type::Path(ref type_path) = *ty else {
+  let Type::Path(type_path) = ty else {
     return None;
   };
   let last_segment_path = type_path.path.segments.last()?;
-  if let PathArguments::AngleBracketed(ref elem) = last_segment_path.arguments {
+  if let PathArguments::AngleBracketed(elem) = &last_segment_path.arguments {
     Some((type_path, last_segment_path, elem))
   } else {
     None

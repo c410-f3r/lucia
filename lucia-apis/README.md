@@ -7,6 +7,7 @@ All these native-supported interfaces are very important to test and exercise `l
 | Category | Name | Feature | Pct |
 |---|---|---|:---:|
 | Blockchain | Aptos | aptos | 1% |
+| Blockchain | Ethereum | ethereum | 3% |
 | Blockchain | Solana | solana | 100% |
 | Calendar | Nager.Date | nager-date | 100% |
 | Series | Rick And Morty | rick-and-morty | 100% |

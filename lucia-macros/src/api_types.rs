@@ -29,10 +29,10 @@ pub(crate) fn api_types(
     OwnedOrRef::Ref,
   );
 
-  let api_ident = match item {
-    Item::Enum(ref container) => &container.ident,
-    Item::Struct(ref container) => &container.ident,
-    Item::Type(ref mut container) => &container.ident,
+  let api_ident = match &mut item {
+    Item::Enum(container) => &mut container.ident,
+    Item::Struct(container) => &mut container.ident,
+    Item::Type(container) => &mut container.ident,
     Item::Const(_)
     | Item::ExternCrate(_)
     | Item::Fn(_)

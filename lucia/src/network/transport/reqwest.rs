@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related},
   network::{
     http::HttpMethod,
     transport::{Transport, TransportParams},
@@ -27,11 +27,7 @@ use reqwest::{
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-impl<DRSR> Transport<DRSR> for Client
-where
-  DRSR: AsyncTrait,
-{
+impl<DRSR> Transport<DRSR> for Client {
   const GROUP: TransportGroup = TransportGroup::HTTP;
   type Params = HttpParams;
 
@@ -70,7 +66,6 @@ async fn response<DRSR, P>(
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
 ) -> Result<reqwest::Response, P::Error>
 where
-  DRSR: AsyncTrait,
   P: Package<DRSR, HttpParams>,
 {
   fn manage_data<API, DRSR>(

@@ -30,10 +30,7 @@ mod short_vec;
 mod slot_update;
 mod transaction;
 
-use crate::blockchain::{
-  solana::pkg::{GetSignatureStatuses, GetSignatureStatusesReq},
-  ConfirmTransactionOptions,
-};
+use crate::blockchain::ConfirmTransactionOptions;
 pub use account::*;
 pub use address_lookup_table_account::*;
 use arrayvec::ArrayString;
@@ -42,7 +39,7 @@ use core::{future::Future, pin::Pin};
 pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
-  misc::{AsyncTrait, PairMut, RequestThrottling},
+  misc::{PairMut, RequestThrottling},
   network::{transport::Transport, HttpParams},
   pkg::Package,
   Api,
@@ -89,7 +86,6 @@ impl Solana {
     tx_hash: &'th str,
   ) -> crate::Result<()>
   where
-    DRSR: AsyncTrait,
     T: Transport<DRSR, Params = HttpParams>,
     GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<[&'th str; 1]>>>: Package<
       DRSR,
@@ -185,7 +181,6 @@ impl Solana {
     ) -> Pin<Box<dyn Future<Output = Result<O, E>> + Send + 'any>>,
   ) -> Result<O, E>
   where
-    DRSR: AsyncTrait,
     E: From<crate::Error>,
     T: Transport<DRSR, Params = HttpParams>,
     GetLatestBlockhashPkg<JsonRpcRequest<GetLatestBlockhashReq>>: Package<
@@ -251,7 +246,6 @@ impl Solana {
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for Solana {
   type Error = crate::Error;
 

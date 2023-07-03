@@ -1,9 +1,4 @@
-use crate::{
-  data_format::JsonRpcRequest, misc::AsyncTrait, network::transport::TransportParams, pkg::Package,
-  Id,
-};
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
+use crate::{data_format::JsonRpcRequest, network::transport::TransportParams, pkg::Package, Id};
 use core::{
   borrow::Borrow,
   cmp::{Ord, Ordering},
@@ -32,10 +27,8 @@ impl<H, P> PkgWithHelper<H, P> {
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, H, P, TP> Package<DRSR, TP> for PkgWithHelper<H, P>
 where
-  H: AsyncTrait,
   P: Package<DRSR, TP>,
   TP: TransportParams,
 {
