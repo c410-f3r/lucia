@@ -1,9 +1,11 @@
 use crate::{
   dnsn::Deserialize,
-  misc::log_res,
+  misc::{log_res, AsyncTrait},
   network::transport::Transport,
   pkg::{Package, PkgsAux},
 };
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
 
 /// Bidirectional Transport
 ///
@@ -12,13 +14,16 @@ use crate::{
 /// # Types
 ///
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait BiTransport<DRSR>: Transport<DRSR> {
   /// Retrieves data from the server filling the internal buffer and returning the amount of
   /// bytes written.
   async fn retrieve<API>(
     &mut self,
     pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
-  ) -> crate::Result<usize>;
+  ) -> crate::Result<usize>
+  where
+    API: AsyncTrait;
 
   /// Internally calls [Self::retrieve] and then tries to decode the defined response specified
   /// in [Package::ExternalResponseContent].
@@ -28,6 +33,7 @@ pub trait BiTransport<DRSR>: Transport<DRSR> {
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<P::ExternalResponseContent, P::Error>
   where
+    DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
   {
     let len = self.retrieve(pkgs_aux).await?;
@@ -41,15 +47,20 @@ pub trait BiTransport<DRSR>: Transport<DRSR> {
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> BiTransport<DRSR> for &mut T
 where
+  DRSR: AsyncTrait,
   T: BiTransport<DRSR>,
 {
   #[inline]
   async fn retrieve<API>(
     &mut self,
     pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
-  ) -> crate::Result<usize> {
+  ) -> crate::Result<usize>
+  where
+    API: AsyncTrait,
+  {
     (**self).retrieve(pkgs_aux).await
   }
 }

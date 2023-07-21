@@ -1,7 +1,7 @@
 error: All packages must have an `api` and a `data_format` attribute. For example, #[pkg(api(SomeApi), data_format(json))]
- --> tests/ui/error_enum/mandatory_outer_attrs_are_not_present.rs:4:1
+ --> tests/ui/error_enum/mandatory_outer_attrs_are_not_present.rs:1:1
   |
-4 | #[lucia_macros::pkg(api(Foo), data_format())]
+1 | #[lucia_macros::pkg(api(Foo), data_format())]
   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
   = note: this error originates in the attribute macro `lucia_macros::pkg` (in Nightly builds, run with -Z macro-backtrace for more info)

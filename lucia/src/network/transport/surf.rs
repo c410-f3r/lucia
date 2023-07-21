@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{
     http::HttpMethod,
     transport::{Transport, TransportParams},
@@ -26,7 +26,11 @@ use surf::{
 ///   .await?;
 /// # Ok(()) }
 /// ```
-impl<DRSR> Transport<DRSR> for Client {
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
+impl<DRSR> Transport<DRSR> for Client
+where
+  DRSR: AsyncTrait,
+{
   const GROUP: TransportGroup = TransportGroup::HTTP;
   type Params = HttpParams;
 
@@ -65,6 +69,7 @@ async fn response<DRSR, P>(
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
 ) -> Result<surf::Response, P::Error>
 where
+  DRSR: AsyncTrait,
   P: Package<DRSR, HttpParams>,
 {
   async fn manage_data<API, E, DRSR>(

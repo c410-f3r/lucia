@@ -37,6 +37,7 @@ impl Aptos {
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for Aptos {
   type Error = crate::Error;
 

@@ -4,10 +4,12 @@
 )]
 
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related, FromBytes},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait, FromBytes},
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
 use alloc::{
   borrow::{Cow, ToOwned},
   collections::VecDeque,
@@ -58,7 +60,7 @@ where
   /// If the number of asserted requests differs from the number of stored requests.
   #[inline]
   pub fn assert_does_not_have_non_asserted_requests(&self) {
-    assert_eq!(self.asserted, self.requests.len(), "3232");
+    assert_eq!(self.asserted, self.requests.len());
   }
 
   /// Verifies if `req` is present in the inner request storage.
@@ -71,7 +73,7 @@ where
   pub fn assert_request(&mut self, req: &T) {
     let stored = &self.requests[self.asserted];
     self.asserted = self.asserted.wrapping_add(1);
-    assert_eq!(req, stored.as_ref(), "dsadas");
+    assert_eq!(req, stored.as_ref());
   }
 
   /// Stores `res` into the inner response storage
@@ -85,10 +87,12 @@ where
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for Mock<T>
 where
-  T: AsRef<[u8]> + Debug + PartialEq + ToOwned + 'static + ?Sized,
-  <T as ToOwned>::Owned: Debug + FromBytes,
+  DRSR: AsyncTrait,
+  T: AsyncTrait + AsRef<[u8]> + Debug + PartialEq + ToOwned + 'static + ?Sized,
+  <T as ToOwned>::Owned: AsyncTrait + Debug + FromBytes,
 {
   const GROUP: TransportGroup = TransportGroup::Stub;
   type Params = ();

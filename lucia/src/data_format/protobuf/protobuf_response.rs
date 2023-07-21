@@ -47,10 +47,9 @@ mod unit {
 
 #[cfg(feature = "protobuf")]
 mod protobuf {
-  use protobuf::Message;
-
   use crate::{data_format::ProtobufResponse, dnsn::Protobuf};
   use core::fmt::Display;
+  use protobuf::Message;
 
   impl<D> crate::dnsn::Deserialize<Protobuf> for ProtobufResponse<D>
   where

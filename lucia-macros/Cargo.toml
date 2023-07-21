@@ -5,10 +5,10 @@ syn = { default-features = false, features = ["full", "parsing", "printing", "ex
 
 [dev-dependencies]
 lucia = { default-features = false, path = "../lucia" }
-lucia-macros = { default-features = false, path = "../lucia-macros" }
 trybuild = { default-features = false, version = "1.0" }
 
 [features]
+async-trait = []
 default = []
 
 [lib]

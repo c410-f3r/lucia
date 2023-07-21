@@ -1,3 +1,5 @@
+#![cfg(not(feature = "async-trait"))]
+
 #[test]
 fn ui() {
   let t = trybuild::TestCases::new();

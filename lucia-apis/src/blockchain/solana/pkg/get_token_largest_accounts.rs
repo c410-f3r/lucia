@@ -11,6 +11,7 @@ pub(crate) mod pkg {
     },
     misc::MaxNumberStr,
   };
+  use lucia::misc::AsyncTrait;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -23,7 +24,9 @@ pub(crate) mod pkg {
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
     Option<GetTokenLargestAccountsConfig>,
-  );
+  )
+  where
+    S: AsyncTrait;
 
   #[pkg::res_data]
   pub type GetTokenLargestAccountsRes =
