@@ -48,10 +48,10 @@ mod unit {
 #[cfg(feature = "rkyv")]
 mod rkyv {
   use crate::{data_format::VerbatimResponse, dnsn::Rkyv};
-  use bytecheck::CheckBytes;
   use core::fmt::Display;
   use rkyv::{
-    de::deserializers::SharedDeserializeMap, validation::validators::DefaultValidator, Archive,
+    bytecheck::CheckBytes, de::deserializers::SharedDeserializeMap,
+    validation::validators::DefaultValidator, Archive,
   };
 
   impl<D> crate::dnsn::Deserialize<Rkyv> for VerbatimResponse<D>

@@ -23,7 +23,6 @@ cargo test --all-features --doc
 LUCIA=(
   # Deserialization/Serialization
   borsh
-  bytecheck
   miniserde
   protobuf
   "rkyv,_hack"
