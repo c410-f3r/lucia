@@ -1,11 +1,12 @@
+use crate::misc::AsyncTrait;
 use core::fmt::Debug;
 
 /// Additional information or metadata received or transmitted by a transport.
-pub trait TransportParams {
+pub trait TransportParams: AsyncTrait {
   /// For example, HTTP has request headers.
-  type ExternalRequestParams: Debug;
+  type ExternalRequestParams: AsyncTrait + Debug;
   /// For example, HTTP has response headers.
-  type ExternalResponseParams: Debug;
+  type ExternalResponseParams: AsyncTrait + Debug;
 
   /// External Request Parameters.
   fn ext_req_params(&self) -> &Self::ExternalRequestParams;

@@ -2,9 +2,8 @@
 //!
 //! Most of the API structures are markers used to guide different type implementations.
 
-#![allow(incomplete_features)]
+#![cfg_attr(not(feature = "async-trait"), feature(async_fn_in_trait, impl_trait_projections))]
 #![cfg_attr(not(feature = "std"), no_std)]
-#![feature(async_fn_in_trait, impl_trait_projections)]
 
 extern crate alloc;
 

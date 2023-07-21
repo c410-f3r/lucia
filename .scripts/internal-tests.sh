@@ -23,7 +23,9 @@ cargo test --all-features --doc
 LUCIA=(
   # Deserialization/Serialization
   borsh
+  bytecheck
   miniserde
+  protobuf
   "rkyv,_hack"
   serde
   serde_json
@@ -32,7 +34,11 @@ LUCIA=(
   "simd-json,_hack"
 
   # Etc
+  arrayvec
   async-std
+  async-trait
+  futures
+  macros
   std
   tokio
   tracing
@@ -43,6 +49,7 @@ LUCIA=(
   "surf,_hack"
   std
   tokio-tungstenite
+  tungstenite
 )
 for feature in "${LUCIA[@]}"
 do
@@ -51,14 +58,30 @@ done
 
 LUCIA_APIS=(
   # API
+  aptos
+  ethereum
   json-placeholder
   nager-date
   rick-and-morty
   solana
 
   # Etc
+  async-trait
+  base64
+  bs58
   default
+  ed25519-dalek
   std
+
+  # Ethereum
+  ethabi
+  ethereum-types
+  hex
+  primitive-types
+
+  # Solana
+  bincode
+  solana-program
 )
 for feature in "${LUCIA_APIS[@]}"
 do

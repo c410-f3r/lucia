@@ -1,5 +1,6 @@
 use crate::{
   dnsn::{Deserialize, Serialize},
+  misc::AsyncTrait,
   pkg::Package,
 };
 use alloc::string::String;
@@ -16,8 +17,8 @@ impl<EREQC, ERESC> FooBar<EREQC, ERESC> {
 
 impl<DRSR, EREQC, ERESC> Package<DRSR, ()> for FooBar<EREQC, ERESC>
 where
-  EREQC: Serialize<DRSR>,
-  ERESC: Deserialize<DRSR>,
+  EREQC: AsyncTrait + Serialize<DRSR>,
+  ERESC: AsyncTrait + Deserialize<DRSR>,
 {
   type Api = ();
   type Error = crate::Error;

@@ -7,16 +7,17 @@ serde = { default-features = false, features = ["alloc", "derive"], version = "1
 
 # Etc
 
+async-trait = { default-features = false, optional = true, version = "0.1" }
 base64 = { default-features = false, features = ["alloc"], optional = true, version = "0.21" }
 bs58 = { default-features = false, features = ["alloc"], optional = true, version = "0.5" }
 ed25519-dalek = { default-features = false, features = ["u64_backend"], optional = true, version = "1.0" }
 
 # Ethereum
 
-ethabi = { default-features = false, features = ["full-serde"], optional = true, version = "17.0" }
-ethereum-types = { default-features = false, features = ["serialize"], optional = true, version = "0.13" }
+ethabi = { default-features = false, features = ["full-serde"], optional = true, version = "18.0" }
+ethereum-types = { default-features = false, features = ["serialize"], optional = true, version = "0.14" }
 hex = { default-features = false, optional = true, version = "0.4" }
-primitive-types = { default-features = false, features = ["serde"], optional = true, version = "0.11" }
+primitive-types = { default-features = false, features = ["serde"], optional = true, version = "0.12" }
 
 # Solana
 
@@ -37,7 +38,7 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 # API
 
 aptos = []
-ethereum = ["dep:ethabi", "dep:ethereum-types", "dep:hex", "dep:primitive-types"]
+ethereum = ["ethabi", "ethereum-types", "hex", "primitive-types"]
 json-placeholder = []
 nager-date = []
 rick-and-morty = []
@@ -45,6 +46,7 @@ solana = ["base64", "bincode", "bs58"]
 
 # Etc
 
+async-trait = ["dep:async-trait", "lucia/async-trait", "lucia-macros/async-trait"]
 default = []
 ed25519-dalek = ["dep:ed25519-dalek", "std"]
 std = []

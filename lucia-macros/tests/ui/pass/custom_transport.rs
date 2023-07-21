@@ -1,6 +1,5 @@
 //! Custom transport through `transport(Custom)`.
 
-#![allow(incomplete_features)]
 #![feature(async_fn_in_trait, impl_trait_projections)]
 
 use lucia::pkg::PkgsAux;

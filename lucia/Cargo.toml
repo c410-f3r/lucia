@@ -18,21 +18,19 @@ simd-json = { default-features = false, features = ["serde_impl"], optional = tr
 
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
+async-trait = { default-features = false, optional = true, version = "0.1" }
 futures = { default-features = false, optional = true, version = "0.3" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tracing = { default-features = false, optional = true, version = "0.1" }
+tungstenite = { default-features = false, optional = true, version = "0.19" }
 
 # Network
 
 reqwest = { default-features = false, optional = true, version = "0.11" }
-
-surf = { default-features = false, optional = true, version = "2.0" }
-
 soketto = { default-features = false, optional = true, version = "0.7" }
-
+surf = { default-features = false, optional = true, version = "2.0" }
 tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.19" }
-tungstenite = { default-features = false, optional = true, version = "0.19" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
@@ -44,6 +42,7 @@ tracing-subscriber = { default-features = false, features = ["env-filter", "fmt"
 
 borsh = ["dep:borsh", "std"]
 miniserde = ["dep:miniserde", "std"]
+protobuf = ["dep:protobuf", "std"]
 rkyv = ["bytecheck", "dep:rkyv"]
 serde = ["arrayvec?/serde", "cl-aux/serde", "dep:serde"]
 serde_json = ["serde", "dep:serde_json", "std"]

@@ -8,6 +8,7 @@ pub(crate) mod sub {
   use crate::blockchain::solana::{
     AccountEncoding, Commitment, SolanaWsPkgsAux, TransactionDetails,
   };
+  use lucia::misc::AsyncTrait;
 
   #[pkg::aux]
   impl<DRSR> SolanaWsPkgsAux<DRSR> {}
@@ -19,7 +20,9 @@ pub(crate) mod sub {
     #[serde(skip_serializing_if = "Option::is_none")]
     #[pkg::field(name = "config")]
     Option<BlockSubscribeConfig>,
-  );
+  )
+  where
+    S: AsyncTrait;
 
   #[pkg::res_data]
   pub type BlockSubscribeRes = u64;

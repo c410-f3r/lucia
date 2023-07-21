@@ -24,6 +24,7 @@ pub use pkg::*;
 #[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http))]
 pub struct NagerDate;
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for NagerDate {
   type Error = crate::Error;
 }

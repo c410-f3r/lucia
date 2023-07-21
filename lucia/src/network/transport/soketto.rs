@@ -1,11 +1,13 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{
     transport::{BiTransport, Transport, TransportParams},
     TransportGroup, WsParams, WsReqParamsTy,
   },
   pkg::{Package, PkgsAux},
 };
+#[cfg(feature = "async-trait")]
+use alloc::boxed::Box;
 use core::str;
 use futures::{AsyncRead, AsyncWrite};
 use soketto::{
@@ -13,9 +15,11 @@ use soketto::{
   Data, Incoming,
 };
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for (Sender<T>, Receiver<T>)
 where
-  T: AsyncRead + AsyncWrite + Unpin,
+  DRSR: AsyncTrait,
+  T: AsyncRead + AsyncTrait + AsyncWrite + Unpin,
 {
   const GROUP: TransportGroup = TransportGroup::WebSocket;
   type Params = WsParams;
@@ -61,15 +65,20 @@ where
   }
 }
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> BiTransport<DRSR> for (Sender<T>, Receiver<T>)
 where
-  T: AsyncRead + AsyncWrite + Unpin,
+  DRSR: AsyncTrait,
+  T: AsyncRead + AsyncTrait + AsyncWrite + Unpin,
 {
   #[inline]
   async fn retrieve<API>(
     &mut self,
     pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
-  ) -> crate::Result<usize> {
+  ) -> crate::Result<usize>
+  where
+    API: AsyncTrait,
+  {
     manage_retrieve(self, pkgs_aux).await
   }
 }

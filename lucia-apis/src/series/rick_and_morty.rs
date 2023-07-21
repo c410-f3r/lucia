@@ -29,6 +29,7 @@ pub use pkg::*;
 #[lucia_macros::api_types(pkgs_aux(PkgsAux), transport(http))]
 pub struct RickAndMorty;
 
+#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for RickAndMorty {
   type Error = crate::Error;
 }
