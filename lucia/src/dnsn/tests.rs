@@ -5,6 +5,8 @@ use crate::{
 };
 use alloc::string::String;
 use core::marker::PhantomData;
+#[cfg(feature = "rkyv")]
+use rkyv::bytecheck;
 
 #[derive(Debug, Eq, PartialEq)]
 pub(crate) struct FooBar<EREQC, ERESC>(EREQC, (), PhantomData<ERESC>);
@@ -46,7 +48,7 @@ where
 #[cfg_attr(feature = "borsh", derive(borsh::BorshSerialize))]
 #[cfg_attr(feature = "miniserde", derive(miniserde::Serialize))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Serialize))]
-#[cfg_attr(feature = "rkyv", archive_attr(derive(Debug, bytecheck::CheckBytes)))]
+#[cfg_attr(feature = "rkyv", archive_attr(derive(Debug, rkyv::bytecheck::CheckBytes)))]
 #[cfg_attr(feature = "serde", derive(serde::Serialize))]
 #[derive(Debug, PartialEq)]
 pub(crate) struct Foo {
@@ -57,7 +59,7 @@ pub(crate) struct Foo {
 #[cfg_attr(feature = "borsh", derive(borsh::BorshDeserialize, borsh::BorshSerialize))]
 #[cfg_attr(feature = "miniserde", derive(miniserde::Deserialize))]
 #[cfg_attr(feature = "rkyv", derive(rkyv::Archive, rkyv::Deserialize))]
-#[cfg_attr(feature = "rkyv", archive_attr(derive(Debug, bytecheck::CheckBytes)))]
+#[cfg_attr(feature = "rkyv", archive_attr(derive(Debug, rkyv::bytecheck::CheckBytes)))]
 #[cfg_attr(feature = "serde", derive(serde::Deserialize))]
 #[derive(Debug, PartialEq)]
 pub(crate) struct Bar {
