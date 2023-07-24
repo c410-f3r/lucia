@@ -22,7 +22,7 @@ futures = { default-features = false, optional = true, version = "0.3" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
 tokio = { default-features = false, optional = true, version = "1.0" }
 tracing = { default-features = false, optional = true, version = "0.1" }
-tungstenite = { default-features = false, optional = true, version = "0.19" }
+tungstenite = { default-features = false, optional = true, version = "0.20" }
 
 # Network
 
