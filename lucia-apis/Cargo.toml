@@ -22,7 +22,7 @@ primitive-types = { default-features = false, features = ["serde"], optional = t
 # Solana
 
 bincode = { default-features = false, optional = true, version = "1.0" }
-solana-program = { default-features = false, optional = true, version = "1.0" }
+solana-program = { default-features = false, optional = true, version = "1.16" }
 
 [dev-dependencies]
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
