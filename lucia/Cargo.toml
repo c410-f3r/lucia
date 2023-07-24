@@ -29,7 +29,7 @@ tungstenite = { default-features = false, optional = true, version = "0.19" }
 reqwest = { default-features = false, optional = true, version = "0.11" }
 soketto = { default-features = false, optional = true, version = "0.7" }
 surf = { default-features = false, optional = true, version = "2.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.19" }
+tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.20" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
