@@ -22,7 +22,7 @@ primitive-types = { default-features = false, features = ["serde"], optional = t
 # Solana
 
 bincode = { default-features = false, optional = true, version = "1.0" }
-solana-program = { default-features = false, optional = true, version = "1.16" }
+solana-program = { default-features = false, optional = true, version = "1.0" }
 
 [dev-dependencies]
 lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
@@ -30,7 +30,7 @@ lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
-tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.19" }
+tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.20" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
 [features]

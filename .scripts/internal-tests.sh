@@ -45,8 +45,8 @@ LUCIA=(
   # Tranport
   reqwest
   soketto
-  "surf,_hack"
   std
+  "surf,_hack"
   tokio-tungstenite
   tungstenite
 )
