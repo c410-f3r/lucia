@@ -29,7 +29,7 @@ lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-
 lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.30" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.31" }
 tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.20" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
