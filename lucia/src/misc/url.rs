@@ -67,7 +67,9 @@ where
       .filter_map(|(idx, elem)| (*elem == b'/').then_some(idx));
     let _ = slash_iter.next();
     let _ = slash_iter.next();
-    let Some(origin_end) = slash_iter.next() else { return [url.as_ref().len(); 2]; };
+    let Some(origin_end) = slash_iter.next() else {
+      return [url.as_ref().len(); 2];
+    };
     let after_origin = url.as_ref().get(origin_end..).unwrap_or_default();
     let path_end = if let Some(elem) = after_origin
       .as_bytes()

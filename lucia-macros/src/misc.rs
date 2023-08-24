@@ -11,7 +11,9 @@ pub(crate) fn attrs_by_names<'attrs, const N: usize>(
 ) -> [Option<&'attrs Attribute>; N] {
   let mut rslt = [None; N];
   for attr in attrs {
-    let Some(last) = attr.path.segments.last() else { continue; };
+    let Some(last) = attr.path.segments.last() else {
+      continue;
+    };
     let s = last.ident.to_string();
     for (name, rslt_attr) in names.iter().zip(&mut rslt) {
       if rslt_attr.is_some() {

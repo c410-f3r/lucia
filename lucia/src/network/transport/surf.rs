@@ -7,6 +7,7 @@ use crate::{
   },
   pkg::{Package, PkgsAux},
 };
+use core::ops::Range;
 use surf::{
   http::headers::{CONTENT_TYPE, USER_AGENT},
   Client, RequestBuilder,
@@ -52,14 +53,14 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, HttpParams>,
   {
     let mut res = response(self, pkg, pkgs_aux).await?;
     let received_bytes = res.body_bytes().await.map_err(Into::into)?;
     pkgs_aux.byte_buffer.extend(received_bytes.into_iter());
-    Ok(pkgs_aux.byte_buffer.len())
+    Ok(0..pkgs_aux.byte_buffer.len())
   }
 }
 

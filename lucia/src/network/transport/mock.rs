@@ -15,7 +15,7 @@ use alloc::{
   collections::VecDeque,
   vec::Vec,
 };
-use core::fmt::Debug;
+use core::{fmt::Debug, ops::Range};
 
 /// For API's that send and received raw bytes.
 pub type MockBytes = Mock<[u8]>;
@@ -118,7 +118,7 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, ()>,
   {
@@ -126,7 +126,7 @@ where
     let response = self.pop_response()?;
     pkgs_aux.byte_buffer.clear();
     pkgs_aux.byte_buffer.extend(response.as_ref().as_ref().iter().copied());
-    Ok(pkgs_aux.byte_buffer.len())
+    Ok(0..pkgs_aux.byte_buffer.len())
   }
 }
 

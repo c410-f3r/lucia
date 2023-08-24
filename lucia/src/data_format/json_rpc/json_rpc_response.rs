@@ -87,7 +87,7 @@ impl<R> PartialEq for JsonRpcResponse<R> {
 impl<R> PartialOrd for JsonRpcResponse<R> {
   #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.id.cmp(&other.id))
+    Some(self.cmp(other))
   }
 }
 
@@ -183,7 +183,7 @@ mod serde {
             },
             method,
             result: if let Some(elem) = error {
-              Err(crate::Error::JsonRpcResultErr(elem))
+              Err(crate::Error::JsonRpcResultErr(elem.into()))
             } else {
               Ok(result.ok_or_else(|| serde::de::Error::missing_field("result"))?)
             },

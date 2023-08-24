@@ -5,6 +5,7 @@ use crate::{
 };
 #[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
+use core::ops::Range;
 
 /// Does absolutely nothing. Good for demonstration purposes.
 ///
@@ -42,12 +43,12 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, ()>,
   {
     self.send(pkg, pkgs_aux).await?;
-    Ok(0)
+    Ok(0..0)
   }
 }
 

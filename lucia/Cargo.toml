@@ -18,18 +18,15 @@ simd-json = { default-features = false, features = ["serde_impl"], optional = tr
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
 async-trait = { default-features = false, optional = true, version = "0.1" }
-futures = { default-features = false, optional = true, version = "0.3" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
 tokio = { default-features = false, optional = true, version = "1.32" }
 tracing = { default-features = false, optional = true, version = "0.1" }
-tungstenite = { default-features = false, optional = true, version = "0.20" }
 
 # Network
 
 reqwest = { default-features = false, optional = true, version = "0.11" }
-soketto = { default-features = false, optional = true, version = "0.7" }
 surf = { default-features = false, optional = true, version = "2.0" }
-tokio-tungstenite = { default-features = false, features = ["connect"], optional = true, version = "0.20" }
+wtx = { default-features = false, optional = true, version = "0.5" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.32" }
@@ -52,6 +49,7 @@ simd-json = ["serde", "dep:simd-json", "std"]
 
 arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
 async-std = ["dep:async-std", "async-std?/default"]
+async-trait = ["dep:async-trait", "wtx?/async-trait"]
 default = []
 macros = ["dep:lucia-macros"]
 std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
@@ -60,11 +58,6 @@ tokio = ["std", "dep:tokio", "tokio?/time"]
 # These dependencies do not support `no-default-features` and the explicit "hard-coded" usage of
 # any feature would imply a downstream enforcement, which is bad.
 _hack = ["surf?/h1-client-no-tls", "rkyv?/size_32", "simd-json?/allow-non-simd"]
-
-# Network
-
-soketto = ["futures", "dep:soketto"]
-tokio-tungstenite = ["futures", "dep:tokio", "tokio?/net", "dep:tokio-tungstenite", "tungstenite"]
 
 [package]
 categories = ["asynchronous", "data-structures", "encoding", "network-programming", "no-std"]

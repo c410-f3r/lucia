@@ -4,19 +4,15 @@ mod bi_transport;
 mod mock;
 #[cfg(feature = "reqwest")]
 mod reqwest;
-#[cfg(feature = "soketto")]
-mod soketto;
 #[cfg(feature = "std")]
 mod std;
 #[cfg(feature = "surf")]
 mod surf;
-#[cfg(feature = "tokio-tungstenite")]
-mod tokio_tungstenite;
 mod transport_params;
 mod unit;
+#[cfg(feature = "wtx")]
+mod wtx;
 
-#[cfg(feature = "tokio-tungstenite")]
-pub use self::tokio_tungstenite::*;
 use crate::{
   dnsn::{Deserialize, Serialize},
   misc::{log_res, AsyncTrait},
@@ -28,7 +24,7 @@ use crate::{
 use alloc::boxed::Box;
 pub use bi_transport::*;
 use cl_aux::DynContigColl;
-use core::borrow::Borrow;
+use core::{borrow::Borrow, ops::Range};
 pub use mock::*;
 pub use transport_params::*;
 
@@ -63,7 +59,7 @@ pub trait Transport<DRSR>: AsyncTrait {
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, Self::Params>;
 
@@ -87,11 +83,11 @@ pub trait Transport<DRSR>: AsyncTrait {
     for<'any> BatchElems<'any, DRSR, P, Self::Params>: Serialize<DRSR>,
   {
     let batch_package = &mut BatchPkg::new(pkgs);
-    let len = self.send_and_retrieve(batch_package, pkgs_aux).await?;
+    let range = self.send_and_retrieve(batch_package, pkgs_aux).await?;
     log_res(pkgs_aux.byte_buffer.as_ref());
     batch_package.decode_and_push_from_bytes(
       ress,
-      pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
+      pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
       &mut pkgs_aux.drsr,
     )?;
     Ok(())
@@ -109,10 +105,10 @@ pub trait Transport<DRSR>: AsyncTrait {
     DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
   {
-    let len = self.send_and_retrieve(pkg, pkgs_aux).await?;
+    let range = self.send_and_retrieve(pkg, pkgs_aux).await?;
     log_res(pkgs_aux.byte_buffer.as_ref());
     Ok(P::ExternalResponseContent::from_bytes(
-      pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
+      pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
       &mut pkgs_aux.drsr,
     )?)
   }
@@ -150,7 +146,7 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, Self::Params>,
   {

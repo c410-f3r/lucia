@@ -36,7 +36,6 @@ LUCIA=(
   arrayvec
   async-std
   async-trait
-  futures
   macros
   std
   tokio
@@ -44,11 +43,9 @@ LUCIA=(
 
   # Tranport
   reqwest
-  soketto
   std
   "surf,_hack"
-  tokio-tungstenite
-  tungstenite
+  wtx
 )
 for feature in "${LUCIA[@]}"
 do

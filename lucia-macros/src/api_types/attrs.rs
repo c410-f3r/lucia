@@ -14,7 +14,7 @@ impl<'attrs> TryFrom<&'attrs [NestedMeta]> for Attrs<'attrs> {
     let mut pkgs_aux = None;
     let mut transports = Vec::new();
     for nested_meta in from {
-      let NestedMeta::Meta(Meta::List(meta_list)) = nested_meta  else {
+      let NestedMeta::Meta(Meta::List(meta_list)) = nested_meta else {
         continue;
       };
       let Some(first_meta_list_path_seg) = meta_list.path.segments.first() else {

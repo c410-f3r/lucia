@@ -25,13 +25,13 @@ bincode = { default-features = false, optional = true, version = "1.0" }
 solana-program = { default-features = false, optional = true, version = "1.16" }
 
 [dev-dependencies]
-lucia = { default-features = false, features = ["reqwest", "serde_json", "tokio-tungstenite", "tracing"], path = "../lucia" }
+lucia = { default-features = false, features = ["reqwest", "serde_json", "tracing", "wtx"], path = "../lucia" }
 lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.32" }
-tokio-tungstenite = { default-features = false, features = ["connect", "rustls-tls-webpki-roots"], version = "0.20" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.0" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
+wtx = { default-features = false, features = ["tokio", "web-socket-handshake"], version = "0.5" }
 
 [features]
 
