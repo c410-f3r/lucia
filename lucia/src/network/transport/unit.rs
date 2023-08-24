@@ -1,3 +1,4 @@
+use core::ops::Range;
 use crate::{
   misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{transport::Transport, TransportGroup},
@@ -42,12 +43,12 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, ()>,
   {
     self.send(pkg, pkgs_aux).await?;
-    Ok(0)
+    Ok(0..0)
   }
 }
 

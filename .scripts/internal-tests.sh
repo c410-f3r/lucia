@@ -44,11 +44,9 @@ LUCIA=(
 
   # Tranport
   reqwest
-  soketto
   std
   "surf,_hack"
-  tokio-tungstenite
-  tungstenite
+  wtx
 )
 for feature in "${LUCIA[@]}"
 do

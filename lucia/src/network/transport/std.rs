@@ -6,6 +6,7 @@ use crate::{
   },
   pkg::{Package, PkgsAux},
 };
+use core::ops::Range;
 use std::{
   io::{Read, Write},
   net::{TcpStream, UdpSocket},
@@ -37,7 +38,7 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, TcpParams>,
   {
@@ -73,7 +74,7 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, UdpParams>,
   {
@@ -126,7 +127,7 @@ async fn send_and_retrieve<DRSR, P, T>(
     &<T::Params as TransportParams>::ExternalRequestParams,
     &mut T,
   ) -> crate::Result<usize>,
-) -> Result<usize, P::Error>
+) -> Result<Range<usize>, P::Error>
 where
   P: Package<DRSR, T::Params>,
   T: Transport<DRSR>,
@@ -134,7 +135,7 @@ where
   trans.send(pkg, pkgs_aux).await?;
   let slice = pkgs_aux.byte_buffer.as_mut();
   let len = cb(slice, pkgs_aux.tp.ext_req_params(), trans)?;
-  Ok(len)
+  Ok(0..len)
 }
 
 #[cfg(test)]

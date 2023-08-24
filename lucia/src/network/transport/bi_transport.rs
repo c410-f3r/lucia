@@ -1,3 +1,4 @@
+use core::ops::Range;
 use crate::{
   dnsn::Deserialize,
   misc::{log_res, AsyncTrait},
@@ -21,7 +22,7 @@ pub trait BiTransport<DRSR>: Transport<DRSR> {
   async fn retrieve<API>(
     &mut self,
     pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
-  ) -> crate::Result<usize>
+  ) -> crate::Result<Range<usize>>
   where
     API: AsyncTrait;
 
@@ -36,10 +37,10 @@ pub trait BiTransport<DRSR>: Transport<DRSR> {
     DRSR: AsyncTrait,
     P: Package<DRSR, Self::Params>,
   {
-    let len = self.retrieve(pkgs_aux).await?;
+    let range = self.retrieve(pkgs_aux).await?;
     log_res(pkgs_aux.byte_buffer.as_ref());
     let rslt = P::ExternalResponseContent::from_bytes(
-      pkgs_aux.byte_buffer.get(..len).unwrap_or_default(),
+      pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
       &mut pkgs_aux.drsr,
     )?;
     pkgs_aux.byte_buffer.clear();
@@ -57,7 +58,7 @@ where
   async fn retrieve<API>(
     &mut self,
     pkgs_aux: &mut PkgsAux<API, DRSR, Self::Params>,
-  ) -> crate::Result<usize>
+  ) -> crate::Result<Range<usize>>
   where
     API: AsyncTrait,
   {

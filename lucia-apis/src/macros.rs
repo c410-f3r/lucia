@@ -69,11 +69,23 @@ macro_rules! create_ws_test {
       tokio,
       $sub,
       {
+        use wtx::web_socket::handshake::WebSocketHandshake;
+        let uri_parts = wtx::UriParts::from($url);
         let (drsr, ext_req_params) = $drsr_erp;
-        let (trans, _) = tokio_tungstenite::connect_async($url).await.unwrap();
+        let trans = wtx::web_socket::handshake::WebSocketHandshakeRaw {
+          fb: &mut <_>::default(),
+          headers_buffer: &mut <_>::default(),
+          rb: wtx::ReadBuffer::default(),
+          stream: tokio::net::TcpStream::connect(uri_parts.host).await.unwrap(),
+          uri: $url,
+        }
+        .handshake()
+        .await
+        .unwrap()
+        .1;
         lucia::misc::Pair::new(
           PkgsAux::from_minimum($api, drsr, ext_req_params),
-          trans
+          (<_>::default(), trans)
         )
       },
       $cb,

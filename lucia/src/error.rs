@@ -2,9 +2,8 @@ use crate::{
   data_format::{GraphQlResponseError, JsonRpcResponseError},
   Id,
 };
-#[cfg(feature = "tokio-tungstenite")]
-use alloc::boxed::Box;
 use alloc::{
+  boxed::Box,
   string::{String, ToString},
   vec::Vec,
 };
@@ -45,32 +44,29 @@ pub enum Error {
   RkyvDer(&'static str),
   /// A given type couldn't be serialized.
   #[cfg(feature = "rkyv")]
-  RkyvSer(RkyvSer),
+  RkyvSer(Box<RkyvSer>),
   /// See [serde_json::Error]
   #[cfg(feature = "serde_json")]
   SerdeJson(serde_json::Error),
   /// See [serde_json::Error]
   #[cfg(feature = "serde-xml-rs")]
-  SerdeXmlRs(serde_xml_rs::Error),
+  SerdeXmlRs(Box<serde_xml_rs::Error>),
   /// See [serde_yaml::Error]
   #[cfg(feature = "serde_yaml")]
   SerdeYaml(serde_yaml::Error),
   /// See [simd_json::Error]
   #[cfg(feature = "simd-json")]
-  SimdJson(simd_json::Error),
-  /// See [soketto::connection::Error]
-  #[cfg(feature = "soketto")]
-  Soketto(soketto::connection::Error),
+  SimdJson(Box<simd_json::Error>),
   /// See [surf::Error]
   #[cfg(feature = "surf")]
-  Surf(surf::Error),
+  Surf(Box<surf::Error>),
   /// See [core::num::TryFromIntError]
   TryFromIntError(core::num::TryFromIntError),
-  /// See [tungstenite::Error]
-  #[cfg(feature = "tokio-tungstenite")]
-  Tungstenite(Box<tungstenite::Error>),
   /// See [core::str::Utf8Error]
   Utf8Error(core::str::Utf8Error),
+  /// See [wtx::Error]
+  #[cfg(feature = "wtx")]
+  Wtx(wtx::Error),
 
   // Internal
   /// A slice-like batch of package is not sorted
@@ -84,7 +80,7 @@ pub enum Error {
   /// `no_std` has no knowledge of time. Try enabling the `std` feature
   ItIsNotPossibleToUseTimeInNoStd,
   /// JSON-RPC response error
-  JsonRpcResultErr(JsonRpcResponseError),
+  JsonRpcResultErr(Box<JsonRpcResponseError>),
   /// A variant used to transform `Option`s into `Result`s
   NoInnerValue(&'static str),
   /// A given response id is not present in the set of sent packages.
@@ -171,7 +167,7 @@ impl From<&'static str> for Error {
 impl From<RkyvSer> for Error {
   #[inline]
   fn from(from: RkyvSer) -> Self {
-    Self::RkyvSer(from)
+    Self::RkyvSer(from.into())
   }
 }
 
@@ -187,7 +183,7 @@ impl From<serde_json::Error> for Error {
 impl From<serde_xml_rs::Error> for Error {
   #[inline]
   fn from(from: serde_xml_rs::Error) -> Self {
-    Self::SerdeXmlRs(from)
+    Self::SerdeXmlRs(from.into())
   }
 }
 
@@ -203,15 +199,7 @@ impl From<serde_yaml::Error> for Error {
 impl From<simd_json::Error> for Error {
   #[inline]
   fn from(from: simd_json::Error) -> Self {
-    Self::SimdJson(from)
-  }
-}
-
-#[cfg(feature = "soketto")]
-impl From<soketto::connection::Error> for Error {
-  #[inline]
-  fn from(from: soketto::connection::Error) -> Self {
-    Self::Soketto(from)
+    Self::SimdJson(from.into())
   }
 }
 
@@ -219,7 +207,7 @@ impl From<soketto::connection::Error> for Error {
 impl From<surf::Error> for Error {
   #[inline]
   fn from(from: surf::Error) -> Self {
-    Self::Surf(from)
+    Self::Surf(from.into())
   }
 }
 
@@ -230,18 +218,18 @@ impl From<core::num::TryFromIntError> for Error {
   }
 }
 
-#[cfg(feature = "tokio-tungstenite")]
-impl From<tungstenite::Error> for Error {
-  #[inline]
-  fn from(from: tungstenite::Error) -> Self {
-    Self::Tungstenite(from.into())
-  }
-}
-
 impl From<core::str::Utf8Error> for Error {
   #[inline]
   fn from(from: core::str::Utf8Error) -> Self {
     Self::Utf8Error(from)
+  }
+}
+
+#[cfg(feature = "wtx")]
+impl From<wtx::Error> for Error {
+  #[inline]
+  fn from(from: wtx::Error) -> Self {
+    Self::Wtx(from)
   }
 }
 

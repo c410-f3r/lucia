@@ -1,3 +1,4 @@
+use core::ops::Range;
 use crate::{
   misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{
@@ -52,14 +53,14 @@ where
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, HttpParams>,
   {
     let mut res = response(self, pkg, pkgs_aux).await?;
     let received_bytes = res.body_bytes().await.map_err(Into::into)?;
     pkgs_aux.byte_buffer.extend(received_bytes.into_iter());
-    Ok(pkgs_aux.byte_buffer.len())
+    Ok(0..pkgs_aux.byte_buffer.len())
   }
 }
 
