@@ -1,4 +1,3 @@
-use core::ops::Range;
 use crate::{
   dnsn::Deserialize,
   misc::{log_res, AsyncTrait},
@@ -7,6 +6,7 @@ use crate::{
 };
 #[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
+use core::ops::Range;
 
 /// Bidirectional Transport
 ///

@@ -31,8 +31,12 @@ impl<'module> TryFrom<(&'module mut Vec<Item>, Span)> for FirItemsValues<'module
     let mut res_data = None;
 
     for item in items {
-      let Some(attr) = item.contained_attrs() else { continue; };
-      let Some(FirItemAttr { span, ty }) = take_unique_pkg_attr(attr)? else { continue; };
+      let Some(attr) = item.contained_attrs() else {
+        continue;
+      };
+      let Some(FirItemAttr { span, ty }) = take_unique_pkg_attr(attr)? else {
+        continue;
+      };
       match ty {
         FirItemAttrTy::AfterSending => {
           manage_unique_attribute(after_sending.as_ref(), span)?;

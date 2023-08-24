@@ -1,4 +1,3 @@
-use core::ops::Range;
 use crate::{
   misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{
@@ -8,6 +7,7 @@ use crate::{
   },
   pkg::{Package, PkgsAux},
 };
+use core::ops::Range;
 use surf::{
   http::headers::{CONTENT_TYPE, USER_AGENT},
   Client, RequestBuilder,

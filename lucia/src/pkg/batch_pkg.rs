@@ -71,7 +71,9 @@ where
     T: PartialOrd,
   {
     let mut is_sorted = true;
-    let Some(mut previous) = iter.next() else { return Ok(()); };
+    let Some(mut previous) = iter.next() else {
+      return Ok(());
+    };
     for curr in iter {
       if previous > curr {
         is_sorted = false;

@@ -1,4 +1,3 @@
-use core::ops::Range;
 use crate::{
   misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
   network::{transport::Transport, TransportGroup},
@@ -6,6 +5,7 @@ use crate::{
 };
 #[cfg(feature = "async-trait")]
 use alloc::boxed::Box;
+use core::ops::Range;
 
 /// Does absolutely nothing. Good for demonstration purposes.
 ///

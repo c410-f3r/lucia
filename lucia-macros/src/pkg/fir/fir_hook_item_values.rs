@@ -44,8 +44,12 @@ macro_rules! create_fir_hook_item_values {
           let call_idents_cb: fn(&str) -> Option<TokenStream> = $fn_args_idents;
           let mut call_idents = Punctuated::new();
           for fn_arg in &item_fn.sig.inputs {
-            let FnArg::Typed(ref pat_type) = *fn_arg else { continue; };
-            let Pat::Ident(ref pat_ident) = *pat_type.pat else { continue; };
+            let FnArg::Typed(ref pat_type) = *fn_arg else {
+              continue;
+            };
+            let Pat::Ident(ref pat_ident) = *pat_type.pat else {
+              continue;
+            };
             let tt = call_idents_cb(pat_ident.ident.to_string().as_str())?;
             call_idents.push(tt);
           }
