@@ -64,7 +64,7 @@ impl<P> PartialEq for JsonRpcRequest<P> {
 impl<P> PartialOrd for JsonRpcRequest<P> {
   #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.id.cmp(&other.id))
+    Some(self.cmp(other))
   }
 }
 

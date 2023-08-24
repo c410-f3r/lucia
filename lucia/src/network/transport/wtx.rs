@@ -57,13 +57,12 @@ where
     P: Package<DRSR, WsParams>,
   {
     <Self as Transport<DRSR>>::send(self, pkg, pkgs_aux).await?;
-    let indcs = self
-      .1
-      .read_msg(&mut FrameBufferVecMut::from(&mut pkgs_aux.byte_buffer))
-      .await
-      .map_err(Into::into)?
-      .fb()
-      .indcs();
+    let fb = &mut FrameBufferVecMut::from(&mut pkgs_aux.byte_buffer);
+    let frame = self.1.read_msg(fb).await.map_err(Into::into)?;
+    if let OpCode::Close = frame.op_code() {
+      return Err(crate::Error::ClosedWsConnection.into());
+    }
+    let indcs = frame.fb().indcs();
     Ok(indcs.1.into()..indcs.2)
   }
 }
@@ -85,7 +84,11 @@ where
   {
     pkgs_aux.byte_buffer.clear();
     let fb = &mut FrameBufferVecMut::from(&mut pkgs_aux.byte_buffer);
-    let indcs = self.1.read_msg(fb).await?.fb().indcs();
+    let frame = self.1.read_msg(fb).await?;
+    if let OpCode::Close = frame.op_code() {
+      return Err(crate::Error::ClosedWsConnection.into());
+    }
+    let indcs = frame.fb().indcs();
     Ok(indcs.1.into()..indcs.2)
   }
 }

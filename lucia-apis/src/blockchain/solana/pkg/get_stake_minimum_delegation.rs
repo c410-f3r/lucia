@@ -17,7 +17,7 @@ pub(crate) mod pkg {
   pub struct GetStakeMinimumDelegationReq(
     #[pkg::field(name = "conf")]
     #[serde(skip_serializing_if = "Option::is_none")]
-    Option<GetSignaturesForAddressConfig>,
+    Option<GetSignaturesForDelegationConfig>,
   );
 
   #[pkg::res_data]
@@ -25,7 +25,7 @@ pub(crate) mod pkg {
 
   #[derive(Debug, serde::Serialize)]
   #[doc = generic_config_doc!()]
-  pub struct GetSignaturesForAddressConfig {
+  pub struct GetSignaturesForDelegationConfig {
     #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,

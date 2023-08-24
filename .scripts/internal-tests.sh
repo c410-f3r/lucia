@@ -36,7 +36,6 @@ LUCIA=(
   arrayvec
   async-std
   async-trait
-  futures
   macros
   std
   tokio

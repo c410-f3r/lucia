@@ -87,7 +87,7 @@ impl<R> PartialEq for JsonRpcResponse<R> {
 impl<R> PartialOrd for JsonRpcResponse<R> {
   #[inline]
   fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-    Some(self.id.cmp(&other.id))
+    Some(self.cmp(other))
   }
 }
 

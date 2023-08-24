@@ -7,6 +7,7 @@ use lucia::pkg::Package;
 use lucia::network::TransportGroup;
 use lucia::network::transport::Transport;
 use lucia::network::transport::TransportParams;
+use core::ops::Range;
 
 struct CustomTransport;
 
@@ -29,11 +30,11 @@ impl<DRSR> Transport<DRSR> for CustomTransport {
     &mut self,
     _: &mut P,
     _: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<usize, P::Error>
+  ) -> Result<Range<usize>, P::Error>
   where
     P: Package<DRSR, Self::Params>,
   {
-    Ok(0)
+    Ok(0..0)
   }
 }
 

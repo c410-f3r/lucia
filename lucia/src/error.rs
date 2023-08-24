@@ -71,6 +71,8 @@ pub enum Error {
   // Internal
   /// A slice-like batch of package is not sorted
   BatchPackagesAreNotSorted,
+  /// The server closed the WebSocket connection
+  ClosedWsConnection,
   /// A server was not able to receive the full request data after several attempts.
   CouldNotSendTheFullRequestData,
   /// GraphQl response error

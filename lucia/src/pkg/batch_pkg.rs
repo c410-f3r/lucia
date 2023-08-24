@@ -120,7 +120,7 @@ where
     api: &mut Self::Api,
     ext_res_params: &mut TP::ExternalResponseParams,
   ) -> Result<(), Self::Error> {
-    for elem in self.0 .0.iter_mut() {
+    for elem in &mut *self.0 .0 {
       elem.after_sending(api, ext_res_params).await?;
     }
     Ok(())
@@ -133,7 +133,7 @@ where
     ext_req_params: &mut TP::ExternalRequestParams,
     req_bytes: &[u8],
   ) -> Result<(), Self::Error> {
-    for elem in self.0 .0.iter_mut() {
+    for elem in &mut *self.0 .0 {
       elem.before_sending(api, ext_req_params, req_bytes).await?;
     }
     Ok(())
