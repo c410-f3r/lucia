@@ -3846,9 +3846,9 @@ dependencies = [
 
 [[package]]
 name = "wtx"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0153a41e21c183332875033461e1d53ee1876574f5820d589fd30e8bc3c94203"
+checksum = "d220f7cf1bb11c39a6314a17e20a4120e48f323c16eb0b78e7b8dd95034224eb"
 dependencies = [
  "async-trait",
  "base64 0.21.2",
