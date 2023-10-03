@@ -5,7 +5,7 @@ cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
 
 borsh = { default-features = false, features = ["std"], optional = true, version = "0.10" }
 miniserde = { default-features = false, optional = true, version = "0.1" }
-protobuf = { default-features = false, optional = true, version = "3.0" }
+protobuf = { default-features = false, optional = true, version = "3.3" }
 rkyv = { default-features = false, features = ["validation"], optional = true, version = "0.7" }
 serde = { default-features = false, features = ["alloc", "derive"], optional = true, version = "1.0" }
 serde_json = { default-features = false, features = ["alloc"], optional = true, version = "1.0" }
