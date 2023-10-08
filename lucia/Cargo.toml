@@ -26,7 +26,7 @@ tracing = { default-features = false, optional = true, version = "0.1" }
 
 reqwest = { default-features = false, optional = true, version = "0.11" }
 surf = { default-features = false, optional = true, version = "2.0" }
-wtx = { default-features = false, optional = true, version = "0.5" }
+wtx = { default-features = false, optional = true, version = "0.9" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.32" }
@@ -49,7 +49,6 @@ simd-json = ["serde", "dep:simd-json", "std"]
 
 arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
 async-std = ["dep:async-std", "async-std?/default"]
-async-trait = ["dep:async-trait", "wtx?/async-trait"]
 default = []
 macros = ["dep:lucia-macros"]
 std = ["arrayvec?/std", "cl-aux/std", "miniserde?/std", "serde?/std", "serde_json?/std"]
