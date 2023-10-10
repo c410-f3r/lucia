@@ -29,7 +29,7 @@ jobs:
     name: Integration tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - run: rustup default nightly-2023-08-01
       - run: solana config set --url http:localhost:8899
       - run: .scripts/ci.sh
