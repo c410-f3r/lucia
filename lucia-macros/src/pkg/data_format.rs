@@ -117,10 +117,10 @@ impl<'attrs> TryFrom<&'attrs NestedMeta> for DataFormat {
     let NestedMeta::Meta(meta) = from else {
       return Err(crate::Error::UnknownDataFormat);
     };
-    if let Meta::List(elem) = meta {
-      let first_path_seg_ident = first_path_seg_ident!(elem.path);
+    if let Meta::List(meta_list) = meta {
+      let first_path_seg_ident = first_path_seg_ident!(meta_list.path);
       if first_path_seg_ident == "json_rpc" {
-        if let Some(NestedMeta::Lit(Lit::Str(elem))) = elem.nested.first() {
+        if let Some(NestedMeta::Lit(Lit::Str(elem))) = meta_list.nested.first() {
           Ok(Self::JsonRpc(elem.value()))
         } else {
           Err(crate::Error::IncorrectJsonRpcDataFormat)

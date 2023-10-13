@@ -1,4 +1,4 @@
-#![cfg_attr(not(feature = "async-trait"), feature(async_fn_in_trait, impl_trait_projections))]
+#![cfg_attr(not(feature = "async-trait"), feature(async_fn_in_trait))]
 #![cfg_attr(not(feature = "std"), no_std)]
 #![doc = include_str!("../README.md")]
 

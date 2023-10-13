@@ -21,7 +21,7 @@ impl SirAuxItemValues {
     let single_elem = |is_trivial| (quote::quote!(elem: #ty), quote::quote!(elem), is_trivial);
     let (fn_args, fn_ret_constr, is_trivial) = match item {
       EnumStructOrType::Enum => single_elem(false),
-      EnumStructOrType::Struct(item) => match &item.fields {
+      EnumStructOrType::Struct(item_struct) => match &item_struct.fields {
         Fields::Named(fields_named) => {
           if fields_attrs.is_empty() {
             (quote::quote!(), quote::quote!(#ident {}), true)
@@ -56,7 +56,7 @@ impl SirAuxItemValues {
                 attr_field
                   .as_ref()
                   .map(|el| &el.name)
-                  .ok_or_else(|| crate::Error::AbsentFieldInUnnamedStruct(item.ident.span()))
+                  .ok_or_else(|| crate::Error::AbsentFieldInUnnamedStruct(item_struct.ident.span()))
               })
               .collect::<crate::Result<Vec<_>>>()?;
             let tys = fields_unnamed.unnamed.iter().map(|struct_field| &struct_field.ty);
@@ -69,8 +69,8 @@ impl SirAuxItemValues {
         }
         Fields::Unit => (quote::quote!(), quote::quote!(#ident), true),
       },
-      EnumStructOrType::Type(item) => {
-        if let Type::Tuple(type_tuple) = &*item.ty {
+      EnumStructOrType::Type(item_type) => {
+        if let Type::Tuple(type_tuple) = &*item_type.ty {
           if is_unit_type(type_tuple) {
             (quote::quote!(), quote::quote!(()), true)
           } else {

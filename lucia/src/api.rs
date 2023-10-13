@@ -4,6 +4,10 @@ use alloc::boxed::Box;
 
 /// Api definitions group different packages into a common namespace and define custom additional
 /// logical through hooks.
+#[allow(
+  // Downstream make use of async functionalities
+  clippy::unused_async
+)]
 #[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait Api {
   /// Any custom error structure that can be constructed from [crate::Error].

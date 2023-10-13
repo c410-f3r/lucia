@@ -1,6 +1,11 @@
 //! Lucia - Macros
 
-#![allow(clippy::too_many_lines)]
+#![allow(
+  // Unimportant
+  clippy::too_many_lines,
+  // Syn stuff
+  clippy::wildcard_in_or_patterns
+)]
 
 mod api_types;
 mod contained_attrs;
