@@ -8,10 +8,10 @@ rt='rust-tools --template you-rust'
 
 export CARGO_TARGET_DIR="$($rt target-dir)"
 export RUST_BACKTRACE=1
-export RUSTFLAGS="$($rt rust-flags -Aunstable_features,-Asingle_use_lifetimes -Dunused_crate_dependencies)"
+export RUSTFLAGS="$($rt rust-flags -Aasync_fn_in_trait,-Asingle_use_lifetimes,-Aunstable_features "")"
 
 $rt rustfmt
-$rt clippy -Aclippy::shadow_reuse,-Aclippy::wildcard_in_or_patterns,-Aclippy::pattern_type_mismatch,-Aclippy::unused_async
+$rt clippy
 
 $rt check-generic lucia
 $rt check-generic lucia-apis

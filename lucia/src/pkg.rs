@@ -26,6 +26,10 @@ pub use pkgs_aux::*;
 ///
 /// `DRSR`: DeserializeR/SerializeR
 /// `TP`: Transport Parameters
+#[allow(
+  // Downstream make use of async functionalities
+  clippy::unused_async
+)]
 #[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 pub trait Package<DRSR, TP>: AsyncTrait
 where
