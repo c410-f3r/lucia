@@ -15,16 +15,14 @@ mod wtx;
 
 use crate::{
   dnsn::{Deserialize, Serialize},
-  misc::{log_res, AsyncTrait},
+  misc::{log_res, AsyncBounds},
   network::TransportGroup,
   pkg::{BatchElems, BatchPkg, Package, PkgsAux},
   Id,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 pub use bi_transport::*;
 use cl_aux::DynContigColl;
-use core::{borrow::Borrow, ops::Range};
+use core::{borrow::Borrow, future::Future, ops::Range};
 pub use mock::*;
 pub use transport_params::*;
 
@@ -36,81 +34,92 @@ pub use transport_params::*;
 /// # Types
 ///
 /// * `DRSR`: `D`eserialize`R`/`S`erialize`R`
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-pub trait Transport<DRSR>: AsyncTrait {
+pub trait Transport<DRSR> {
   /// Every transport has an [TransportGroup] identifier.
   const GROUP: TransportGroup;
   /// Every transport has request and response parameters.
   type Params: TransportParams;
 
   /// Sends a request without trying to retrieve any counterpart data.
-  async fn send<P>(
+  fn send<P>(
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<(), P::Error>
+  ) -> impl AsyncBounds + Future<Output = Result<(), P::Error>>
   where
-    P: Package<DRSR, Self::Params>;
+    P: AsyncBounds + Package<DRSR, Self::Params>;
 
   /// Sends a request and then awaits its counterpart data response.
   ///
   /// The returned bytes are stored in `pkgs_aux` and its length is returned by this method.
-  async fn send_and_retrieve<P>(
+  fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<Range<usize>, P::Error>
+  ) -> impl AsyncBounds + Future<Output = Result<Range<usize>, P::Error>>
   where
-    P: Package<DRSR, Self::Params>;
+    P: AsyncBounds + Package<DRSR, Self::Params>;
 
   /// Convenient method similar to [Self::send_retrieve_and_decode_contained] but used for batch
   /// requests.
   ///
   /// All the expected data must be available in a single response.
   #[inline]
-  async fn send_retrieve_and_decode_batch<P, RESS>(
+  fn send_retrieve_and_decode_batch<P, RESS>(
     &mut self,
-    ress: &mut RESS,
     pkgs: &mut [P],
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<(), P::Error>
+    ress: &mut RESS,
+  ) -> impl AsyncBounds + Future<Output = Result<(), P::Error>>
   where
-    RESS: AsyncTrait + DynContigColl<P::ExternalResponseContent>,
-    DRSR: AsyncTrait,
-    P: Package<DRSR, Self::Params>,
-    P::ExternalRequestContent: Borrow<Id> + Ord,
-    P::ExternalResponseContent: Borrow<Id> + Ord,
+    DRSR: AsyncBounds,
+    P: AsyncBounds + Package<DRSR, Self::Params>,
+    P::ExternalRequestContent: AsyncBounds + Borrow<Id> + Ord,
+    P::ExternalResponseContent: AsyncBounds + Borrow<Id> + Ord,
+    RESS: AsyncBounds + DynContigColl<P::ExternalResponseContent>,
+    Self: AsyncBounds,
+    Self::Params: AsyncBounds,
+    <Self::Params as TransportParams>::ExternalRequestParams: AsyncBounds,
+    <Self::Params as TransportParams>::ExternalResponseParams: AsyncBounds,
     for<'any> BatchElems<'any, DRSR, P, Self::Params>: Serialize<DRSR>,
   {
-    let batch_package = &mut BatchPkg::new(pkgs);
-    let range = self.send_and_retrieve(batch_package, pkgs_aux).await?;
-    log_res(pkgs_aux.byte_buffer.as_ref());
-    batch_package.decode_and_push_from_bytes(
-      ress,
-      pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
-      &mut pkgs_aux.drsr,
-    )?;
-    Ok(())
+    async {
+      let batch_package = &mut BatchPkg::new(pkgs);
+      let range = self.send_and_retrieve(batch_package, pkgs_aux).await?;
+      log_res(pkgs_aux.byte_buffer.as_ref());
+      batch_package.decode_and_push_from_bytes(
+        ress,
+        pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
+        &mut pkgs_aux.drsr,
+      )?;
+      Ok(())
+    }
   }
 
   /// Internally calls [Self::send_and_retrieve] and then tries to decode the defined response specified
   /// in [Package::ExternalResponseContent].
   #[inline]
-  async fn send_retrieve_and_decode_contained<P>(
+  fn send_retrieve_and_decode_contained<P>(
     &mut self,
     pkg: &mut P,
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
-  ) -> Result<P::ExternalResponseContent, P::Error>
+  ) -> impl AsyncBounds + Future<Output = Result<P::ExternalResponseContent, P::Error>>
   where
-    DRSR: AsyncTrait,
-    P: Package<DRSR, Self::Params>,
+    DRSR: AsyncBounds,
+    P: AsyncBounds + Package<DRSR, Self::Params>,
+    Self: AsyncBounds,
+    Self::Params: AsyncBounds,
+    <Self::Params as TransportParams>::ExternalRequestParams: AsyncBounds,
+    <Self::Params as TransportParams>::ExternalResponseParams: AsyncBounds,
   {
-    let range = self.send_and_retrieve(pkg, pkgs_aux).await?;
-    log_res(pkgs_aux.byte_buffer.as_ref());
-    Ok(P::ExternalResponseContent::from_bytes(
-      pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
-      &mut pkgs_aux.drsr,
-    )?)
+    async {
+      let range = self.send_and_retrieve(pkg, pkgs_aux).await?;
+      log_res(pkgs_aux.byte_buffer.as_ref());
+      Ok(P::ExternalResponseContent::from_bytes(
+        pkgs_aux.byte_buffer.get(range).unwrap_or_default(),
+        &mut pkgs_aux.drsr,
+      )?)
+    }
   }
 
   /// Instance counterpart of [Self::GROUP].
@@ -120,11 +129,12 @@ pub trait Transport<DRSR>: AsyncTrait {
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, T> Transport<DRSR> for &mut T
 where
-  DRSR: AsyncTrait,
-  T: Transport<DRSR>,
+  DRSR: AsyncBounds,
+  T: AsyncBounds + Transport<DRSR>,
+  T::Params: AsyncBounds,
+  Self: AsyncBounds,
 {
   const GROUP: TransportGroup = T::GROUP;
   type Params = T::Params;
@@ -136,7 +146,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, Self::Params>,
+    P: AsyncBounds + Package<DRSR, Self::Params>,
   {
     (**self).send(pkg, pkgs_aux).await
   }
@@ -148,7 +158,7 @@ where
     pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
   ) -> Result<Range<usize>, P::Error>
   where
-    P: Package<DRSR, Self::Params>,
+    P: AsyncBounds + Package<DRSR, Self::Params>,
   {
     (**self).send_and_retrieve(pkg, pkgs_aux).await
   }

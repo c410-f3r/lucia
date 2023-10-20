@@ -1,5 +1,5 @@
 [dependencies]
-cl-aux = { default-features = false, features = ["alloc"], version = "2.0" }
+cl-aux = { default-features = false, features = ["alloc"], version = "3.0" }
 
 # Deserializer/Serializer
 
@@ -17,7 +17,6 @@ simd-json = { default-features = false, features = ["serde_impl"], optional = tr
 
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
-async-trait = { default-features = false, optional = true, version = "0.1" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
 tokio = { default-features = false, optional = true, version = "1.33" }
 tracing = { default-features = false, optional = true, version = "0.1" }
@@ -26,7 +25,7 @@ tracing = { default-features = false, optional = true, version = "0.1" }
 
 reqwest = { default-features = false, optional = true, version = "0.11" }
 surf = { default-features = false, optional = true, version = "2.0" }
-wtx = { default-features = false, optional = true, version = "0.9" }
+wtx = { default-features = false, optional = true, version = "0.10" }
 
 [dev-dependencies]
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.33" }
@@ -48,6 +47,7 @@ simd-json = ["serde", "dep:simd-json", "std"]
 # Etc
 
 arrayvec = ["dep:arrayvec", "cl-aux/arrayvec"]
+async-send = ["wtx/async-send"]
 async-std = ["dep:async-std", "async-std?/default"]
 default = []
 macros = ["dep:lucia-macros"]

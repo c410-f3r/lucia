@@ -38,7 +38,7 @@ where
 pub(crate) fn deserialize<'de, D, T>(deserializer: D) -> Result<T, D::Error>
 where
   D: Deserializer<'de>,
-  T: Push<T::Item, Output = ()> + SingleTypeStorage + WithCapacity<Input = usize>,
+  T: Push<T::Item> + SingleTypeStorage + WithCapacity<Input = usize>,
   T::Item: Deserialize<'de>,
 {
   let visitor = ShortVecVisitor(PhantomData);
@@ -85,7 +85,7 @@ struct ShortVec<T>(T);
 
 impl<'de, T> Deserialize<'de> for ShortVec<T>
 where
-  T: Push<T::Item, Output = ()> + SingleTypeStorage + WithCapacity<Input = usize>,
+  T: Push<T::Item> + SingleTypeStorage + WithCapacity<Input = usize>,
   T::Item: Deserialize<'de>,
 {
   fn deserialize<D>(deserializer: D) -> Result<ShortVec<T>, D::Error>

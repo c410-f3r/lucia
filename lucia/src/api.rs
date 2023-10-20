@@ -1,6 +1,6 @@
-use crate::misc::AsyncTrait;
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
+use core::future::Future;
+
+use crate::misc::AsyncBounds;
 
 /// Api definitions group different packages into a common namespace and define custom additional
 /// logical through hooks.
@@ -8,21 +8,20 @@ use alloc::boxed::Box;
   // Downstream make use of async functionalities
   clippy::unused_async
 )]
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-pub trait Api {
+pub trait Api: AsyncBounds {
   /// Any custom error structure that can be constructed from [crate::Error].
   type Error: From<crate::Error>;
 
   /// Fallible hook that is automatically called after sending any related request.
   #[inline]
-  async fn after_sending(&mut self) -> Result<(), Self::Error> {
-    Ok(())
+  fn after_sending(&mut self) -> impl AsyncBounds + Future<Output = Result<(), Self::Error>> {
+    async { Ok(()) }
   }
 
   /// Fallible hook that is automatically called before sending any related request.
   #[inline]
-  async fn before_sending(&mut self) -> Result<(), Self::Error> {
-    Ok(())
+  fn before_sending(&mut self) -> impl AsyncBounds + Future<Output = Result<(), Self::Error>> {
+    async { Ok(()) }
   }
 }
 
@@ -30,10 +29,9 @@ impl Api for () {
   type Error = crate::Error;
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<T> Api for &mut T
 where
-  T: Api + AsyncTrait,
+  T: Api + AsyncBounds,
 {
   type Error = T::Error;
 

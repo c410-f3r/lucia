@@ -675,12 +675,12 @@ create_http_test!(Solana::new(None), http(), http_reqs_with_array, |pkgs_aux, tr
   let mut buffer = Vec::new();
   let _res = trans
     .send_retrieve_and_decode_batch(
-      &mut buffer,
       &mut [
         &mut pkgs_aux.get_balance().data(TO_NORMAL_ACCOUNT, None).build(),
         &mut pkgs_aux.get_balance().data(TO_NORMAL_ACCOUNT, None).build(),
       ][..],
       pkgs_aux,
+      &mut buffer,
     )
     .await
     .unwrap();
@@ -769,7 +769,6 @@ create_ws_test!(
     let mut buffer = Vec::new();
     trans
       .send_retrieve_and_decode_batch(
-        &mut buffer,
         &mut [
           &mut pkgs_aux
             .account_subscribe()
@@ -793,6 +792,7 @@ create_ws_test!(
             .build(),
         ],
         pkgs_aux,
+        &mut buffer,
       )
       .await
       .unwrap();

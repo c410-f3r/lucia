@@ -9,7 +9,7 @@ pub(crate) mod pkg {
     Account, AccountEncoding, Commitment, DataSlice, JsonRpcResponseResultWithContext,
     MintOrProgramId, SolanaAddressHashStr, SolanaHttpPkgsAux,
   };
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -24,7 +24,7 @@ pub(crate) mod pkg {
     Option<GetTokenAccountsByDelegateConfig>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::res_data]
   pub type GetTokenAccountsByDelegateRes =

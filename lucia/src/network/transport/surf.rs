@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncBounds},
   network::{
     http::HttpMethod,
     transport::{Transport, TransportParams},
@@ -27,10 +27,9 @@ use surf::{
 ///   .await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for Client
 where
-  DRSR: AsyncTrait,
+  DRSR: AsyncBounds,
 {
   const GROUP: TransportGroup = TransportGroup::HTTP;
   type Params = HttpParams;
@@ -39,10 +38,10 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, HttpParams>,
+    P: AsyncBounds + Package<DRSR, HttpParams>,
   {
     let _res = response(self, pkg, pkgs_aux).await?;
     Ok(())
@@ -52,10 +51,10 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
   ) -> Result<Range<usize>, P::Error>
   where
-    P: Package<DRSR, HttpParams>,
+    P: AsyncBounds + Package<DRSR, HttpParams>,
   {
     let mut res = response(self, pkg, pkgs_aux).await?;
     let received_bytes = res.body_bytes().await.map_err(Into::into)?;
@@ -65,12 +64,12 @@ where
 }
 
 async fn response<DRSR, P>(
-  client: &Client,
+  client: &mut Client,
   pkg: &mut P,
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, HttpParams>,
 ) -> Result<surf::Response, P::Error>
 where
-  DRSR: AsyncTrait,
+  DRSR: AsyncBounds,
   P: Package<DRSR, HttpParams>,
 {
   async fn manage_data<API, E, DRSR>(
@@ -84,7 +83,7 @@ where
     Ok(rb)
   }
   pkgs_aux.byte_buffer.clear();
-  manage_before_sending_related(pkg, pkgs_aux, client).await?;
+  manage_before_sending_related(pkg, pkgs_aux, &mut *client).await?;
   let mut rb = match pkgs_aux.tp.ext_req_params().method {
     HttpMethod::Delete => client.delete(pkgs_aux.tp.ext_req_params().url.url()),
     HttpMethod::Get => client.get(pkgs_aux.tp.ext_req_params().url.url()),
@@ -110,7 +109,7 @@ where
     pkgs_aux.tp.ext_res_params_mut().headers.push_str(key.as_str(), value.as_str())?;
   }
   pkgs_aux.tp.ext_res_params_mut().status_code = <_>::try_from(Into::<u16>::into(res.status()))?;
-  manage_after_sending_related(pkg, pkgs_aux, client).await?;
+  manage_after_sending_related(pkg, pkgs_aux).await?;
   pkgs_aux.tp.reset();
   Ok(res)
 }

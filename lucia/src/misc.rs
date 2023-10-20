@@ -2,9 +2,9 @@
 
 pub(crate) mod seq_visitor;
 
-mod async_trait;
+mod async_bounds;
 mod byte_buffer;
-mod debug_display;
+mod fn_mut_fut;
 mod from_bytes;
 mod generic_time;
 mod pair;
@@ -14,24 +14,24 @@ mod request_limit;
 mod request_throttling;
 mod url;
 
-pub use self::async_trait::*;
 use crate::{
   dnsn::Serialize,
   network::transport::{Transport, TransportParams},
   pkg::{Package, PkgsAux},
   Api,
 };
-pub use byte_buffer::*;
+pub use async_bounds::AsyncBounds;
+pub use byte_buffer::ByteBuffer;
 use core::{any::type_name, time::Duration};
-pub use debug_display::*;
-pub use from_bytes::*;
+pub use fn_mut_fut::FnMutFut;
+pub use from_bytes::FromBytes;
 pub use generic_time::*;
-pub use pair::*;
+pub use pair::{Pair, PairMut};
 pub use query_writer::QueryWriter;
-pub use request_counter::*;
-pub use request_limit::*;
-pub use request_throttling::*;
-pub use url::*;
+pub use request_counter::RequestCounter;
+pub use request_limit::RequestLimit;
+pub use request_throttling::RequestThrottling;
+pub use url::{Url, UrlString};
 
 /// Useful when a request returns an optional field but the actual usage is within a
 /// [core::result::Result] context.
@@ -78,13 +78,15 @@ pub async fn sleep(duration: Duration) -> crate::Result<()> {
 /// Used in all implementations of [crate::Transport::send] and/or
 /// [crate::Transport::send_and_receive`].
 #[allow(
+  // Borrow checker woes
+  clippy::needless_pass_by_value,
   // Depends on the feature
   clippy::used_underscore_binding
 )]
 pub(crate) fn log_req<DRSR, P, T>(
   _pgk: &mut P,
   _pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
-  _trans: &T,
+  _trans: T,
 ) where
   P: Package<DRSR, T::Params>,
   T: Transport<DRSR>,
@@ -112,14 +114,13 @@ pub(crate) fn log_res(_res: &[u8]) {
   _debug!("Response: {:?}", core::str::from_utf8(_res));
 }
 
-pub(crate) async fn manage_after_sending_related<DRSR, P, T>(
+pub(crate) async fn manage_after_sending_related<DRSR, P, TP>(
   pkg: &mut P,
-  pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
-  _: &T,
+  pkgs_aux: &mut PkgsAux<P::Api, DRSR, TP>,
 ) -> Result<(), P::Error>
 where
-  P: Package<DRSR, T::Params>,
-  T: Transport<DRSR>,
+  P: Package<DRSR, TP>,
+  TP: TransportParams,
 {
   pkgs_aux.api.after_sending().await?;
   pkg.after_sending(&mut pkgs_aux.api, pkgs_aux.tp.ext_res_params_mut()).await?;
@@ -129,7 +130,7 @@ where
 pub(crate) async fn manage_before_sending_related<DRSR, P, T>(
   pkg: &mut P,
   pkgs_aux: &mut PkgsAux<P::Api, DRSR, T::Params>,
-  trans: &T,
+  trans: T,
 ) -> Result<(), P::Error>
 where
   P: Package<DRSR, T::Params>,

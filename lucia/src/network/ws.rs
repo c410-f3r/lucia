@@ -1,6 +1,4 @@
 use crate::network::transport::TransportParams;
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 
 /// How the WebSocket request should be issued.
 #[derive(Clone, Copy, Debug)]
@@ -62,14 +60,3 @@ pub struct WsReqParams {
 #[derive(Debug)]
 #[doc = generic_trans_res_params_doc!("WebSocket")]
 pub struct WsResParams;
-
-/// Abstracts all WebSocket implementations.
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-pub trait WebSocket
-where
-  Self: Sized,
-{
-  /// Different from other protocols, WebSockets only need an initial URL in order to create
-  /// a channel or connection.
-  async fn from_url(url: &str) -> crate::Result<Self>;
-}

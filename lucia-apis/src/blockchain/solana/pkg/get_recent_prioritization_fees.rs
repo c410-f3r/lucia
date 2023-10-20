@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::SolanaHttpPkgsAux;
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
   use serde::Serialize;
 
   #[pkg::aux]
@@ -21,7 +21,7 @@ pub(crate) mod pkg {
     S,
   )
   where
-    S: AsyncTrait + Serialize;
+    S: AsyncBounds + Serialize;
 
   #[pkg::res_data]
   pub type GetRecentPrioritizationFeesRes = Vec<GetRecentPrioritizationFees>;

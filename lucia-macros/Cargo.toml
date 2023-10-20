@@ -8,7 +8,6 @@ lucia = { default-features = false, path = "../lucia" }
 trybuild = { default-features = false, version = "1.0" }
 
 [features]
-async-trait = []
 default = []
 
 [lib]

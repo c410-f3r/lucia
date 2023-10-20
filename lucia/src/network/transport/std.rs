@@ -1,5 +1,5 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncBounds},
   network::{
     transport::{Transport, TransportParams},
     TcpParams, TransportGroup, UdpParams,
@@ -12,10 +12,9 @@ use std::{
   net::{TcpStream, UdpSocket},
 };
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for TcpStream
 where
-  DRSR: AsyncTrait,
+  DRSR: AsyncBounds,
 {
   const GROUP: TransportGroup = TransportGroup::TCP;
   type Params = TcpParams;
@@ -24,32 +23,30 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, TcpParams>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, TcpParams>,
+    P: AsyncBounds + Package<DRSR, TcpParams>,
   {
-    send(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.write(bytes)?)).await?;
-    Ok(())
+    send(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.write(bytes)?)).await
   }
 
   #[inline]
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, TcpParams>,
   ) -> Result<Range<usize>, P::Error>
   where
-    P: Package<DRSR, TcpParams>,
+    P: AsyncBounds + Package<DRSR, TcpParams>,
   {
     send_and_retrieve(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.read(bytes)?)).await
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for UdpSocket
 where
-  DRSR: AsyncTrait,
+  DRSR: AsyncBounds,
 {
   const GROUP: TransportGroup = TransportGroup::UDP;
   type Params = UdpParams;
@@ -58,10 +55,10 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, UdpParams>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, UdpParams>,
+    P: AsyncBounds + Package<DRSR, UdpParams>,
   {
     send(pkg, pkgs_aux, self, |bytes, ext_req_params, trans| {
       Ok(trans.send_to(bytes, ext_req_params.url.url())?)
@@ -73,10 +70,10 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, UdpParams>,
   ) -> Result<Range<usize>, P::Error>
   where
-    P: Package<DRSR, UdpParams>,
+    P: AsyncBounds + Package<DRSR, UdpParams>,
   {
     send_and_retrieve(pkg, pkgs_aux, self, |bytes, _, trans| Ok(trans.recv(bytes)?)).await
   }
@@ -93,11 +90,13 @@ async fn send<DRSR, P, T>(
   ) -> crate::Result<usize>,
 ) -> Result<(), P::Error>
 where
+  DRSR: AsyncBounds,
   P: Package<DRSR, T::Params>,
-  T: Transport<DRSR>,
+  T: AsyncBounds + Transport<DRSR>,
+  T::Params: AsyncBounds,
 {
   pkgs_aux.byte_buffer.clear();
-  manage_before_sending_related(pkg, pkgs_aux, trans).await?;
+  manage_before_sending_related(pkg, pkgs_aux, &mut *trans).await?;
   let mut slice = pkgs_aux.byte_buffer.as_ref();
   let mut everything_was_sent = false;
   for _ in 0..16 {
@@ -110,7 +109,7 @@ where
   }
   pkgs_aux.byte_buffer.clear();
   pkgs_aux.byte_buffer.extend((0..pkgs_aux.byte_buffer.capacity()).map(|_| 0));
-  manage_after_sending_related(pkg, pkgs_aux, trans).await?;
+  manage_after_sending_related(pkg, pkgs_aux).await?;
   if everything_was_sent {
     Ok(())
   } else {
@@ -129,7 +128,7 @@ async fn send_and_retrieve<DRSR, P, T>(
   ) -> crate::Result<usize>,
 ) -> Result<Range<usize>, P::Error>
 where
-  P: Package<DRSR, T::Params>,
+  P: AsyncBounds + Package<DRSR, T::Params>,
   T: Transport<DRSR>,
 {
   trans.send(pkg, pkgs_aux).await?;

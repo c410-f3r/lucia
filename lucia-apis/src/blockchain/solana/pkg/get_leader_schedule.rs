@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{Commitment, SolanaBlockhash, SolanaHttpPkgsAux};
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
   use std::collections::HashMap;
 
   #[derive(Debug, serde::Serialize)]
@@ -20,7 +20,7 @@ pub(crate) mod pkg {
     Option<GetLeaderScheduleConfig<S>>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}

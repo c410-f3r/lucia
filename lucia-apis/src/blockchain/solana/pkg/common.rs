@@ -10,7 +10,7 @@ pub enum Commitment {
   Processed,
 }
 
-/// Send transaction encoding
+/// Encoding parameter when a transaction is sent
 #[derive(Debug, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
 pub enum SendTransactionEncoding {

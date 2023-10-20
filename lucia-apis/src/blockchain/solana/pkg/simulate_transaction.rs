@@ -9,7 +9,7 @@ pub(crate) mod pkg {
     AccountEncoding, Commitment, SendTransactionEncoding, SolanaHttpPkgsAux, TransactionInput,
   };
   use base64::Engine;
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {
@@ -20,7 +20,7 @@ pub(crate) mod pkg {
       tx: &TransactionInput,
     ) -> crate::Result<SimulateTransactionReq<A>>
     where
-      A: AsyncTrait,
+      A: AsyncBounds,
     {
       self.byte_buffer.clear();
       bincode::serialize_into(&mut self.byte_buffer, tx)?;
@@ -42,7 +42,7 @@ pub(crate) mod pkg {
   #[pkg::req_data]
   pub struct SimulateTransactionReq<A>(String, Option<SimulateTransactionConfig<A>>)
   where
-    A: AsyncTrait;
+    A: AsyncBounds;
 
   #[pkg::res_data]
   pub type SimulateTransactionRes = ();
@@ -56,7 +56,7 @@ pub(crate) mod pkg {
     #[doc = commitment_doc!()]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub commitment: Option<Commitment>,
-    /// Send transaction encoding
+    /// Encoding
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<SendTransactionEncoding>,
     /// Accounts configuration

@@ -9,7 +9,7 @@ pub(crate) mod pkg {
     Account, AccountEncoding, Commitment, DataSlice, Filter, SolanaHttpPkgsAux,
   };
   use arrayvec::ArrayString;
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -23,7 +23,7 @@ pub(crate) mod pkg {
     Option<GetProgramAccountsConfig<'bytes, 'filter>>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::res_data]
   pub type GetProgramAccountsRes = Vec<GetProgramAccounts>;

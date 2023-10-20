@@ -13,10 +13,7 @@ pub use todos::pkg::*;
 pub use users::pkg::*;
 
 use alloc::{boxed::Box, vec::Vec};
-use lucia::{
-  misc::SyncDynDebugDisplay,
-  network::{HttpMethod, HttpReqParams},
-};
+use lucia::network::{HttpMethod, HttpReqParams};
 
 /// Generic response used by all packages.
 #[derive(Debug, serde::Deserialize)]
@@ -54,7 +51,7 @@ pub struct GenericParams<'any> {
   id_opt: Option<u32>,
   method: HttpMethod,
   nested_opt: Option<&'any str>,
-  query: &'any [(&'any str, &'any SyncDynDebugDisplay)],
+  query: &'any [(&'any str, &'any str)],
 }
 
 impl<'any> GenericParams<'any> {
@@ -64,7 +61,7 @@ impl<'any> GenericParams<'any> {
     id_opt: Option<u32>,
     method: HttpMethod,
     nested_opt: Option<&'any str>,
-    query: &'any [(&'any str, &'any SyncDynDebugDisplay)],
+    query: &'any [(&'any str, &'any str)],
   ) -> Self {
     Self { id_opt, method, nested_opt, query }
   }

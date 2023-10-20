@@ -6,7 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::blockchain::solana::{Commitment, SolanaHttpPkgsAux, SolanaSignatureHashStr};
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -21,7 +21,7 @@ pub(crate) mod pkg {
     Option<RequestAirDropConfig>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::res_data]
   pub type RequestAirDropRes = SolanaSignatureHashStr;

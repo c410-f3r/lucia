@@ -30,16 +30,15 @@ mod short_vec;
 mod slot_update;
 mod transaction;
 
-use crate::blockchain::ConfirmTransactionOptions;
+use crate::{blockchain::ConfirmTransactionOptions, misc::PkgsAux};
 pub use account::*;
 pub use address_lookup_table_account::*;
 use arrayvec::ArrayString;
 pub use block::*;
-use core::{future::Future, pin::Pin};
 pub use filter::*;
 use lucia::{
   data_format::{JsonRpcRequest, JsonRpcResponse},
-  misc::{AsyncTrait, PairMut, RequestThrottling},
+  misc::{AsyncBounds, FnMutFut, Pair, PairMut, RequestThrottling},
   network::{transport::Transport, HttpParams},
   pkg::Package,
   Api,
@@ -66,7 +65,7 @@ _create_blockchain_constants!(
 
 #[derive(Debug)]
 #[doc = _generic_api_doc!()]
-#[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http, ws))]
+#[lucia_macros::api_types(pkgs_aux(PkgsAux), transport(http, ws))]
 pub struct Solana {
   /// If some, tells that each request must respect calling intervals.
   pub rt: Option<RequestThrottling>,
@@ -86,8 +85,8 @@ impl Solana {
     tx_hash: &'th str,
   ) -> crate::Result<()>
   where
-    DRSR: AsyncTrait,
-    T: Transport<DRSR, Params = HttpParams>,
+    DRSR: AsyncBounds,
+    T: AsyncBounds + Transport<DRSR, Params = HttpParams>,
     GetSignatureStatusesPkg<JsonRpcRequest<GetSignatureStatusesReq<[&'th str; 1]>>>: Package<
       DRSR,
       T::Params,
@@ -173,21 +172,19 @@ impl Solana {
     mut aux: A,
     additional_tries: u8,
     initial_blockhash: SolanaBlockhash,
-    pair: &mut SolanaPair<DRSR, T>,
-    mut cb: impl for<'any> FnMut(
-      u8,
-      &'any mut A,
-      SolanaBlockhash,
-      &'any mut SolanaPair<DRSR, T>,
-    ) -> Pin<Box<dyn Future<Output = Result<O, E>> + Send + 'any>>,
+    pair: &mut Pair<PkgsAux<Solana, DRSR, HttpParams>, T>,
+    mut cb: impl for<'any> FnMutFut<
+      (u8, &'any mut A, SolanaBlockhash, &'any mut Pair<PkgsAux<Solana, DRSR, HttpParams>, T>),
+      Result<O, E>,
+    >,
   ) -> Result<O, E>
   where
-    DRSR: AsyncTrait,
+    DRSR: AsyncBounds,
     E: From<crate::Error>,
-    T: Transport<DRSR, Params = HttpParams>,
+    T: AsyncBounds + Transport<DRSR, Params = HttpParams>,
     GetLatestBlockhashPkg<JsonRpcRequest<GetLatestBlockhashReq>>: Package<
       DRSR,
-      T::Params,
+      HttpParams,
       Api = Solana,
       Error = crate::Error,
       ExternalResponseContent = JsonRpcResponse<GetLatestBlockhashRes>,
@@ -209,13 +206,13 @@ impl Solana {
           .blockhash
       };
     }
-    match cb(0, &mut aux, initial_blockhash, pair).await {
+    match cb((0, &mut aux, initial_blockhash, pair)).await {
       Err(err) => {
         if let Some(n) = additional_tries.checked_sub(1) {
           let mut opt = None;
           for idx in 1..=n {
             let local_blockhash = local_blockhash!(pair);
-            if let Ok(elem) = cb(idx, &mut aux, local_blockhash, pair).await {
+            if let Ok(elem) = cb((idx, &mut aux, local_blockhash, pair)).await {
               opt = Some(elem);
               break;
             }
@@ -224,7 +221,7 @@ impl Solana {
             Ok(elem)
           } else {
             let local_blockhash = local_blockhash!(pair);
-            let last = cb(additional_tries, &mut aux, local_blockhash, pair).await?;
+            let last = cb((additional_tries, &mut aux, local_blockhash, pair)).await?;
             Ok(last)
           }
         } else {
@@ -248,7 +245,6 @@ impl Solana {
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for Solana {
   type Error = crate::Error;
 

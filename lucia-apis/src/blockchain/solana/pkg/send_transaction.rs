@@ -50,7 +50,7 @@ pub(crate) mod pkg {
   #[doc = generic_config_doc!()]
   #[serde(rename_all = "camelCase")]
   pub struct SendTransactionConfig {
-    /// Send transaction encoding
+    /// Encoding
     #[serde(skip_serializing_if = "Option::is_none")]
     pub encoding: Option<SendTransactionEncoding>,
     /// Maximum number of times for the RPC node to retry sending the transaction to the leader. If

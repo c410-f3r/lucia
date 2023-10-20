@@ -6,6 +6,7 @@
 )]
 pub(crate) mod pkg {
   use crate::test_data::json_placeholder::{GenericParams, GenericRes, JsonPlaceholderHttpPkgsAux};
+  use alloc::string::String;
   use arrayvec::ArrayString;
   use lucia::network::HttpReqParams;
 
