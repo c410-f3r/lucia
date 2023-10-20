@@ -10,7 +10,7 @@ pub(crate) struct ShortVecVisitor<T>(pub(crate) PhantomData<T>);
 
 impl<'de, T> Visitor<'de> for ShortVecVisitor<T>
 where
-  T: Push<T::Item, Output = ()> + SingleTypeStorage + WithCapacity<Input = usize>,
+  T: Push<T::Item> + SingleTypeStorage + WithCapacity<Input = usize>,
   T::Item: Deserialize<'de>,
 {
   type Value = T;
