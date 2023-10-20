@@ -8,7 +8,7 @@ pub(crate) mod pkg {
   use crate::blockchain::solana::{
     Commitment, JsonRpcResponseResultWithContext, SolanaAddressHashStr, SolanaHttpPkgsAux,
   };
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
   use serde::Serialize;
 
   #[pkg::aux]
@@ -23,7 +23,7 @@ pub(crate) mod pkg {
     Option<GetLargestAccountsConfig<S>>,
   )
   where
-    S: AsyncTrait + Serialize;
+    S: AsyncBounds + Serialize;
 
   #[pkg::res_data]
   pub type GetLargestAccountsRes = JsonRpcResponseResultWithContext<Vec<GetLargestAccounts>>;

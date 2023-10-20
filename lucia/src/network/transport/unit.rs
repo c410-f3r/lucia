@@ -1,10 +1,8 @@
 use crate::{
-  misc::{manage_after_sending_related, manage_before_sending_related, AsyncTrait},
+  misc::{manage_after_sending_related, manage_before_sending_related, AsyncBounds},
   network::{transport::Transport, TransportGroup},
   pkg::{Package, PkgsAux},
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use core::ops::Range;
 
 /// Does absolutely nothing. Good for demonstration purposes.
@@ -16,10 +14,9 @@ use core::ops::Range;
 ///   ().send_retrieve_and_decode_contained(&mut (), &mut PkgsAux::from_minimum((), (), ())).await?;
 /// # Ok(()) }
 /// ```
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR> Transport<DRSR> for ()
 where
-  DRSR: AsyncTrait,
+  DRSR: AsyncBounds,
 {
   const GROUP: TransportGroup = TransportGroup::Stub;
   type Params = ();
@@ -28,13 +25,13 @@ where
   async fn send<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, ()>,
   ) -> Result<(), P::Error>
   where
-    P: Package<DRSR, ()>,
+    P: AsyncBounds + Package<DRSR, ()>,
   {
     manage_before_sending_related(pkg, pkgs_aux, self).await?;
-    manage_after_sending_related(pkg, pkgs_aux, self).await?;
+    manage_after_sending_related(pkg, pkgs_aux).await?;
     Ok(())
   }
 
@@ -42,10 +39,10 @@ where
   async fn send_and_retrieve<P>(
     &mut self,
     pkg: &mut P,
-    pkgs_aux: &mut PkgsAux<P::Api, DRSR, Self::Params>,
+    pkgs_aux: &mut PkgsAux<P::Api, DRSR, ()>,
   ) -> Result<Range<usize>, P::Error>
   where
-    P: Package<DRSR, ()>,
+    P: AsyncBounds + Package<DRSR, ()>,
   {
     self.send(pkg, pkgs_aux).await?;
     Ok(0..0)

@@ -31,7 +31,6 @@ pub use pkg::*;
 #[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http))]
 pub struct JsonPlaceholder;
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for JsonPlaceholder {
   type Error = crate::Error;
 }

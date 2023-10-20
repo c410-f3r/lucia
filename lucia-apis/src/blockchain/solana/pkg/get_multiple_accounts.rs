@@ -9,7 +9,7 @@ pub(crate) mod pkg {
     Account, AccountEncoding, Commitment, DataSlice, JsonRpcResponseResultWithContext,
     SolanaHttpPkgsAux,
   };
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -23,7 +23,7 @@ pub(crate) mod pkg {
     Option<GetMultipleAccountsConfig>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::res_data]
   pub type GetMultipleAccountsRes = JsonRpcResponseResultWithContext<Vec<Account>>;

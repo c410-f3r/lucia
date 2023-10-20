@@ -77,15 +77,8 @@ pub(crate) fn pkg(
     faiv,
     fbsiv,
   ))?;
-  #[cfg(feature = "async-trait")]
-  let box_import = quote::quote!(
-    use alloc::boxed::Box;
-  );
-  #[cfg(not(feature = "async-trait"))]
-  let box_import = proc_macro2::TokenStream::new();
   if let Some(content) = item_mod.content.as_mut() {
     content.1.push(syn::Item::Verbatim(quote::quote!(
-      #box_import
       #params_item_unit_opt
 
       #(#auxs)*

@@ -8,7 +8,7 @@ pub(crate) mod pkg {
   use crate::blockchain::solana::{
     Commitment, DataSlice, JsonRpcResponseResultWithContext, SolanaHttpPkgsAux,
   };
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -22,7 +22,7 @@ pub(crate) mod pkg {
     Option<GetBalanceConfig>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::res_data]
   pub type GetBalanceRes = JsonRpcResponseResultWithContext<u64>;

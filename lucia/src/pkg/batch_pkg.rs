@@ -1,12 +1,10 @@
 use crate::{
   dnsn::{Deserialize, Serialize},
-  misc::AsyncTrait,
+  misc::AsyncBounds,
   network::transport::TransportParams,
   pkg::Package,
   Id,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 use cl_aux::DynContigColl;
 use core::{borrow::Borrow, marker::PhantomData};
 
@@ -100,13 +98,14 @@ where
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<'slice, DRSR, P, TP> Package<DRSR, TP> for BatchPkg<'slice, DRSR, P, TP>
 where
   BatchElems<'slice, DRSR, P, TP>: Serialize<DRSR>,
-  DRSR: AsyncTrait,
-  P: Package<DRSR, TP>,
-  TP: TransportParams,
+  DRSR: AsyncBounds,
+  P: AsyncBounds + Package<DRSR, TP>,
+  TP: AsyncBounds + TransportParams,
+  TP::ExternalRequestParams: AsyncBounds,
+  TP::ExternalResponseParams: AsyncBounds,
 {
   type Api = P::Api;
   type Error = P::Error;

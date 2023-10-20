@@ -1,7 +1,5 @@
 //! Custom transport through `transport(Custom)`.
 
-#![feature(async_fn_in_trait)]
-
 use lucia::pkg::PkgsAux;
 use lucia::pkg::Package;
 use lucia::network::TransportGroup;

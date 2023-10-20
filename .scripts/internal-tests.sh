@@ -34,8 +34,8 @@ LUCIA=(
 
   # Etc
   arrayvec
+  async-send
   async-std
-  async-trait
   macros
   std
   tokio
@@ -62,7 +62,7 @@ LUCIA_APIS=(
   solana
 
   # Etc
-  async-trait
+  async-send
   base64
   bs58
   default

@@ -8,14 +8,12 @@ mod pkgs_aux;
 
 use crate::{
   dnsn::{Deserialize, Serialize},
-  misc::AsyncTrait,
+  misc::AsyncBounds,
   network::transport::TransportParams,
   Api,
 };
-#[cfg(feature = "async-trait")]
-use alloc::boxed::Box;
 pub use batch_pkg::{BatchElems, BatchPkg};
-use core::fmt::Display;
+use core::{fmt::Display, future::Future};
 pub use pkg_with_helper::*;
 pub use pkgs_aux::*;
 
@@ -30,13 +28,12 @@ pub use pkgs_aux::*;
   // Downstream make use of async functionalities
   clippy::unused_async
 )]
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
-pub trait Package<DRSR, TP>: AsyncTrait
+pub trait Package<DRSR, TP>
 where
   TP: TransportParams,
 {
   /// Which API this package is attached to.
-  type Api: Api<Error = Self::Error> + AsyncTrait;
+  type Api: Api<Error = Self::Error>;
   /// Any custom error structure that can be constructed from [crate::Error].
   type Error: Display + From<crate::Error>;
   /// The expected data format that is going to be sent to an external actor.
@@ -49,24 +46,24 @@ where
   /// Fallible hook that is automatically called after sending the request described in this
   /// package.
   #[inline]
-  async fn after_sending(
+  fn after_sending(
     &mut self,
-    _api: &mut Self::Api,
-    _ext_res_params: &mut TP::ExternalResponseParams,
-  ) -> Result<(), Self::Error> {
-    Ok(())
+    _: &mut Self::Api,
+    _: &mut TP::ExternalResponseParams,
+  ) -> impl AsyncBounds + Future<Output = Result<(), Self::Error>> {
+    async { Ok(()) }
   }
 
   /// Fallible hook that is automatically called before sending the request described in this
   /// package.
   #[inline]
-  async fn before_sending(
+  fn before_sending(
     &mut self,
-    _api: &mut Self::Api,
-    _ext_req_params: &mut TP::ExternalRequestParams,
-    _req_bytes: &[u8],
-  ) -> Result<(), Self::Error> {
-    Ok(())
+    _: &mut Self::Api,
+    _: &mut TP::ExternalRequestParams,
+    _: &[u8],
+  ) -> impl AsyncBounds + Future<Output = Result<(), Self::Error>> {
+    async { Ok(()) }
   }
 
   /// External Request Content
@@ -86,7 +83,6 @@ where
   fn pkg_params_mut(&mut self) -> &mut Self::PackageParams;
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, TP> Package<DRSR, TP> for ()
 where
   TP: TransportParams,
@@ -118,11 +114,13 @@ where
   }
 }
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl<DRSR, P, TP> Package<DRSR, TP> for &mut P
 where
   P: Package<DRSR, TP>,
-  TP: TransportParams,
+  TP: AsyncBounds + TransportParams,
+  TP::ExternalRequestParams: AsyncBounds,
+  TP::ExternalResponseParams: AsyncBounds,
+  Self: AsyncBounds,
 {
   type Api = P::Api;
   type Error = P::Error;

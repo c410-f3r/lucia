@@ -41,7 +41,6 @@ pub fn api_types(
 /// and optional elements related to `lucia::pkg::Package`.
 ///
 /// ```rust
-#[cfg_attr(feature = "async-trait", doc = "# extern crate alloc;")]
 /// struct SomeApi;
 ///
 /// #[lucia_macros::pkg(api(SomeApi), data_format(json_rpc("SomeEndpoint")))]

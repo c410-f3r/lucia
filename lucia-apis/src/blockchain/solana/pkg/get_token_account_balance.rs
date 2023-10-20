@@ -9,7 +9,7 @@ pub(crate) mod pkg {
     program::spl_token::AccountBalance, Commitment, JsonRpcResponseResultWithContext,
     SolanaHttpPkgsAux,
   };
-  use lucia::misc::AsyncTrait;
+  use lucia::misc::AsyncBounds;
 
   #[pkg::aux]
   impl<DRSR> SolanaHttpPkgsAux<DRSR> {}
@@ -23,7 +23,7 @@ pub(crate) mod pkg {
     Option<GetTokenAccountBalanceConfig>,
   )
   where
-    S: AsyncTrait;
+    S: AsyncBounds;
 
   #[pkg::res_data]
   pub type GetTokenAccountBalanceRes = JsonRpcResponseResultWithContext<AccountBalance>;

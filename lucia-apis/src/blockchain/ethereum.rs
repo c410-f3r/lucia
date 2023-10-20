@@ -50,11 +50,6 @@ pub use types::*;
 #[lucia_macros::api_types(pkgs_aux(crate::misc::PkgsAux), transport(http, ws))]
 pub struct Ethereum;
 
-#[cfg_attr(feature = "async-trait", async_trait::async_trait)]
 impl Api for Ethereum {
   type Error = crate::Error;
-
-  async fn before_sending(&mut self) -> Result<(), Self::Error> {
-    Ok(())
-  }
 }

@@ -141,7 +141,7 @@ where
     Ok(())
   }
 
-  /// See [QueryWriter<S>].
+  /// See [`QueryWriter<S>`].
   #[inline]
   pub fn query_writer(&mut self) -> crate::Result<QueryWriter<'_, S>> {
     if self.url.as_ref().len() != self.path_end {
