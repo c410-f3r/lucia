@@ -775,9 +775,9 @@ dependencies = [
 
 [[package]]
 name = "cl-aux"
-version = "2.2.0"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94e82f00bb97c774952dd18b94993d4cb9fd04bb2d8abed177138b67cc409b42"
+checksum = "11ba041ec000b10124b475f1885608b4287e4fed021b9bb374890ffe3ece566d"
 dependencies = [
  "arrayvec 0.7.4",
  "serde",
