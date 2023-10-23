@@ -1,6 +1,6 @@
 [dependencies]
 arrayvec = { default-features = false, features = ["serde"], version = "0.7" }
-cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "3.0" }
+cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "4.2" }
 lucia = { default-features = false, features = ["arrayvec"], path = "../lucia", version = "0.5" }
 lucia-macros = { default-features = false, path = "../lucia-macros", version = "0.2" }
 serde = { default-features = false, features = ["alloc", "derive"], version = "1.0" }
