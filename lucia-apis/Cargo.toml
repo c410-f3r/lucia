@@ -1,6 +1,6 @@
 [dependencies]
 arrayvec = { default-features = false, features = ["serde"], version = "0.7" }
-cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "4.4" }
+cl-aux = { default-features = false, features = ["alloc", "arrayvec", "serde"], version = "4.0" }
 lucia = { default-features = false, features = ["arrayvec"], path = "../lucia", version = "0.5" }
 lucia-macros = { default-features = false, path = "../lucia-macros", version = "0.2" }
 serde = { default-features = false, features = ["alloc", "derive"], version = "1.0" }
@@ -30,7 +30,7 @@ reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
 tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.33" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
-wtx = { default-features = false, features = ["tokio", "web-socket-handshake"], version = "0.10" }
+wtx = { default-features = false, features = ["tokio", "web-socket-handshake"], version = "0.11" }
 
 [features]
 
