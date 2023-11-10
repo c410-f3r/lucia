@@ -18,7 +18,7 @@ simd-json = { default-features = false, features = ["serde_impl"], optional = tr
 arrayvec = { default-features = false, optional = true, version = "0.7" }
 async-std = { default-features = false, optional = true, version = "1.0" }
 lucia-macros = { default-features = false, optional = true, path = "../lucia-macros", version = "0.2" }
-tokio = { default-features = false, optional = true, version = "1.33" }
+tokio = { default-features = false, optional = true, version = "1.34" }
 tracing = { default-features = false, optional = true, version = "0.1" }
 
 # Network
@@ -28,7 +28,7 @@ surf = { default-features = false, optional = true, version = "2.0" }
 wtx = { default-features = false, optional = true, version = "0.11" }
 
 [dev-dependencies]
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.33" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.34" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 
 [features]

@@ -28,7 +28,7 @@ lucia = { default-features = false, features = ["reqwest", "serde_json", "tracin
 lucia-apis = { features = ["ed25519-dalek"], path = "." }
 reqwest = { default-features = false, features = ["rustls-tls"], version = "0.11" }
 serde_json = { default-features = false, features = ["alloc"], version = "1.0" }
-tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.33" }
+tokio = { default-features = false, features = ["macros", "rt-multi-thread"], version = "1.34" }
 tracing-subscriber = { default-features = false, features = ["env-filter", "fmt", "tracing-log"], version = "0.3" }
 wtx = { default-features = false, features = ["tokio", "web-socket-handshake"], version = "0.11" }
 
