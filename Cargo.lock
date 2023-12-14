@@ -1913,12 +1913,13 @@ dependencies = [
 
 [[package]]
 name = "light-poseidon"
-version = "0.1.1"
+version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "949bdd22e4ed93481d45e9a6badb34b99132bcad0c8a8d4f05c42f7dcc7b90bc"
+checksum = "3c9a85a9752c549ceb7578064b4ed891179d20acd85f27318573b64d2d7ee7ee"
 dependencies = [
  "ark-bn254",
  "ark-ff",
+ "num-bigint",
  "thiserror",
 ]
 
@@ -3087,9 +3088,9 @@ dependencies = [
 
 [[package]]
 name = "solana-frozen-abi"
-version = "1.17.7"
+version = "1.17.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0471865f0908c886919844396b7a87c329216736ac61ca074b55237f18afef17"
+checksum = "13254cef276fed902b40c355ea08dcb7a7b8b02fb5ee6585255c3bfcf6b075d4"
 dependencies = [
  "ahash 0.8.6",
  "blake3",
@@ -3117,9 +3118,9 @@ dependencies = [
 
 [[package]]
 name = "solana-frozen-abi-macro"
-version = "1.17.7"
+version = "1.17.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8bb3b5a47af7ec7ce5698d6dea597be93567bac7b0f4845b0c31472dd43bb835"
+checksum = "014b1a6df0cfd712fbe71a244bf9b46eb513b85569b7abb156cf8c0bf62d33d9"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -3129,9 +3130,9 @@ dependencies = [
 
 [[package]]
 name = "solana-program"
-version = "1.17.7"
+version = "1.17.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d372d3108d05267b0f446935939f6ec586504f2443becc855b46ee64745ebce5"
+checksum = "7c40a96d667a1b535d1ab952a0c5419b2243bb9bdf07e1517e03bc0e906f9517"
 dependencies = [
  "ark-bn254",
  "ark-ec",
@@ -3183,9 +3184,9 @@ dependencies = [
 
 [[package]]
 name = "solana-sdk-macro"
-version = "1.17.7"
+version = "1.17.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3114364d2fe8c0238abd0b39c6ff1cfb180d8a30d5127b57a8d022a38dce648"
+checksum = "ac96537196d5d8d30ca242b44ddb3faed1a81b5e43375774ac8c9ea633bec647"
 dependencies = [
  "bs58 0.4.0",
  "proc-macro2",
